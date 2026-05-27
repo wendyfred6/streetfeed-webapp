@@ -1,0 +1,35 @@
+version: '3.9'
+
+# Development override — run with:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    volumes:
+      - ./backend/src:/app/src
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://streetfeed:devpassword@db:5432/streetfeed
+      APP_URL: http://localhost:5173
+      FRONTEND_URL: http://localhost:5173
+    ports:
+      - "3001:3001"
+    command: node --watch src/index.js
+
+  frontend:
+    build:
+      context: ./frontend
+      target: builder
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    command: npm run dev -- --host 0.0.0.0
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: ""
