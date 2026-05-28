@@ -1,0 +1,64 @@
+# docker-compose voor Synology NAS (Portainer Stacks)
+# SSL wordt afgehandeld door Synology DSM Reverse Proxy — geen aparte nginx nodig.
+#
+# Stap 1: Deploy deze stack in Portainer met de .env variabelen.
+# Stap 2: In DSM → Configuratiescherm → Toepassingsportal → Reverse proxy:
+#           Bron:  HTTPS streetfeed.nl:443
+#           Doel:  HTTP  localhost:8080
+# Stap 3: In DSM → Configuratiescherm → Beveiliging → Certificaat:
+#           Let's Encrypt certificaat aanvragen voor streetfeed.nl
+
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: streetfeed
+      POSTGRES_USER: ${POSTGRES_USER:-streetfeed}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-streetfeed}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-streetfeed}:${POSTGRES_PASSWORD}@db:5432/streetfeed
+      APP_URL: ${APP_URL:-https://streetfeed.nl}
+      FRONTEND_URL: ${APP_URL:-https://streetfeed.nl}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM:-Streetfeed <noreply@streetfeed.nl>}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_EMAIL: ${VAPID_EMAIL:-admin@streetfeed.nl}
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET: ${R2_BUCKET:-streetfeed}
+      R2_PUBLIC_URL: ${R2_PUBLIC_URL:-}
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ""   # leeg = relatief /api (via frontend nginx proxy)
+    restart: unless-stopped
+    ports:
+      - "8080:80"          # Synology reverse proxy wijst hiernaartoe
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
