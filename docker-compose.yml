@@ -45,20 +45,15 @@ services:
       args:
         VITE_API_URL: ""   # empty = relative /api (proxied by frontend nginx)
     restart: unless-stopped
+    ports:
+      - "8080:80"          # Synology reverse proxy wijst hiernaartoe
     depends_on:
       - backend
 
-  nginx:
-    image: nginx:alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/certs:/etc/nginx/certs:ro
-    depends_on:
-      - frontend
+  # nginx (SSL) wordt vervangen door Synology DSM reverse proxy.
+  # Voeg toe via: DSM → Configuratiescherm → Toepassingsportal → Reverse proxy
+  #   Bron:  HTTPS streetfeed.nl:443
+  #   Doel:  HTTP  localhost:8080
 
 volumes:
   pgdata:
