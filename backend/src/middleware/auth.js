@@ -17,7 +17,7 @@ export async function requireAuth(req, res, next) {
   next();
 }
 
-export async function requireMembership(role = 'resident') {
+export function requireMembership(role = 'resident') {
   const levels = { resident: 0, moderator: 1, admin: 2 };
   return async (req, res, next) => {
     const streetId = req.params.streetId;
