@@ -43,7 +43,7 @@ services:
     image: ghcr.io/wendyfred6/streetfeed-frontend:latest
     restart: unless-stopped
     ports:
-      - "8080:80"          # Synology reverse proxy wijst hiernaartoe
+      - "8088:80"          # Synology reverse proxy wijst hiernaartoe
     depends_on:
       - backend
 
