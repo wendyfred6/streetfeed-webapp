@@ -1,6 +1,12 @@
+import { demoRequest } from '../demo/client.js';
+
+export const isDemoMode = new URLSearchParams(window.location.search).has('demo');
+
 const BASE = import.meta.env.VITE_API_URL || '/api';
 
 async function request(method, path, body) {
+  if (isDemoMode) return demoRequest(method, path, body);
+
   const res = await fetch(`${BASE}${path}`, {
     method,
     credentials: 'include',

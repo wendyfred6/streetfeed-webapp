@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
+import { isDemoMode } from './api/client.js';
 import App from './App.jsx';
 import AuthPage from './pages/AuthPage.jsx';
 
@@ -44,9 +45,21 @@ function AppRouter() {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <AppRouter />
-      </AuthProvider>
+      {isDemoMode && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+          background: '#E8FF47', color: '#000',
+          fontSize: 10, fontWeight: 800, letterSpacing: '1px',
+          textAlign: 'center', padding: '4px 0', textTransform: 'uppercase',
+        }}>
+          Demo modus — nep data, geen backend nodig
+        </div>
+      )}
+      <div style={isDemoMode ? { paddingTop: 22 } : undefined}>
+        <AuthProvider>
+          <AppRouter />
+        </AuthProvider>
+      </div>
     </BrowserRouter>
   </React.StrictMode>
 );

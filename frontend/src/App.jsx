@@ -77,11 +77,11 @@ const s = {
 
 function timeAgo(ts) {
   const diff = (Date.now() - new Date(ts)) / 1000;
-  if (diff < 60) return 'zojuist';
-  if (diff < 3600) return `${Math.floor(diff / 60)} min geleden`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} uur geleden`;
-  if (diff < 172800) return 'gisteren';
-  return new Date(ts).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+  if (diff < 60) return t('time_just_now');
+  if (diff < 3600) return t('time_min_ago', { n: Math.floor(diff / 60) });
+  if (diff < 86400) return t('time_hour_ago', { n: Math.floor(diff / 3600) });
+  if (diff < 172800) return t('time_yesterday');
+  return new Date(ts).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' });
 }
 
 function CatBadge({ cat }) {
@@ -210,7 +210,7 @@ function IncidentExtra({ post }) {
 
 // ─── POST CARD ─────────────────────────────────────────────────────────────────
 
-function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, canModerate }) {
+function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate }) {
   const cat = CATEGORIES[post.category];
   const isEvent = post.category === 'event';
   const isIncident = post.category === 'incident';
@@ -222,13 +222,35 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, canModerate }) 
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
             {post.pinned && <span style={s.pinnedBadge}>📌 Pinned</span>}
-            {post.end_date && <span style={s.endDateBadge}>t/m {new Date(post.end_date).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</span>}
+            {post.end_date && <span style={s.endDateBadge}>{t('until')} {new Date(post.end_date).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' })}</span>}
             <CatBadge cat={post.category} />
           </div>
           <div style={s.cardTitle}>{post.title}</div>
           <div style={s.cardBody}>{post.body}</div>
           {isEvent && post.rsvp && <RsvpBar post={post} onRsvp={onRsvp} />}
           {isIncident && <IncidentExtra post={post} />}
+          {post.carrier && (
+            <div style={{ marginTop: 8 }}>
+              <span style={{ ...s.badge(COLORS.blue), fontSize: 11 }}>📦 {post.carrier}</span>
+            </div>
+          )}
+          {post.link && (
+            <a href={post.link} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, background: 'none', border: `1px solid ${COLORS.blue}44`, borderRadius: 8, padding: '7px 12px', fontSize: 12, color: COLORS.blue, textDecoration: 'none' }}>
+              🔗 Meer informatie →
+            </a>
+          )}
+          {post.attachment_name && (
+            <div style={{ marginTop: 8, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '7px 12px', fontSize: 12, color: COLORS.textMuted, display: 'flex', alignItems: 'center', gap: 6 }}>
+              📎 {post.attachment_name}
+            </div>
+          )}
+          {post.allow_join && (
+            <button onClick={e => { e.stopPropagation(); onOpenJoin(post); }}
+              style={{ marginTop: 10, width: '100%', background: post.my_join ? `${COLORS.green}22` : COLORS.bg, border: `1px solid ${post.my_join ? COLORS.green : COLORS.border}`, borderRadius: 8, padding: '8px 12px', color: post.my_join ? COLORS.green : COLORS.textMuted, fontSize: 13, fontWeight: post.my_join ? 700 : 400, cursor: 'pointer', textAlign: 'left' }}>
+              ✋ {post.my_join ? t('join_card') : t('join_cta')} <span style={{ color: COLORS.textDim, fontWeight: 400 }}>· {(post.joiners||[]).length} {t('join_participants').toLowerCase()}</span>
+            </button>
+          )}
         </div>
       </div>
       <div style={s.cardMeta}>
@@ -304,6 +326,96 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
             </div>
           </>
         )}
+        <div style={s.label}>{t('calendar_add')}</div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <button onClick={() => downloadICS(post)}
+            style={{ flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 6px', color: COLORS.textMuted, fontSize: 12, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+            <span style={{ fontSize: 18 }}>📅</span><span>Download .ics</span>
+          </button>
+          <a href={googleCalendarUrl(post)} target="_blank" rel="noopener noreferrer"
+            style={{ flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 6px', color: COLORS.textMuted, fontSize: 12, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, textDecoration: 'none' }}>
+            <span style={{ fontSize: 18 }}>🗓️</span><span>{t('calendar_google')}</span>
+          </a>
+        </div>
+        <button style={s.cancelBtn} onClick={onClose}>{t('close')}</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── CALENDAR HELPERS ──────────────────────────────────────────────────────────
+
+const DUTCH_MONTHS = { 'januari':0,'februari':1,'maart':2,'april':3,'mei':4,'juni':5,'juli':6,'augustus':7,'september':8,'oktober':9,'november':10,'december':11 };
+
+function parseDutchDate(dateStr, timeStr = '00:00') {
+  const p = (dateStr || '').trim().split(' ');
+  if (p.length < 3) return null;
+  const month = DUTCH_MONTHS[p[1]?.toLowerCase()];
+  if (month === undefined) return null;
+  const [h, m] = (timeStr || '00:00').split(':').map(Number);
+  return new Date(parseInt(p[2]), month, parseInt(p[0]), h || 0, m || 0);
+}
+
+function toICSDate(d) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+}
+
+function downloadICS(post) {
+  const start = parseDutchDate(post.event_date, post.event_time);
+  if (!start) return;
+  const end = new Date(start.getTime() + 2 * 3600 * 1000);
+  const ics = [
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Streetfeed//NL',
+    'BEGIN:VEVENT',
+    `DTSTART:${toICSDate(start)}`,
+    `DTEND:${toICSDate(end)}`,
+    `SUMMARY:${post.title}`,
+    `DESCRIPTION:${(post.body||'').replace(/\n/g,'\\n')}`,
+    `LOCATION:${post.event_location||''}`,
+    'END:VEVENT','END:VCALENDAR',
+  ].join('\r\n');
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })),
+    download: 'evenement.ics',
+  });
+  a.click();
+}
+
+function googleCalendarUrl(post) {
+  const start = parseDutchDate(post.event_date, post.event_time);
+  if (!start) return '#';
+  const end = new Date(start.getTime() + 2 * 3600 * 1000);
+  const fmt = d => d.toISOString().replace(/[-:.]/g,'').slice(0,15);
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(post.title)}&dates=${fmt(start)}/${fmt(end)}&details=${encodeURIComponent(post.body||'')}&location=${encodeURIComponent(post.event_location||'')}`;
+}
+
+// ─── JOIN DETAIL SHEET ─────────────────────────────────────────────────────────
+
+function JoinDetailSheet({ post, onClose, onJoin }) {
+  const joiners = post.joiners || [];
+  return (
+    <div style={s.overlay} onClick={onClose}>
+      <div style={s.sheet} onClick={e => e.stopPropagation()}>
+        <div style={s.sheetHandle} />
+        <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{post.title}</div>
+        <div style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 16 }}>
+          ✋ {joiners.length} {joiners.length === 1 ? t('join_count_one') : t('join_count_many')}
+        </div>
+        <button onClick={() => onJoin(post.id)}
+          style={{ width: '100%', background: post.my_join ? `${COLORS.green}22` : COLORS.bg, border: `1px solid ${post.my_join ? COLORS.green : COLORS.border}`, borderRadius: 8, padding: '12px', color: post.my_join ? COLORS.green : COLORS.textMuted, fontSize: 14, fontWeight: post.my_join ? 700 : 400, cursor: 'pointer', marginBottom: 16 }}>
+          {post.my_join ? `✋ ${t('join_active')}` : `✋ ${t('join_cta')}`}
+        </button>
+        {joiners.length > 0 && (
+          <>
+            <div style={s.label}>{t('join_participants')} ({joiners.length})</div>
+            <div style={s.infoBox}>
+              {joiners.map((name, i) => (
+                <div key={name} style={{ fontSize: 13, padding: '4px 0', borderBottom: i < joiners.length - 1 ? `1px solid ${COLORS.border}` : 'none', color: COLORS.textMuted }}>{name}</div>
+              ))}
+            </div>
+          </>
+        )}
         <button style={s.cancelBtn} onClick={onClose}>{t('close')}</button>
       </div>
     </div>
@@ -360,10 +472,17 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
   const [bringItems, setBringItems] = useState('');
   const [licenseplate, setLicenseplate] = useState('');
   const [photoKey, setPhotoKey] = useState(null);
+  const [link, setLink] = useState('');
+  const [carrier, setCarrier] = useState('');
+  const [attachmentName, setAttachmentName] = useState(null);
+  const [allowJoin, setAllowJoin] = useState(false);
 
   const isEvent = cat === 'event';
   const isIncident = cat === 'incident';
   const isPinnable = CATEGORIES[cat]?.pinnable;
+  const hasLink = ['blockage', 'container', 'waste'].includes(cat);
+  const isPackage = cat === 'package';
+  const isGeneral = cat === 'general';
 
   return (
     <div style={s.overlay} onClick={onClose}>
@@ -383,6 +502,42 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
         <label style={s.label}>{t('message')}</label>
         <textarea style={s.textarea} placeholder={t('message_placeholder')} value={body} onChange={e => setBody(e.target.value)} />
         <PhotoUpload category={cat} onUploaded={setPhotoKey} />
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ ...s.label, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: attachmentName ? COLORS.accent : COLORS.textMuted }}>
+              {attachmentName ? `📎 ${attachmentName}` : '📎 Document toevoegen (PDF)'}
+            </span>
+            <input type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
+              onChange={e => setAttachmentName(e.target.files[0]?.name || null)} />
+          </label>
+        </div>
+        {isPackage && (
+          <>
+            <label style={s.label}>Bezorger</label>
+            <select value={carrier} onChange={e => setCarrier(e.target.value)}
+              style={{ ...s.input, cursor: 'pointer', marginBottom: 10 }}>
+              <option value="">— selecteer bezorger (optioneel)</option>
+              {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </>
+        )}
+        {isGeneral && (
+          <div onClick={() => setAllowJoin(v => !v)}
+            style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: 10 }}>
+            <span style={{ fontSize: 13 }}>✋ "Ik doe mee"-knop inschakelen</span>
+            <div style={{ width: 36, height: 20, borderRadius: 10, background: allowJoin ? COLORS.accent : COLORS.border, position: 'relative', flexShrink: 0 }}>
+              <div style={{ position: 'absolute', top: 3, left: allowJoin ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: allowJoin ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
+            </div>
+          </div>
+        )}
+        {hasLink && (
+          <>
+            <label style={s.label}>Externe link (optioneel)</label>
+            <input style={s.input} placeholder="https://..." value={link} onChange={e => setLink(e.target.value)} />
+          </>
+        )}
         {isIncident && (
           <>
             <label style={s.label}>{t('license_plate')}</label>
@@ -415,6 +570,8 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
           onSubmit({ category: cat, title, body, endDate, eventDate, eventTime, eventLocation,
             bringList: bringItems ? bringItems.split(',').map(i => i.trim()) : [],
             licensePlate: licenseplate || undefined, photoKey: photoKey || undefined,
+            link: link || undefined, carrier: carrier || undefined,
+            attachmentName: attachmentName || undefined, allowJoin,
             pinned: canPin && isPinnable && !!endDate });
           onClose();
         }}>{t('publish')}</button>
@@ -599,7 +756,7 @@ function SettingsView({ user, onLogout }) {
       <div style={s.sectionLabel}>{t('privacy_title')}</div>
       <div style={{ padding: '0 12px' }}>
         <div style={{ ...s.adminCard, fontSize: 12, color: COLORS.textMuted, lineHeight: 1.7 }}>
-          <div style={{ fontWeight: 700, color: COLORS.text, marginBottom: 8 }}>Zo gaan we om met jouw data:</div>
+          <div style={{ fontWeight: 700, color: COLORS.text, marginBottom: 8 }}>{t('privacy_intro')}</div>
           {t('privacy_body').map(item => <div key={item} style={{ padding: '3px 0' }}>{item}</div>)}
         </div>
       </div>
@@ -665,6 +822,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [showPost, setShowPost] = useState(false);
   const [eventDetail, setEventDetail] = useState(null);
+  const [joinDetail, setJoinDetail] = useState(null);
   const [reportedToast, setReportedToast] = useState(false);
   const [streetInfo, setStreetInfo] = useState(null);
 
@@ -742,6 +900,19 @@ export default function App() {
     setPosts(ps => [post, ...ps]);
   };
 
+  const handleJoin = async (id) => {
+    const { joined } = await api.post(`/streets/${STREET_ID}/posts/${id}/join`);
+    const update = (p) => {
+      if (p.id !== id) return p;
+      const joiners = joined
+        ? [...(p.joiners || []), user.name]
+        : (p.joiners || []).filter(n => n !== user.name);
+      return { ...p, my_join: joined, joiners };
+    };
+    setPosts(ps => ps.map(update));
+    if (joinDetail?.id === id) setJoinDetail(update);
+  };
+
   const pinnedPosts = posts.filter(p => p.pinned);
   const regularPosts = posts.filter(p => !p.pinned);
 
@@ -771,12 +942,12 @@ export default function App() {
             : <>
               {pinnedPosts.length > 0 && filter === 'all' && (
                 <><div style={s.sectionLabel}>{t('pinned')}</div>
-                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} canModerate={canModerate} />)}</>
+                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} />)}</>
               )}
               <div style={s.sectionLabel}>{t('recent')}</div>
               {regularPosts.length === 0
                 ? <div style={s.emptyState}>{t('no_posts')}</div>
-                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} canModerate={canModerate} />)}
+                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} />)}
             </>
           }
         </div>
@@ -812,6 +983,9 @@ export default function App() {
       )}
       {eventDetail && (
         <EventDetailSheet post={eventDetail} onClose={() => setEventDetail(null)} onRsvp={handleRsvp} />
+      )}
+      {joinDetail && (
+        <JoinDetailSheet post={joinDetail} onClose={() => setJoinDetail(null)} onJoin={handleJoin} />
       )}
     </div>
   );
