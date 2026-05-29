@@ -816,6 +816,7 @@ function PendingView() {
 
 export default function App() {
   const { user, logout } = useAuth();
+  const { permission, subscribed, subscribe } = usePush();
   const [tab, setTab] = useState('feed');
   const [filter, setFilter] = useState('all');
   const [posts, setPosts] = useState([]);
@@ -931,6 +932,17 @@ export default function App() {
 
       {tab === 'feed' && (
         <div style={s.feed}>
+          {!subscribed && permission !== 'denied' && (
+            <div style={{ margin: '12px 12px 0', background: 'rgba(232,255,71,0.06)', border: '1px solid rgba(232,255,71,0.25)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 2 }}>🔔 Blijf op de hoogte</div>
+                <div style={{ fontSize: 12, color: COLORS.textMuted, lineHeight: 1.4 }}>Ontvang een melding bij nieuwe berichten in de straat</div>
+              </div>
+              <button onClick={subscribe} style={{ background: COLORS.accent, color: '#000', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                Aanzetten
+              </button>
+            </div>
+          )}
           <div style={s.filterBar}>
             <div style={s.filterChip(filter === 'all')} onClick={() => setFilter('all')}>{t('all')}</div>
             {Object.entries(CATEGORIES).map(([key, c]) => (
