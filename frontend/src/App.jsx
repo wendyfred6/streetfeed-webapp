@@ -964,7 +964,7 @@ export default function App() {
           {loading
             ? <div style={s.emptyState}>{t('loading')}</div>
             : <>
-              {pinnedPosts.length > 0 && filter === 'all' && (
+              {pinnedPosts.length > 0 && (
                 <><div style={s.sectionLabel}>{t('pinned')}</div>
                 {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} />)}</>
               )}
