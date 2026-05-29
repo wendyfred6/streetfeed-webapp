@@ -222,15 +222,22 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
       <div style={{ display: 'flex', gap: 10, cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
         <div style={{ width: 8, height: 8, borderRadius: '50%', background: cat?.color || '#888', marginTop: 6, flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
-            {post.pinned && <span style={s.pinnedBadge}>📌 Pinned</span>}
-            {post.end_date && <span style={s.endDateBadge}>{t('until')} {new Date(post.end_date).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' })}</span>}
-            <CatBadge cat={post.category} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              {post.pinned && <span style={s.pinnedBadge}>📌 Pinned</span>}
+              {post.end_date && <span style={s.endDateBadge}>{t('until')} {new Date(post.end_date).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' })}</span>}
+              <CatBadge cat={post.category} />
+            </div>
+            <span style={{
+              display: 'inline-block', flexShrink: 0, marginLeft: 8,
+              width: 9, height: 9,
+              borderRight: `2px solid ${COLORS.textMuted}`,
+              borderBottom: `2px solid ${COLORS.textMuted}`,
+              transform: expanded ? 'rotate(-135deg) translateY(4px)' : 'rotate(45deg)',
+              transition: 'transform 0.2s',
+            }} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-            <div style={s.cardTitle}>{post.title}</div>
-            <span style={{ color: COLORS.textDim, fontSize: 13, flexShrink: 0, marginTop: 2 }}>{expanded ? '▾' : '▸'}</span>
-          </div>
+          <div style={s.cardTitle}>{post.title}</div>
         </div>
       </div>
 
