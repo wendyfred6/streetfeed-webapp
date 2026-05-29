@@ -462,6 +462,7 @@ function PhotoUpload({ category, onUploaded }) {
 // ─── NEW POST SHEET ────────────────────────────────────────────────────────────
 
 function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
+  // Prevent accidental close on desktop by not closing on overlay click
   const [cat, setCat] = useState('general');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -485,8 +486,8 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
   const isGeneral = cat === 'general';
 
   return (
-    <div style={s.overlay} onClick={onClose}>
-      <div style={s.sheet} onClick={e => e.stopPropagation()}>
+    <div style={s.overlay}>
+      <div style={s.sheet}>
         <div style={s.sheetHandle} />
         <div style={s.sheetTitle}>{t('new_post')}</div>
         <label style={s.label}>{t('category')}</label>
@@ -825,6 +826,7 @@ export default function App() {
   const [eventDetail, setEventDetail] = useState(null);
   const [joinDetail, setJoinDetail] = useState(null);
   const [reportedToast, setReportedToast] = useState(false);
+  const [postError, setPostError] = useState('');
   const [streetInfo, setStreetInfo] = useState(null);
 
   const STREET_ID = 1; // Reyer Anslostraat (first street)
@@ -897,8 +899,13 @@ export default function App() {
   };
 
   const handleNewPost = async (data) => {
-    const post = await api.post(`/streets/${STREET_ID}/posts`, data);
-    setPosts(ps => [post, ...ps]);
+    try {
+      const post = await api.post(`/streets/${STREET_ID}/posts`, data);
+      setPosts(ps => [post, ...ps]);
+    } catch (e) {
+      setPostError(e.message || 'Bericht plaatsen mislukt');
+      setTimeout(() => setPostError(''), 4000);
+    }
   };
 
   const handleJoin = async (id) => {
@@ -922,6 +929,11 @@ export default function App() {
       {reportedToast && (
         <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: COLORS.surface, border: `1px solid ${COLORS.red}`, borderRadius: 10, padding: '10px 20px', fontSize: 13, color: COLORS.text, zIndex: 200, whiteSpace: 'nowrap' }}>
           {t('reported_toast')}
+        </div>
+      )}
+      {postError && (
+        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: COLORS.surface, border: `1px solid ${COLORS.red}`, borderRadius: 10, padding: '10px 20px', fontSize: 13, color: COLORS.red, zIndex: 200, whiteSpace: 'nowrap' }}>
+          ⚠️ {postError}
         </div>
       )}
 
@@ -990,7 +1002,7 @@ export default function App() {
       </div>
 
       {showPost && (
-        <NewPostSheet onClose={() => setShowPost(false)} onSubmit={handleNewPost}
+        <NewPostSheet onClose={() => setShowPost(false)} onSubmit={(data) => { handleNewPost(data); setShowPost(false); }}
           streetId={STREET_ID} canPin={canPin} />
       )}
       {eventDetail && (
