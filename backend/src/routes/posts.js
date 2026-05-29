@@ -27,6 +27,8 @@ router.get('/:streetId/posts', requireAuth, requireMembership('resident'), async
       COUNT(DISTINCT r.id) AS reports,
       EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $2) AS liked,
       (SELECT type FROM rsvps WHERE post_id = p.id AND user_id = $2) AS my_rsvp,
+      EXISTS(SELECT 1 FROM joins WHERE post_id = p.id AND user_id = $2) AS my_join,
+      COALESCE((SELECT json_agg(u3.name) FROM joins j JOIN users u3 ON u3.id = j.user_id WHERE j.post_id = p.id), '[]') AS joiners,
       (
         SELECT json_build_object(
           'yes',  COALESCE((SELECT json_agg(u2.name) FROM rsvps rv JOIN users u2 ON u2.id = rv.user_id WHERE rv.post_id = p.id AND rv.type = 'yes'), '[]'),
@@ -222,6 +224,25 @@ router.post('/:streetId/posts/:postId/rsvp', requireAuth, requireMembership('res
       [postId, userId, type]
     );
     res.json({ rsvp: type });
+  }
+});
+
+// POST /api/streets/:streetId/posts/:postId/join
+router.post('/:streetId/posts/:postId/join', requireAuth, requireMembership('resident'), async (req, res) => {
+  const { postId } = req.params;
+  const userId = req.user.user_id;
+
+  const existing = await query(
+    'SELECT id FROM joins WHERE post_id = $1 AND user_id = $2',
+    [postId, userId]
+  );
+
+  if (existing.rows.length) {
+    await query('DELETE FROM joins WHERE post_id = $1 AND user_id = $2', [postId, userId]);
+    res.json({ joined: false });
+  } else {
+    await query('INSERT INTO joins (post_id, user_id) VALUES ($1, $2)', [postId, userId]);
+    res.json({ joined: true });
   }
 });
 

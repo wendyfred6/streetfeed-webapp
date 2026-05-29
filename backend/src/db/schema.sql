@@ -128,5 +128,14 @@ ALTER TABLE posts ADD COLUMN IF NOT EXISTS start_date DATE;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS start_time TEXT;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS end_time TEXT;
 
+-- Migratie: joins tabel voor aanmeldknop
+CREATE TABLE IF NOT EXISTS joins (
+  id         SERIAL PRIMARY KEY,
+  post_id    INT REFERENCES posts(id) ON DELETE CASCADE,
+  user_id    INT REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (post_id, user_id)
+);
+
 -- Seed: super admin
 UPDATE users SET is_super_admin = true WHERE email = 'wendy@fred6.nl';

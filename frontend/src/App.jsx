@@ -841,7 +841,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         {isIncident && incidentType === 'verlichting' && (
           <>
             <label style={s.label}>Ter hoogte van nr. (optioneel)</label>
-            <input style={s.input} placeholder="bijv. 34"
+            <input style={s.input} placeholder="Bijv. 34"
               value={nearHouseNr} onChange={e => setNearHouseNr(e.target.value)} />
           </>
         )}
@@ -949,6 +949,14 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
           <>
             <label style={s.label}>Externe link (optioneel)</label>
             <input style={s.input} placeholder="https://..." value={link} onChange={e => setLink(e.target.value)} />
+          </>
+        )}
+
+        {/* Datum voor algemeen bericht (optioneel) */}
+        {isGeneral && (
+          <>
+            <label style={s.label}>Einddatum (optioneel)</label>
+            <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
           </>
         )}
 
