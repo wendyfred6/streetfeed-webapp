@@ -597,8 +597,8 @@ function EditPostSheet({ post, onClose, onSave }) {
           <>
             <label style={s.label}>Bezorger</label>
             <select value={carrier} onChange={e => setCarrier(e.target.value)}
-              style={{ ...s.input, cursor: 'pointer', marginBottom: 10 }}>
-              <option value="">— selecteer bezorger (optioneel)</option>
+              style={{ ...s.input, cursor: 'pointer', marginBottom: 10, paddingRight: 32 }}>
+              <option value="">Selecteer bezorger (optioneel)</option>
               {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}
@@ -772,8 +772,8 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
           <>
             <label style={s.label}>Bezorger</label>
             <select value={carrier} onChange={e => setCarrier(e.target.value)}
-              style={{ ...s.input, cursor: 'pointer', marginBottom: 10 }}>
-              <option value="">— selecteer bezorger (optioneel)</option>
+              style={{ ...s.input, cursor: 'pointer', marginBottom: 10, paddingRight: 32 }}>
+              <option value="">Selecteer bezorger (optioneel)</option>
               {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}
