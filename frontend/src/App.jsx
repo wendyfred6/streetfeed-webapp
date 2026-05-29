@@ -852,13 +852,19 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         {isPackage && (
           <>
             <label style={s.label}>Bezorger</label>
-            <select value={carrier} onChange={e => setCarrier(e.target.value)}
-              style={{ ...s.input, cursor: 'pointer', marginBottom: 10, paddingRight: 42 }}>
-              <option value="">Selecteer bezorger (optioneel)</option>
-              {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+            <div style={{ position: 'relative', marginBottom: 10 }}>
+              <select value={carrier} onChange={e => setCarrier(e.target.value)}
+                style={{ ...s.input, cursor: 'pointer', marginBottom: 0, paddingRight: 36, appearance: 'none', WebkitAppearance: 'none' }}>
+                <option value="">Selecteer bezorger (optioneel)</option>
+                {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
           </>
         )}
 
