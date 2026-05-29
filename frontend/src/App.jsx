@@ -281,8 +281,12 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
         const [y, m, day] = d.substring(0, 10).split('-');
         return new Date(+y, +m - 1, +day).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
       };
-      if (post.start_date && post.end_date) return `${fmt(post.start_date)} – ${fmt(post.end_date)}`;
-      if (post.end_date) return `t/m ${fmt(post.end_date)}`;
+      const timePart = post.start_time || post.end_time
+        ? ` · ${post.start_time || '?'}–${post.end_time || '?'}`
+        : '';
+      if (post.start_date && post.end_date) return `${fmt(post.start_date)} – ${fmt(post.end_date)}${timePart}`;
+      if (post.end_date) return `t/m ${fmt(post.end_date)}${timePart}`;
+      if (timePart) return timePart.replace(' · ', '');
     }
     return null;
   };
@@ -560,10 +564,13 @@ function EditPostSheet({ post, onClose, onSave }) {
   const [eventLocation, setEventLocation] = useState(post.event_location || '');
   const [carrier, setCarrier] = useState(post.carrier || '');
   const [link, setLink] = useState(post.link || '');
+  const [startTime, setStartTime] = useState(post.start_time || '');
+  const [endTime, setEndTime] = useState(post.end_time || '');
 
   const isEvent = post.category === 'event';
   const isPackage = post.category === 'package';
   const hasDateRange = ['works', 'blockage', 'container'].includes(post.category);
+  const hasTimeRange = post.category === 'works';
   const hasLink = ['works', 'blockage', 'container', 'waste'].includes(post.category);
 
   return (
@@ -583,10 +590,30 @@ function EditPostSheet({ post, onClose, onSave }) {
 
         {hasDateRange && (
           <>
-            <label style={s.label}>Startdatum (optioneel)</label>
-            <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-            <label style={s.label}>Einddatum (optioneel)</label>
-            <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={s.label}>Startdatum (optioneel)</label>
+                <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+              </div>
+              {hasTimeRange && (
+                <div>
+                  <label style={s.label}>Starttijd (optioneel)</label>
+                  <input style={s.input} type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={s.label}>Einddatum (optioneel)</label>
+                <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+              </div>
+              {hasTimeRange && (
+                <div>
+                  <label style={s.label}>Eindtijd (optioneel)</label>
+                  <input style={s.input} type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+                </div>
+              )}
+            </div>
           </>
         )}
 
@@ -626,6 +653,8 @@ function EditPostSheet({ post, onClose, onSave }) {
             title, body,
             startDate: startDate || undefined,
             endDate: endDate || undefined,
+            startTime: startTime || undefined,
+            endTime: endTime || undefined,
             eventDate: eventDate || undefined,
             eventTime: eventTime || undefined,
             eventLocation: eventLocation || undefined,
@@ -709,6 +738,8 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   const [body, setBody] = useState('');
   const [incidentType, setIncidentType] = useState('');
   const [workType, setWorkType] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   // Pakketje: huisnummers voor auto-gegenereerde titel
   const [forHouse, setForHouse] = useState('');
   const [pickupHouse, setPickupHouse] = useState(user?.house_number || '');
@@ -862,13 +893,29 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
           </>
         )}
 
-        {/* Datums voor werkzaamheden */}
+        {/* Datums + tijden voor werkzaamheden */}
         {isWorks && (
           <>
-            <label style={s.label}>Startdatum (optioneel)</label>
-            <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-            <label style={s.label}>Einddatum (optioneel)</label>
-            <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={s.label}>Startdatum (optioneel)</label>
+                <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+              </div>
+              <div>
+                <label style={s.label}>Starttijd (optioneel)</label>
+                <input style={s.input} type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={s.label}>Einddatum (optioneel)</label>
+                <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+              </div>
+              <div>
+                <label style={s.label}>Eindtijd (optioneel)</label>
+                <input style={s.input} type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+              </div>
+            </div>
             {canPin && endDate && (
               <div style={{ fontSize: 11, color: COLORS.accent, marginBottom: 8 }}>
                 Dit bericht wordt automatisch vastgepind t/m de einddatum.
@@ -948,6 +995,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
               bringList: bringItems ? bringItems.split(',').map(i => i.trim()) : [],
               licensePlate: licenseplate || undefined, photoKey: photoKey || undefined,
               link: link || undefined, carrier: carrier || undefined,
+              startTime: startTime || undefined, endTime: endTime || undefined,
               attachmentName: attachmentName || undefined, allowJoin,
               pinned: canPin && isPinnable && !!endDate });
             onClose();

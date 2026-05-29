@@ -124,5 +124,9 @@ INSERT INTO streets (name, households) VALUES ('Reyer Anslostraat', 111)
 -- Migratie: startdatum voor blokkades en containers
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS start_date DATE;
 
+-- Migratie: starttijd en eindtijd voor werkzaamheden
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS start_time TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS end_time TEXT;
+
 -- Seed: super admin
 UPDATE users SET is_super_admin = true WHERE email = 'wendy@fred6.nl';
