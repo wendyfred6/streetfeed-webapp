@@ -691,7 +691,7 @@ const INCIDENT_TYPES = [
   { key: 'geluidsoverlast', label: 'Geluidsoverlast',     reportTo: 'gemeente' },
   { key: 'schade',          label: 'Schade / gevaar',     reportTo: 'gemeente' },
   { key: 'verdacht',        label: 'Verdacht gedrag',     reportTo: 'politie'  },
-  { key: 'verlichting',     label: 'Verlichting defect',  reportTo: 'gemeente' },
+  { key: 'verlichting',     label: 'Straatverlichting defect', reportTo: 'gemeente' },
 ];
 
 function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
@@ -709,6 +709,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   const [eventLocation, setEventLocation] = useState('');
   const [bringItems, setBringItems] = useState('');
   const [licenseplate, setLicenseplate] = useState('');
+  const [nearHouseNr, setNearHouseNr] = useState('');
   const [photoKey, setPhotoKey] = useState(null);
   const [link, setLink] = useState('');
   const [carrier, setCarrier] = useState('');
@@ -757,7 +758,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
               {INCIDENT_TYPES.map(({ key, label }) => (
                 <div key={key}
                   style={{ ...s.filterChip(incidentType === key), borderRadius: 8, fontSize: 12 }}
-                  onClick={() => { setIncidentType(key); setTitle(label); setLicenseplate(''); }}>
+                  onClick={() => { setIncidentType(key); setTitle(label); setLicenseplate(''); setNearHouseNr(''); }}>
                   {label}
                 </div>
               ))}
@@ -773,6 +774,15 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
               placeholder={t('license_plate_placeholder')} value={licenseplate}
               onChange={e => setLicenseplate(e.target.value.toUpperCase())} />
             <RdwLookup kenteken={licenseplate} />
+          </>
+        )}
+
+        {/* Ter hoogte van — alleen bij straatverlichting */}
+        {isIncident && incidentType === 'verlichting' && (
+          <>
+            <label style={s.label}>Ter hoogte van nr. (optioneel)</label>
+            <input style={s.input} placeholder="bijv. 34"
+              value={nearHouseNr} onChange={e => setNearHouseNr(e.target.value)} />
           </>
         )}
 
@@ -900,7 +910,11 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
           disabled={!canSubmit}
           onClick={() => {
             if (!canSubmit) return;
-            const finalTitle = isPackage ? packageTitle : title;
+            const finalTitle = isPackage
+              ? packageTitle
+              : (isIncident && incidentType === 'verlichting' && nearHouseNr.trim())
+                ? `${title} — ter hoogte van nr. ${nearHouseNr.trim()}`
+                : title;
             onSubmit({ category: cat, title: finalTitle, body,
               startDate: startDate || undefined,
               endDate, eventDate, eventTime, eventLocation,
