@@ -705,7 +705,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   const isGeneral = cat === 'general';
 
   // Auto-gegenereerde titel voor pakketje
-  const packageTitle = `Pakket voor ${forHouse.trim() || '—'} · Ophalen bij nr. ${pickupHouse.trim() || '—'}`;
+  const packageTitle = `Pakket voor ${forHouse.trim() || '—'} → Ophalen bij nr. ${pickupHouse.trim() || '—'}`;
 
   // Submit mag pas als verplichte velden ingevuld zijn
   const canSubmit = isPackage
