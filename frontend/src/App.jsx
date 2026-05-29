@@ -239,7 +239,7 @@ function CarrierBadge({ carrier }) {
 
 // ─── POST CARD ─────────────────────────────────────────────────────────────────
 
-function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate }) {
+function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate, onEdit, canEdit }) {
   const [expanded, setExpanded] = useState(false);
   const isEvent = post.category === 'event';
   const isIncident = post.category === 'incident';
@@ -336,6 +336,9 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <button style={{ ...s.actionBtn, color: post.liked ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>♥ {post.likes}</button>
               <button style={s.actionBtn} onClick={e => e.stopPropagation()}>💬 {post.comments}</button>
+              {canEdit && (
+                <button style={{ ...s.reportBtn, color: COLORS.textMuted }} onClick={e => { e.stopPropagation(); onEdit(post); }} title="Bewerken">✏️</button>
+              )}
               {canModerate ? (
                 <button style={{ ...s.reportBtn, color: COLORS.red }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('delete')}>🗑</button>
               ) : (
@@ -491,6 +494,102 @@ function JoinDetailSheet({ post, onClose, onJoin }) {
           </>
         )}
         <button style={s.cancelBtn} onClick={onClose}>{t('close')}</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── EDIT POST SHEET ───────────────────────────────────────────────────────────
+
+function EditPostSheet({ post, onClose, onSave }) {
+  const toDateInput = (d) => d ? d.substring(0, 10) : '';
+
+  const [title, setTitle] = useState(post.title);
+  const [body, setBody] = useState(post.body || '');
+  const [startDate, setStartDate] = useState(toDateInput(post.start_date));
+  const [endDate, setEndDate] = useState(toDateInput(post.end_date));
+  const [eventDate, setEventDate] = useState(post.event_date || '');
+  const [eventTime, setEventTime] = useState(post.event_time || '');
+  const [eventLocation, setEventLocation] = useState(post.event_location || '');
+  const [carrier, setCarrier] = useState(post.carrier || '');
+  const [link, setLink] = useState(post.link || '');
+
+  const isEvent = post.category === 'event';
+  const isPackage = post.category === 'package';
+  const hasDateRange = ['blockage', 'container'].includes(post.category);
+  const hasLink = ['blockage', 'container', 'waste'].includes(post.category);
+
+  return (
+    <div style={s.overlay}>
+      <div style={s.sheet}>
+        <div style={s.sheetHandle} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <div style={s.sheetTitle}>Bericht bewerken</div>
+          <CatBadge cat={post.category} />
+        </div>
+
+        <label style={s.label}>{t('title')}</label>
+        <input style={s.input} value={title} onChange={e => setTitle(e.target.value)} />
+
+        <label style={s.label}>{t('message')}</label>
+        <textarea style={s.textarea} value={body} onChange={e => setBody(e.target.value)} />
+
+        {hasDateRange && (
+          <>
+            <label style={s.label}>Startdatum (optioneel)</label>
+            <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+            <label style={s.label}>Einddatum (optioneel)</label>
+            <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          </>
+        )}
+
+        {isEvent && (
+          <>
+            <label style={s.label}>{t('event_date')}</label>
+            <input style={s.input} value={eventDate} onChange={e => setEventDate(e.target.value)} />
+            <label style={s.label}>{t('event_time')}</label>
+            <input style={s.input} value={eventTime} onChange={e => setEventTime(e.target.value)} />
+            <label style={s.label}>{t('event_location')}</label>
+            <input style={s.input} value={eventLocation} onChange={e => setEventLocation(e.target.value)} />
+          </>
+        )}
+
+        {isPackage && (
+          <>
+            <label style={s.label}>Bezorger</label>
+            <select value={carrier} onChange={e => setCarrier(e.target.value)}
+              style={{ ...s.input, cursor: 'pointer', marginBottom: 10 }}>
+              <option value="">— selecteer bezorger (optioneel)</option>
+              {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {hasLink && (
+          <>
+            <label style={s.label}>Externe link (optioneel)</label>
+            <input style={s.input} placeholder="https://..." value={link} onChange={e => setLink(e.target.value)} />
+          </>
+        )}
+
+        <button style={s.submitBtn} disabled={!title.trim()} onClick={() => {
+          onSave(post.id, {
+            title, body,
+            startDate: startDate || undefined,
+            endDate: endDate || undefined,
+            eventDate: eventDate || undefined,
+            eventTime: eventTime || undefined,
+            eventLocation: eventLocation || undefined,
+            carrier: carrier || undefined,
+            link: link || undefined,
+          });
+          onClose();
+        }}>
+          Opslaan
+        </button>
+        <button style={s.cancelBtn} onClick={onClose}>{t('cancel')}</button>
       </div>
     </div>
   );
@@ -917,6 +1016,7 @@ export default function App() {
   const [reportedToast, setReportedToast] = useState(false);
   const [postError, setPostError] = useState('');
   const [streetInfo, setStreetInfo] = useState(null);
+  const [editPost, setEditPost] = useState(null);
 
   const STREET_ID = 1; // Reyer Anslostraat (first street)
 
@@ -997,6 +1097,16 @@ export default function App() {
     }
   };
 
+  const handleEdit = async (postId, data) => {
+    try {
+      const updated = await api.patch(`/streets/${STREET_ID}/posts/${postId}`, data);
+      setPosts(ps => ps.map(p => p.id === postId ? { ...p, ...updated } : p));
+    } catch (e) {
+      setPostError(e.message || 'Bewerken mislukt');
+      setTimeout(() => setPostError(''), 4000);
+    }
+  };
+
   const handleJoin = async (id) => {
     const { joined } = await api.post(`/streets/${STREET_ID}/posts/${id}/join`);
     const update = (p) => {
@@ -1055,12 +1165,12 @@ export default function App() {
             : <>
               {pinnedPosts.length > 0 && (
                 <><div style={s.sectionLabel}>{t('pinned')}</div>
-                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} />)}</>
+                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} />)}</>
               )}
               <div style={s.sectionLabel}>{t('recent')}</div>
               {regularPosts.length === 0
                 ? <div style={s.emptyState}>{t('no_posts')}</div>
-                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} />)}
+                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} />)}
             </>
           }
         </div>
@@ -1099,6 +1209,9 @@ export default function App() {
       )}
       {joinDetail && (
         <JoinDetailSheet post={joinDetail} onClose={() => setJoinDetail(null)} onJoin={handleJoin} />
+      )}
+      {editPost && (
+        <EditPostSheet post={editPost} onClose={() => setEditPost(null)} onSave={handleEdit} />
       )}
     </div>
   );

@@ -102,6 +102,56 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
   res.status(201).json(post);
 });
 
+// PATCH /api/streets/:streetId/posts/:postId — edit post content
+router.patch('/:streetId/posts/:postId', requireAuth, requireMembership('resident'), async (req, res) => {
+  const { postId, streetId } = req.params;
+
+  const { rows: existing } = await query(
+    'SELECT * FROM posts WHERE id = $1 AND street_id = $2',
+    [postId, streetId]
+  );
+  if (!existing.length) return res.status(404).json({ error: 'Post not found' });
+  const post = existing[0];
+
+  // Alleen de auteur of admin/moderator mag bewerken
+  const isAuthor = post.user_id === req.user.user_id;
+  const canMod = req.user.is_super_admin || ['admin', 'moderator'].includes(req.membership?.role);
+  if (!isAuthor && !canMod) return res.status(403).json({ error: 'Forbidden' });
+
+  const { title, body, endDate, startDate, eventDate, eventTime, eventLocation, bringList, link, carrier } = req.body;
+
+  const { rows } = await query(
+    `UPDATE posts SET
+       title          = $1,
+       body           = $2,
+       end_date       = $3,
+       start_date     = $4,
+       event_date     = $5,
+       event_time     = $6,
+       event_location = $7,
+       bring_list     = $8,
+       link           = $9,
+       carrier        = $10
+     WHERE id = $11 AND street_id = $12
+     RETURNING *`,
+    [
+      title?.trim() || post.title,
+      body?.trim() || post.body,
+      endDate !== undefined ? (endDate || null) : post.end_date,
+      startDate !== undefined ? (startDate || null) : post.start_date,
+      eventDate !== undefined ? (eventDate || null) : post.event_date,
+      eventTime !== undefined ? (eventTime || null) : post.event_time,
+      eventLocation !== undefined ? (eventLocation || null) : post.event_location,
+      bringList !== undefined ? (bringList?.length ? bringList : null) : post.bring_list,
+      link !== undefined ? (link || null) : post.link,
+      carrier !== undefined ? (carrier || null) : post.carrier,
+      postId, streetId,
+    ]
+  );
+
+  res.json(withPhotoUrl(rows[0]));
+});
+
 // DELETE /api/streets/:streetId/posts/:postId
 router.delete('/:streetId/posts/:postId', requireAuth, requireMembership('moderator'), async (req, res) => {
   const { rows } = await query(
