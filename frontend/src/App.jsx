@@ -57,7 +57,7 @@ const s = {
   textarea: { width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 12px', color: COLORS.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', resize: 'none', height: 80, marginBottom: 10 },
   label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textMuted, display: 'block', marginBottom: 6 },
   catGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 },
-  catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}22` : COLORS.bg, border: `1px solid ${selected ? CATEGORIES[cat]?.color : COLORS.border}`, borderRadius: 8, padding: '10px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400 }),
+  catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}22` : COLORS.bg, border: `1px solid ${selected ? CATEGORIES[cat]?.color : COLORS.border}`, borderRadius: 8, padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
   submitBtn: { width: '100%', background: COLORS.accent, color: '#000', border: 'none', borderRadius: 10, padding: '14px', fontSize: 14, fontWeight: 800, cursor: 'pointer', marginTop: 8 },
   cancelBtn: { width: '100%', background: 'none', color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: '12px', fontSize: 14, cursor: 'pointer', marginTop: 8 },
   badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}22`, color, border: `1px solid ${color}44`, borderRadius: 4, fontSize: 10, fontWeight: 700, padding: '2px 6px' }),
@@ -740,7 +740,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
 
         {/* 1. Categorie — horizontale scroll-chips */}
         <label style={s.label}>{t('category')}</label>
-        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 4, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+        <div style={{ display: 'flex', gap: 5, overflowX: 'auto', marginBottom: 16, paddingBottom: 4, paddingRight: 4, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
           {Object.entries(CATEGORIES).filter(([key]) => key !== 'waste').map(([key]) => (
             <div key={key} style={{ ...s.catOption(cat === key, key), flexShrink: 0 }}
               onClick={() => { setCat(key); setIncidentType(''); setTitle(''); }}>
