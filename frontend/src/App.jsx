@@ -737,16 +737,46 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
       <div style={s.sheet}>
         <div style={s.sheetHandle} />
         <div style={s.sheetTitle}>{t('new_post')}</div>
+
+        {/* 1. Categorie — horizontale scroll-chips */}
         <label style={s.label}>{t('category')}</label>
-        <div style={s.catGrid}>
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 4, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
           {Object.entries(CATEGORIES).filter(([key]) => key !== 'waste').map(([key]) => (
-            <div key={key} style={s.catOption(cat === key, key)} onClick={() => { setCat(key); setIncidentType(''); setTitle(''); }}>
+            <div key={key} style={{ ...s.catOption(cat === key, key), flexShrink: 0 }}
+              onClick={() => { setCat(key); setIncidentType(''); setTitle(''); }}>
               {catLabel(key)}
             </div>
           ))}
         </div>
 
-        {/* Pakketje: huisnummerpicker i.p.v. vrije titel */}
+        {/* 2. Type melding — chips direct na categorie */}
+        {isIncident && (
+          <>
+            <label style={s.label}>Type melding</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+              {INCIDENT_TYPES.map(({ key, label }) => (
+                <div key={key}
+                  style={{ ...s.filterChip(incidentType === key), borderRadius: 8, fontSize: 12 }}
+                  onClick={() => { setIncidentType(key); setTitle(label); setLicenseplate(''); }}>
+                  {label}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* 3. Kenteken — alleen bij parkeeroverlast */}
+        {isIncident && incidentType === 'parkeeroverlast' && (
+          <>
+            <label style={s.label}>{t('license_plate')}</label>
+            <input style={{ ...s.input, fontFamily: 'monospace', letterSpacing: '2px', textTransform: 'uppercase' }}
+              placeholder={t('license_plate_placeholder')} value={licenseplate}
+              onChange={e => setLicenseplate(e.target.value.toUpperCase())} />
+            <RdwLookup kenteken={licenseplate} />
+          </>
+        )}
+
+        {/* 4+5. Titel + Bericht */}
         {isPackage ? (
           <>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -778,66 +808,8 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
             <textarea style={s.textarea} placeholder={t('message_placeholder')} value={body} onChange={e => setBody(e.target.value)} />
           </>
         )}
-        <PhotoUpload category={cat} onUploaded={setPhotoKey} />
-        <div style={{ marginBottom: 10 }}>
-          <label style={{ ...s.label, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: attachmentName ? COLORS.accent : COLORS.textMuted }}>
-              {attachmentName ? attachmentName : 'Document toevoegen (PDF)'}
-            </span>
-            <input type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
-              onChange={e => setAttachmentName(e.target.files[0]?.name || null)} />
-          </label>
-        </div>
-        {isPackage && (
-          <>
-            <label style={s.label}>Bezorger</label>
-            <select value={carrier} onChange={e => setCarrier(e.target.value)}
-              style={{ ...s.input, cursor: 'pointer', marginBottom: 10, paddingRight: 32 }}>
-              <option value="">Selecteer bezorger (optioneel)</option>
-              {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </>
-        )}
-        {isGeneral && (
-          <div onClick={() => setAllowJoin(v => !v)}
-            style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: 10 }}>
-            <span style={{ fontSize: 13 }}>Aanmeldknop toevoegen</span>
-            <div style={{ width: 36, height: 20, borderRadius: 10, background: allowJoin ? COLORS.accent : COLORS.border, position: 'relative', flexShrink: 0 }}>
-              <div style={{ position: 'absolute', top: 3, left: allowJoin ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: allowJoin ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
-            </div>
-          </div>
-        )}
-        {hasLink && (
-          <>
-            <label style={s.label}>Externe link (optioneel)</label>
-            <input style={s.input} placeholder="https://..." value={link} onChange={e => setLink(e.target.value)} />
-          </>
-        )}
-        {isIncident && (
-          <>
-            <label style={s.label}>Type melding</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-              {INCIDENT_TYPES.map(({ key, label }) => (
-                <div key={key}
-                  style={{ ...s.filterChip(incidentType === key), borderRadius: 8, fontSize: 12 }}
-                  onClick={() => { setIncidentType(key); setTitle(label); setLicenseplate(''); }}>
-                  {label}
-                </div>
-              ))}
-            </div>
-            {incidentType === 'parkeeroverlast' && (
-              <>
-                <label style={s.label}>{t('license_plate')}</label>
-                <input style={{ ...s.input, fontFamily: 'monospace', letterSpacing: '2px', textTransform: 'uppercase' }}
-                  placeholder={t('license_plate_placeholder')} value={licenseplate}
-                  onChange={e => setLicenseplate(e.target.value.toUpperCase())} />
-                <RdwLookup kenteken={licenseplate} />
-              </>
-            )}
-          </>
-        )}
+
+        {/* Event-velden */}
         {isEvent && (
           <>
             <label style={s.label}>{t('event_date')}</label>
@@ -850,27 +822,75 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
             <input style={s.input} placeholder={t('bring_list_placeholder')} value={bringItems} onChange={e => setBringItems(e.target.value)} />
           </>
         )}
-        {/* Start + einddatum voor blokkade/container */}
+
+        {/* Datums voor blokkade/container */}
         {['blockage', 'container'].includes(cat) && (
           <>
             <label style={s.label}>Startdatum (optioneel)</label>
             <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
             <label style={s.label}>Einddatum (optioneel)</label>
             <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-            {/* Auto-pin hint: wordt vastgepind als admin en einddatum is ingevuld */}
             {canPin && endDate && (
-              <div style={{ fontSize: 11, color: COLORS.accent, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ fontSize: 11, color: COLORS.accent, marginBottom: 8 }}>
                 Dit bericht wordt automatisch vastgepind t/m de einddatum.
               </div>
             )}
           </>
         )}
+
+        {/* Einddatum voor event (alleen admins) */}
         {cat === 'event' && canPin && (
           <>
             <label style={s.label}>{t('end_date')}</label>
             <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
           </>
         )}
+
+        {/* Bezorger (pakketje) */}
+        {isPackage && (
+          <>
+            <label style={s.label}>Bezorger</label>
+            <select value={carrier} onChange={e => setCarrier(e.target.value)}
+              style={{ ...s.input, cursor: 'pointer', marginBottom: 10, paddingRight: 32 }}>
+              <option value="">Selecteer bezorger (optioneel)</option>
+              {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {/* Externe link (blokkade/container) */}
+        {hasLink && (
+          <>
+            <label style={s.label}>Externe link (optioneel)</label>
+            <input style={s.input} placeholder="https://..." value={link} onChange={e => setLink(e.target.value)} />
+          </>
+        )}
+
+        {/* Aanmeldknop (algemeen bericht) */}
+        {isGeneral && (
+          <div onClick={() => setAllowJoin(v => !v)}
+            style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: 10 }}>
+            <span style={{ fontSize: 13 }}>Aanmeldknop toevoegen</span>
+            <div style={{ width: 36, height: 20, borderRadius: 10, background: allowJoin ? COLORS.accent : COLORS.border, position: 'relative', flexShrink: 0 }}>
+              <div style={{ position: 'absolute', top: 3, left: allowJoin ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: allowJoin ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
+            </div>
+          </div>
+        )}
+
+        {/* 6. Foto + Document — altijd direct boven Plaatsen */}
+        <PhotoUpload category={cat} onUploaded={setPhotoKey} />
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ ...s.label, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: attachmentName ? COLORS.accent : COLORS.textMuted }}>
+              {attachmentName ? attachmentName : 'Document toevoegen (PDF)'}
+            </span>
+            <input type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
+              onChange={e => setAttachmentName(e.target.files[0]?.name || null)} />
+          </label>
+        </div>
+
         <button style={{ ...s.submitBtn, opacity: canSubmit ? 1 : 0.5 }}
           disabled={!canSubmit}
           onClick={() => {
