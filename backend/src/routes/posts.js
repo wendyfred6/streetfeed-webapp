@@ -2,6 +2,13 @@ import { Router } from 'express';
 import { query } from '../db/index.js';
 import { requireAuth, requireMembership } from '../middleware/auth.js';
 import { sendPushToStreet } from '../services/push.js';
+import { getPublicUrl } from '../services/r2.js';
+
+function withPhotoUrl(post) {
+  return post.photo_key
+    ? { ...post, photo_url: getPublicUrl(post.photo_key) }
+    : post;
+}
 
 const router = Router({ mergeParams: true });
 
@@ -46,7 +53,7 @@ router.get('/:streetId/posts', requireAuth, requireMembership('resident'), async
   sql += ` GROUP BY p.id, u.name, u.house_number, m.role ORDER BY p.pinned DESC, p.created_at DESC`;
 
   const { rows } = await query(sql, params);
-  res.json(rows);
+  res.json(rows.map(withPhotoUrl));
 });
 
 // POST /api/streets/:streetId/posts
@@ -79,7 +86,7 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
     ]
   );
 
-  const post = rows[0];
+  const post = withPhotoUrl(rows[0]);
 
   // Push notification (fire and forget)
   sendPushToStreet(streetId, category, {

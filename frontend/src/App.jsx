@@ -240,6 +240,14 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
           <div style={s.cardBody}>{post.body}</div>
           {isEvent && post.rsvp && <RsvpBar post={post} onRsvp={onRsvp} />}
           {isIncident && <IncidentExtra post={post} />}
+          {post.photo_url && (
+            <img
+              src={post.photo_url}
+              alt=""
+              style={{ width: '100%', borderRadius: 8, marginTop: 8, objectFit: 'cover', maxHeight: 240 }}
+              onError={e => e.target.style.display = 'none'}
+            />
+          )}
           {post.carrier && (
             <div style={{ marginTop: 8 }}>
               <span style={{ ...s.badge(COLORS.blue), fontSize: 11 }}>📦 {post.carrier}</span>
