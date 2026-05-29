@@ -187,6 +187,12 @@ function RdwLookup({ kenteken }) {
 }
 
 function IncidentExtra({ post }) {
+  // Bepaal op basis van de titel welke instantie relevant is
+  const incidentMeta = INCIDENT_TYPES.find(it =>
+    post.title?.toLowerCase().startsWith(it.label.toLowerCase())
+  );
+  const reportTo = incidentMeta?.reportTo ?? 'politie';
+
   return (
     <div style={{ marginTop: 10 }}>
       {post.license_plate && (
@@ -195,15 +201,17 @@ function IncidentExtra({ post }) {
           <span style={{ fontFamily: 'monospace', fontSize: 15, fontWeight: 800, background: '#FFD700', color: '#000', padding: '2px 10px', borderRadius: 4, letterSpacing: '2px' }}>{post.license_plate}</span>
         </div>
       )}
-      {post.photo_key && (
-        <div style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 12px', fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>
-          Foto bijgevoegd · <span style={{ color: COLORS.accent }}>Bekijk foto</span>
-        </div>
+      {reportTo === 'gemeente' ? (
+        <a href="https://meldingen.amsterdam.nl/" target="_blank" rel="noopener noreferrer"
+          style={{ display: 'block', background: 'none', border: `1px solid ${COLORS.blue}44`, borderRadius: 8, padding: '8px 12px', fontSize: 12, color: COLORS.blue, textDecoration: 'none', textAlign: 'center' }}>
+          Melden bij de Gemeente Amsterdam →
+        </a>
+      ) : (
+        <a href="https://www.politie.nl/aangifte-of-melding-doen" target="_blank" rel="noopener noreferrer"
+          style={{ display: 'block', background: 'none', border: `1px solid ${COLORS.red}44`, borderRadius: 8, padding: '8px 12px', fontSize: 12, color: COLORS.red, textDecoration: 'none', textAlign: 'center' }}>
+          {t('police_report')}
+        </a>
       )}
-      <a href="https://www.politie.nl/aangifte-of-melding-doen" target="_blank" rel="noopener noreferrer"
-        style={{ display: 'block', background: 'none', border: `1px solid ${COLORS.red}44`, borderRadius: 8, padding: '8px 12px', fontSize: 12, color: COLORS.red, textDecoration: 'none', textAlign: 'center' }}>
-        {t('police_report')}
-      </a>
     </div>
   );
 }
@@ -678,12 +686,12 @@ function PhotoUpload({ category, onUploaded }) {
 // ─── NEW POST SHEET ────────────────────────────────────────────────────────────
 
 const INCIDENT_TYPES = [
-  { key: 'grofvuil',        label: 'Grofvuil' },
-  { key: 'parkeeroverlast', label: 'Parkeeroverlast' },
-  { key: 'geluidsoverlast', label: 'Geluidsoverlast' },
-  { key: 'schade',          label: 'Schade / gevaar' },
-  { key: 'verdacht',        label: 'Verdacht gedrag' },
-  { key: 'verlichting',     label: 'Verlichting defect' },
+  { key: 'grofvuil',        label: 'Grofvuil',           reportTo: 'gemeente' },
+  { key: 'parkeeroverlast', label: 'Parkeeroverlast',     reportTo: 'gemeente' },
+  { key: 'geluidsoverlast', label: 'Geluidsoverlast',     reportTo: 'gemeente' },
+  { key: 'schade',          label: 'Schade / gevaar',     reportTo: 'gemeente' },
+  { key: 'verdacht',        label: 'Verdacht gedrag',     reportTo: 'politie'  },
+  { key: 'verlichting',     label: 'Verlichting defect',  reportTo: 'gemeente' },
 ];
 
 function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
