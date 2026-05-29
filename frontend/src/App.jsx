@@ -354,27 +354,25 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               <span>·</span><span>{timeAgo(post.created_at)}</span>
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              {/* Like */}
-              <button style={{ ...s.actionBtn, color: post.liked ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>♥ {post.likes}</button>
-              {/* Comments */}
-              <button style={{ ...s.actionBtn, gap: 4 }} onClick={e => e.stopPropagation()}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+              {/* Like — hartje SVG + teller */}
+              <button style={{ ...s.actionBtn, gap: 4, color: post.liked ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill={post.liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
                 </svg>
-                {post.comments}
+                {post.likes}
               </button>
-              {/* Edit — potlood */}
+              {/* Edit — potlood SVG */}
               {canEdit && (
-                <button style={{ ...s.actionBtn, color: COLORS.textMuted }} onClick={e => { e.stopPropagation(); onEdit(post); }} title="Bewerken">
+                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onEdit(post); }} title="Bewerken">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
                 </button>
               )}
-              {/* Delete / Report — prullenbak of vlag */}
+              {/* Delete / Report — prullenbak of tekst */}
               {canModerate ? (
-                <button style={{ ...s.actionBtn, color: COLORS.red }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('delete')}>
+                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('delete')}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="3 6 5 6 21 6"/>
                     <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
