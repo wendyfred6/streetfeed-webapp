@@ -211,13 +211,15 @@ function IncidentExtra({ post }) {
 // ─── POST CARD ─────────────────────────────────────────────────────────────────
 
 function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate }) {
+  const [expanded, setExpanded] = useState(false);
   const cat = CATEGORIES[post.category];
   const isEvent = post.category === 'event';
   const isIncident = post.category === 'incident';
 
   return (
-    <div style={s.card(post.pinned)} onClick={isEvent ? () => onOpenEvent(post) : undefined}>
-      <div style={{ display: 'flex', gap: 10 }}>
+    <div style={s.card(post.pinned)}>
+      {/* ── Klikbare header ── */}
+      <div style={{ display: 'flex', gap: 10, cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
         <div style={{ width: 8, height: 8, borderRadius: '50%', background: cat?.color || '#888', marginTop: 6, flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
@@ -225,7 +227,16 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
             {post.end_date && <span style={s.endDateBadge}>{t('until')} {new Date(post.end_date).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' })}</span>}
             <CatBadge cat={post.category} />
           </div>
-          <div style={s.cardTitle}>{post.title}</div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+            <div style={s.cardTitle}>{post.title}</div>
+            <span style={{ color: COLORS.textDim, fontSize: 13, flexShrink: 0, marginTop: 2 }}>{expanded ? '▾' : '▸'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Uitgeklapte inhoud ── */}
+      {expanded && (
+        <div style={{ paddingLeft: 18, marginTop: 8 }}>
           <div style={s.cardBody}>{post.body}</div>
           {isEvent && post.rsvp && <RsvpBar post={post} onRsvp={onRsvp} />}
           {isIncident && <IncidentExtra post={post} />}
@@ -251,15 +262,22 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               ✋ {post.my_join ? t('join_card') : t('join_cta')} <span style={{ color: COLORS.textDim, fontWeight: 400 }}>· {(post.joiners||[]).length} {t('join_participants').toLowerCase()}</span>
             </button>
           )}
+          {isEvent && (
+            <button onClick={e => { e.stopPropagation(); onOpenEvent(post); }}
+              style={{ marginTop: 10, width: '100%', background: 'none', border: `1px solid ${COLORS.purple}44`, borderRadius: 8, padding: '8px 12px', color: COLORS.purple, fontSize: 12, cursor: 'pointer', textAlign: 'center' }}>
+              📅 {t('tap_details')} →
+            </button>
+          )}
         </div>
-      </div>
-      <div style={s.cardMeta}>
+      )}
+
+      {/* ── Meta (altijd zichtbaar) ── */}
+      <div style={{ ...s.cardMeta, marginTop: 10 }}>
         <div style={s.cardMetaLeft}>
           <span style={{ fontSize: 10, fontWeight: 600, color: post.author_role === 'admin' ? COLORS.accent : post.author_role === 'moderator' ? COLORS.purple : COLORS.textDim }}>
             {post.author_role === 'admin' ? '👑 ' : post.author_role === 'moderator' ? '🛡️ ' : ''}{post.author_name}
           </span>
           <span>·</span><span>{timeAgo(post.created_at)}</span>
-          {isEvent && <span style={{ color: COLORS.purple, fontSize: 11 }}>{t('tap_details')}</span>}
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <button style={{ ...s.actionBtn, color: post.liked ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>♥ {post.likes}</button>
