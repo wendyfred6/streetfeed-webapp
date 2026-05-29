@@ -1,4 +1,4 @@
-const CACHE = 'streetfeed-v12';
+const CACHE = 'streetfeed-v13';
 const STATIC = ['/', '/index.html'];
 
 self.addEventListener('install', (e) => {

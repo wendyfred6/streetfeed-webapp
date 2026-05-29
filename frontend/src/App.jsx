@@ -677,10 +677,20 @@ function PhotoUpload({ category, onUploaded }) {
 
 // ─── NEW POST SHEET ────────────────────────────────────────────────────────────
 
+const INCIDENT_TYPES = [
+  { key: 'grofvuil',        label: 'Grofvuil' },
+  { key: 'parkeeroverlast', label: 'Parkeeroverlast' },
+  { key: 'geluidsoverlast', label: 'Geluidsoverlast' },
+  { key: 'schade',          label: 'Schade / gevaar' },
+  { key: 'verdacht',        label: 'Verdacht gedrag' },
+  { key: 'verlichting',     label: 'Verlichting defect' },
+];
+
 function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   const [cat, setCat] = useState('general');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [incidentType, setIncidentType] = useState('');
   // Pakketje: huisnummers voor auto-gegenereerde titel
   const [forHouse, setForHouse] = useState('');
   const [pickupHouse, setPickupHouse] = useState(user?.house_number || '');
@@ -700,7 +710,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   const isEvent = cat === 'event';
   const isIncident = cat === 'incident';
   const isPinnable = CATEGORIES[cat]?.pinnable;
-  const hasLink = ['blockage', 'container', 'waste'].includes(cat);
+  const hasLink = ['blockage', 'container'].includes(cat);
   const isPackage = cat === 'package';
   const isGeneral = cat === 'general';
 
@@ -710,7 +720,9 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   // Submit mag pas als verplichte velden ingevuld zijn
   const canSubmit = isPackage
     ? (forHouse.trim() && pickupHouse.trim())
-    : title.trim();
+    : isIncident
+      ? (incidentType && title.trim())
+      : title.trim();
 
   return (
     <div style={s.overlay}>
@@ -719,8 +731,8 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         <div style={s.sheetTitle}>{t('new_post')}</div>
         <label style={s.label}>{t('category')}</label>
         <div style={s.catGrid}>
-          {Object.entries(CATEGORIES).map(([key, c]) => (
-            <div key={key} style={s.catOption(cat === key, key)} onClick={() => setCat(key)}>
+          {Object.entries(CATEGORIES).filter(([key]) => key !== 'waste').map(([key]) => (
+            <div key={key} style={s.catOption(cat === key, key)} onClick={() => { setCat(key); setIncidentType(''); setTitle(''); }}>
               {catLabel(key)}
             </div>
           ))}
@@ -797,11 +809,25 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         )}
         {isIncident && (
           <>
-            <label style={s.label}>{t('license_plate')}</label>
-            <input style={{ ...s.input, fontFamily: 'monospace', letterSpacing: '2px', textTransform: 'uppercase' }}
-              placeholder={t('license_plate_placeholder')} value={licenseplate}
-              onChange={e => setLicenseplate(e.target.value.toUpperCase())} />
-            <RdwLookup kenteken={licenseplate} />
+            <label style={s.label}>Type melding</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+              {INCIDENT_TYPES.map(({ key, label }) => (
+                <div key={key}
+                  style={{ ...s.filterChip(incidentType === key), borderRadius: 8, fontSize: 12 }}
+                  onClick={() => { setIncidentType(key); setTitle(label); setLicenseplate(''); }}>
+                  {label}
+                </div>
+              ))}
+            </div>
+            {incidentType === 'parkeeroverlast' && (
+              <>
+                <label style={s.label}>{t('license_plate')}</label>
+                <input style={{ ...s.input, fontFamily: 'monospace', letterSpacing: '2px', textTransform: 'uppercase' }}
+                  placeholder={t('license_plate_placeholder')} value={licenseplate}
+                  onChange={e => setLicenseplate(e.target.value.toUpperCase())} />
+                <RdwLookup kenteken={licenseplate} />
+              </>
+            )}
           </>
         )}
         {isEvent && (
