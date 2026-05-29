@@ -10,6 +10,8 @@ import pushRoutes from './routes/push.js';
 import rdwRoutes from './routes/rdw.js';
 import { runMigrations } from './db/index.js';
 
+const UPLOAD_DIR = process.env.UPLOAD_DIR || '/data/photos';
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -20,6 +22,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+app.use('/api/uploads', express.static(UPLOAD_DIR));
 app.use('/api/auth', authRoutes);
 app.use('/api/streets', streetsRoutes);
 app.use('/api/streets', postsRoutes);

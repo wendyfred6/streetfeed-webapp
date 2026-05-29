@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { query } from '../db/index.js';
 import { requireAuth, requireMembership } from '../middleware/auth.js';
 import { sendPushToStreet } from '../services/push.js';
-import { getPublicUrl } from '../services/r2.js';
+import { getPublicUrl } from '../services/storage.js';
 
 function withPhotoUrl(post) {
   return post.photo_key

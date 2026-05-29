@@ -467,11 +467,15 @@ function PhotoUpload({ category, onUploaded }) {
     setUploading(true);
     setPreview(URL.createObjectURL(file));
     try {
-      const { url, key } = await api.post('/upload/presign', {
-        category,
-        contentType: file.type,
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
       });
-      await fetch(url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      if (!res.ok) throw new Error('Upload mislukt');
+      const { key } = await res.json();
       onUploaded(key);
     } catch (e) {
       console.error('Upload failed', e);
