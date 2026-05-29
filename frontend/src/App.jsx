@@ -94,7 +94,7 @@ function CatBadge({ cat }) {
 }
 
 function RoleBadge({ role }) {
-  const map = { admin: [COLORS.accent, '👑 Admin'], moderator: [COLORS.purple, '🛡️ Mod'], resident: [COLORS.textDim, 'Bewoner'] };
+  const map = { admin: [COLORS.accent, 'Admin'], moderator: [COLORS.purple, 'Mod'], resident: [COLORS.textDim, 'Bewoner'] };
   const [color, label] = map[role] || [COLORS.textDim, role];
   return <span style={s.badge(color)}>{label}</span>;
 }
@@ -105,26 +105,26 @@ function RsvpBar({ post, onRsvp }) {
   const yes = post.rsvp?.yes || [];
   const maybe = post.rsvp?.maybe || [];
   const my = post.my_rsvp;
-  const btn = (type, emoji, label, color) => (
+  const btn = (type, label, color) => (
     <button onClick={e => { e.stopPropagation(); onRsvp(post.id, type); }}
-      style={{ flex: 1, background: my === type ? `${color}22` : COLORS.bg, border: `1px solid ${my === type ? color : COLORS.border}`, borderRadius: 8, padding: '7px 4px', color: my === type ? color : COLORS.textMuted, fontSize: 12, fontWeight: my === type ? 700 : 400, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-      <span style={{ fontSize: 16 }}>{emoji}</span><span>{label}</span>
+      style={{ flex: 1, background: my === type ? `${color}22` : COLORS.bg, border: `1px solid ${my === type ? color : COLORS.border}`, borderRadius: 8, padding: '7px 4px', color: my === type ? color : COLORS.textMuted, fontSize: 12, fontWeight: my === type ? 700 : 400, cursor: 'pointer' }}>
+      {label}
     </button>
   );
   return (
     <div style={{ marginTop: 12 }}>
       <div style={{ ...s.infoBox, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
-        <div style={{ fontSize: 12, color: COLORS.textMuted }}><span style={{ color: COLORS.purple }}>📅</span> {post.event_date} {post.event_time}</div>
-        <div style={{ fontSize: 12, color: COLORS.textMuted }}><span style={{ color: COLORS.purple }}>📍</span> {post.event_location}</div>
+        <div style={{ fontSize: 12, color: COLORS.textMuted }}>{post.event_date} {post.event_time}</div>
+        <div style={{ fontSize: 12, color: COLORS.textMuted }}>{post.event_location}</div>
       </div>
       <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>
         <span style={{ color: COLORS.text, fontWeight: 700 }}>{yes.length}</span> komen
         {maybe.length > 0 && <> · <span style={{ color: COLORS.text, fontWeight: 700 }}>{maybe.length}</span> misschien</>}
       </div>
       <div style={{ display: 'flex', gap: 6 }}>
-        {btn('yes', '✅', t('rsvp_yes'), COLORS.green)}
-        {btn('maybe', '🤔', t('rsvp_maybe'), COLORS.orange)}
-        {btn('no', '❌', t('rsvp_no'), COLORS.red)}
+        {btn('yes', t('rsvp_yes'), COLORS.green)}
+        {btn('maybe', t('rsvp_maybe'), COLORS.orange)}
+        {btn('no', t('rsvp_no'), COLORS.red)}
       </div>
     </div>
   );
@@ -197,7 +197,7 @@ function IncidentExtra({ post }) {
       )}
       {post.photo_key && (
         <div style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 12px', fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>
-          📷 Foto bijgevoegd · <span style={{ color: COLORS.accent }}>Bekijk foto</span>
+          Foto bijgevoegd · <span style={{ color: COLORS.accent }}>Bekijk foto</span>
         </div>
       )}
       <a href="https://www.politie.nl/aangifte-of-melding-doen" target="_blank" rel="noopener noreferrer"
@@ -330,40 +330,40 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
           )}
           {post.attachment_name && (
             <div style={{ marginTop: 8, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '7px 12px', fontSize: 12, color: COLORS.textMuted, display: 'flex', alignItems: 'center', gap: 6 }}>
-              📎 {post.attachment_name}
+              {post.attachment_name}
             </div>
           )}
           {post.allow_join && (
             <button onClick={e => { e.stopPropagation(); onOpenJoin(post); }}
               style={{ marginTop: 10, width: '100%', background: post.my_join ? `${COLORS.green}22` : COLORS.bg, border: `1px solid ${post.my_join ? COLORS.green : COLORS.border}`, borderRadius: 8, padding: '8px 12px', color: post.my_join ? COLORS.green : COLORS.textMuted, fontSize: 13, fontWeight: post.my_join ? 700 : 400, cursor: 'pointer', textAlign: 'left' }}>
-              ✋ {post.my_join ? t('join_card') : t('join_cta')} <span style={{ color: COLORS.textDim, fontWeight: 400 }}>· {(post.joiners||[]).length} {t('join_participants').toLowerCase()}</span>
+              {post.my_join ? t('join_card') : t('join_cta')} <span style={{ color: COLORS.textDim, fontWeight: 400 }}>· {(post.joiners||[]).length} {t('join_participants').toLowerCase()}</span>
             </button>
           )}
           {isEvent && (
             <button onClick={e => { e.stopPropagation(); onOpenEvent(post); }}
               style={{ marginTop: 10, width: '100%', background: 'none', border: `1px solid ${COLORS.purple}44`, borderRadius: 8, padding: '8px 12px', color: COLORS.purple, fontSize: 12, cursor: 'pointer', textAlign: 'center' }}>
-              📅 {t('tap_details')} →
+              {t('tap_details')} →
             </button>
           )}
           {/* Meta-rij: voornaam, tijd, acties */}
           <div style={{ ...s.cardMeta, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
             <div style={s.cardMetaLeft}>
               <span style={{ fontSize: 10, fontWeight: 600, color: post.author_role === 'admin' ? COLORS.accent : post.author_role === 'moderator' ? COLORS.purple : COLORS.textDim }}>
-                {post.author_role === 'admin' ? '👑 ' : post.author_role === 'moderator' ? '🛡️ ' : ''}{firstName}
+                {firstName}{post.author_role === 'admin' ? ' · Admin' : post.author_role === 'moderator' ? ' · Mod' : ''}
               </span>
               <span>·</span><span>{timeAgo(post.created_at)}</span>
             </div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <button style={{ ...s.actionBtn, color: post.liked ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>♥ {post.likes}</button>
-              <button style={s.actionBtn} onClick={e => e.stopPropagation()}>💬 {post.comments}</button>
+              <button style={s.actionBtn} onClick={e => e.stopPropagation()}>{post.comments}</button>
               {canEdit && (
-                <button style={{ ...s.reportBtn, color: COLORS.textMuted }} onClick={e => { e.stopPropagation(); onEdit(post); }} title="Bewerken">✏️</button>
+                <button style={{ ...s.reportBtn, color: COLORS.textMuted }} onClick={e => { e.stopPropagation(); onEdit(post); }}>Bewerk</button>
               )}
               {canModerate ? (
-                <button style={{ ...s.reportBtn, color: COLORS.red }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('delete')}>🗑</button>
+                <button style={{ ...s.reportBtn, color: COLORS.red }} onClick={e => { e.stopPropagation(); onReport(post.id); }}>{t('delete')}</button>
               ) : (
-                <button style={{ ...s.reportBtn, color: post.reported ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('report')}>
-                  {post.reported ? '🚩' : '⚑'}
+                <button style={{ ...s.reportBtn, color: post.reported ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }}>
+                  {post.reported ? 'Gemeld' : t('report')}
                 </button>
               )}
             </div>
@@ -384,15 +384,15 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
       <div style={s.sheet} onClick={e => e.stopPropagation()}>
         <div style={s.sheetHandle} />
         <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-          <span style={s.badge(COLORS.purple)}>🎉 EVENEMENT</span>
-          {post.pinned && <span style={s.pinnedBadge}>📌 Pinned</span>}
+          <span style={s.badge(COLORS.purple)}>Evenement</span>
+          {post.pinned && <span style={s.pinnedBadge}>Pinned</span>}
         </div>
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{post.title}</div>
         <div style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 16 }}>{post.body}</div>
         <div style={{ ...s.infoBox, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-          <div style={{ fontSize: 13 }}><span style={{ color: COLORS.purple }}>📅</span> {post.event_date} om {post.event_time}</div>
-          <div style={{ fontSize: 13 }}><span style={{ color: COLORS.purple }}>📍</span> {post.event_location}</div>
-          <div style={{ fontSize: 13 }}><span style={{ color: COLORS.purple }}>👥</span> <strong>{yes.length}</strong> komen · <strong>{maybe.length}</strong> misschien</div>
+          <div style={{ fontSize: 13, color: COLORS.textMuted }}>{post.event_date} om {post.event_time}</div>
+          <div style={{ fontSize: 13, color: COLORS.textMuted }}>{post.event_location}</div>
+          <div style={{ fontSize: 13, color: COLORS.textMuted }}><strong style={{ color: COLORS.text }}>{yes.length}</strong> komen · <strong style={{ color: COLORS.text }}>{maybe.length}</strong> misschien</div>
         </div>
         {post.bring_list?.length > 0 && (
           <>
@@ -404,10 +404,10 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
         )}
         <div style={s.label}>{t('rsvp_your')}</div>
         <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-          {[['yes','✅',t('rsvp_yes'),COLORS.green],['maybe','🤔',t('rsvp_maybe'),COLORS.orange],['no','❌',t('rsvp_no'),COLORS.red]].map(([type,emoji,label,color]) => (
+          {[['yes',t('rsvp_yes'),COLORS.green],['maybe',t('rsvp_maybe'),COLORS.orange],['no',t('rsvp_no'),COLORS.red]].map(([type,label,color]) => (
             <button key={type} onClick={() => onRsvp(post.id, type)}
-              style={{ flex: 1, background: post.my_rsvp === type ? `${color}22` : COLORS.bg, border: `1px solid ${post.my_rsvp === type ? color : COLORS.border}`, borderRadius: 8, padding: '10px 4px', color: post.my_rsvp === type ? color : COLORS.textMuted, fontSize: 12, fontWeight: post.my_rsvp === type ? 700 : 400, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-              <span style={{ fontSize: 18 }}>{emoji}</span><span>{label}</span>
+              style={{ flex: 1, background: post.my_rsvp === type ? `${color}22` : COLORS.bg, border: `1px solid ${post.my_rsvp === type ? color : COLORS.border}`, borderRadius: 8, padding: '10px 4px', color: post.my_rsvp === type ? color : COLORS.textMuted, fontSize: 12, fontWeight: post.my_rsvp === type ? 700 : 400, cursor: 'pointer' }}>
+              {label}
             </button>
           ))}
         </div>
@@ -426,12 +426,12 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
         <div style={s.label}>{t('calendar_add')}</div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           <button onClick={() => downloadICS(post)}
-            style={{ flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 6px', color: COLORS.textMuted, fontSize: 12, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-            <span style={{ fontSize: 18 }}>📅</span><span>Download .ics</span>
+            style={{ flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 6px', color: COLORS.textMuted, fontSize: 12, cursor: 'pointer' }}>
+            Download .ics
           </button>
           <a href={googleCalendarUrl(post)} target="_blank" rel="noopener noreferrer"
-            style={{ flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 6px', color: COLORS.textMuted, fontSize: 12, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, textDecoration: 'none' }}>
-            <span style={{ fontSize: 18 }}>🗓️</span><span>{t('calendar_google')}</span>
+            style={{ flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 6px', color: COLORS.textMuted, fontSize: 12, cursor: 'pointer', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {t('calendar_google')}
           </a>
         </div>
         <button style={s.cancelBtn} onClick={onClose}>{t('close')}</button>
@@ -497,11 +497,11 @@ function JoinDetailSheet({ post, onClose, onJoin }) {
         <div style={s.sheetHandle} />
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{post.title}</div>
         <div style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 16 }}>
-          ✋ {joiners.length} {joiners.length === 1 ? t('join_count_one') : t('join_count_many')}
+          {joiners.length} {joiners.length === 1 ? t('join_count_one') : t('join_count_many')}
         </div>
         <button onClick={() => onJoin(post.id)}
           style={{ width: '100%', background: post.my_join ? `${COLORS.green}22` : COLORS.bg, border: `1px solid ${post.my_join ? COLORS.green : COLORS.border}`, borderRadius: 8, padding: '12px', color: post.my_join ? COLORS.green : COLORS.textMuted, fontSize: 14, fontWeight: post.my_join ? 700 : 400, cursor: 'pointer', marginBottom: 16 }}>
-          {post.my_join ? `✋ ${t('join_active')}` : `✋ ${t('join_cta')}`}
+          {post.my_join ? t('join_active') : t('join_cta')}
         </button>
         {joiners.length > 0 && (
           <>
@@ -647,7 +647,7 @@ function PhotoUpload({ category, onUploaded }) {
     <div style={{ marginBottom: 10 }}>
       <label style={{ ...s.label, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: COLORS.textMuted }}>
-          {uploading ? '⏳ Uploaden...' : `📷 ${t('photo')}`}
+          {uploading ? 'Uploaden...' : t('photo')}
         </span>
         <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} disabled={uploading} />
       </label>
@@ -702,7 +702,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         <div style={s.catGrid}>
           {Object.entries(CATEGORIES).map(([key, c]) => (
             <div key={key} style={s.catOption(cat === key, key)} onClick={() => setCat(key)}>
-              <span style={{ fontSize: 16 }}>{c.emoji}</span><span>{catLabel(key)}</span>
+              {catLabel(key)}
             </div>
           ))}
         </div>
@@ -743,7 +743,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         <div style={{ marginBottom: 10 }}>
           <label style={{ ...s.label, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: attachmentName ? COLORS.accent : COLORS.textMuted }}>
-              {attachmentName ? `📎 ${attachmentName}` : '📎 Document toevoegen (PDF)'}
+              {attachmentName ? attachmentName : 'Document toevoegen (PDF)'}
             </span>
             <input type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
               onChange={e => setAttachmentName(e.target.files[0]?.name || null)} />
@@ -764,7 +764,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         {isGeneral && (
           <div onClick={() => setAllowJoin(v => !v)}
             style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: 10 }}>
-            <span style={{ fontSize: 13 }}>✋ "Ik doe mee"-knop inschakelen</span>
+            <span style={{ fontSize: 13 }}>"Ik doe mee"-knop inschakelen</span>
             <div style={{ width: 36, height: 20, borderRadius: 10, background: allowJoin ? COLORS.accent : COLORS.border, position: 'relative', flexShrink: 0 }}>
               <div style={{ position: 'absolute', top: 3, left: allowJoin ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: allowJoin ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
             </div>
@@ -807,7 +807,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
             {/* Auto-pin hint: wordt vastgepind als admin en einddatum is ingevuld */}
             {canPin && endDate && (
               <div style={{ fontSize: 11, color: COLORS.accent, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
-                📌 Dit bericht wordt automatisch vastgepind t/m de einddatum.
+                Dit bericht wordt automatisch vastgepind t/m de einddatum.
               </div>
             )}
           </>
@@ -914,9 +914,9 @@ function AdminView({ streetId, user, memberCount, households }) {
               </div>
               <select value={m.role} onChange={e => changeRole(m.id, e.target.value)}
                 style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, color: COLORS.text, borderRadius: 6, padding: '4px 8px', fontSize: 12, cursor: 'pointer' }}>
-                <option value="resident">👤 Bewoner</option>
-                <option value="moderator">🛡️ Moderator</option>
-                <option value="admin">🔑 Admin</option>
+                <option value="resident">Bewoner</option>
+                <option value="moderator">Moderator</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
           ))}
@@ -992,7 +992,7 @@ function SettingsView({ user, onLogout }) {
         )}
         {Object.entries(CATEGORIES).map(([key, c]) => (
           <div key={key} style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13 }}>{c.emoji} {catLabel(key)}</span>
+            <span style={{ fontSize: 13 }}>{catLabel(key)}</span>
             <div onClick={() => toggleNotif(key)} style={{ width: 36, height: 20, borderRadius: 10, background: notifs[key] ? COLORS.accent : COLORS.border, position: 'relative', cursor: 'pointer', transition: 'background 0.2s' }}>
               <div style={{ position: 'absolute', top: 3, left: notifs[key] ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: notifs[key] ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
             </div>
@@ -1004,7 +1004,7 @@ function SettingsView({ user, onLogout }) {
       <div style={{ padding: '0 12px' }}>
         <div style={s.adminCard}>
           <div style={{ display: 'flex', gap: 8 }}>
-            {[['nl', '🇳🇱 Nederlands'], ['en', '🇬🇧 English']].map(([code, label]) => (
+            {[['nl', 'Nederlands'], ['en', 'English']].map(([code, label]) => (
               <div key={code} onClick={() => switchLang(code)} style={{ flex: 1, textAlign: 'center', padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: lang === code ? 700 : 400, background: lang === code ? COLORS.accent : 'none', color: lang === code ? '#000' : COLORS.textMuted, cursor: 'pointer' }}>{label}</div>
             ))}
           </div>
@@ -1038,12 +1038,12 @@ function StreetsView({ user }) {
         <div key={st.id} style={s.streetCard}>
           <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{st.name}</div>
           <div style={{ fontSize: 12, color: COLORS.textMuted, display: 'flex', gap: 12 }}>
-            <span>🏠 {st.households} {t('households')}</span>
-            <span>👥 {st.members} {t('members')}</span>
+            <span>{st.households} {t('households')}</span>
+            <span>{st.members} {t('members')}</span>
           </div>
           <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
-            {st.role === 'admin' && <span style={s.badge(COLORS.accent)}>👑 ADMIN</span>}
-            {st.role === 'moderator' && <span style={s.badge(COLORS.purple)}>🛡️ MOD</span>}
+            {st.role === 'admin' && <span style={s.badge(COLORS.accent)}>Admin</span>}
+            {st.role === 'moderator' && <span style={s.badge(COLORS.purple)}>Mod</span>}
             <span style={s.badge(COLORS.blue)}>LID</span>
           </div>
         </div>
@@ -1062,7 +1062,7 @@ function PendingView() {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ width: '100%', maxWidth: 400, background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: 16, padding: '32px 28px', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>⏳</div>
+        <div style={{ marginBottom: 16 }} />
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>{t('pending_title')}</div>
         <div style={{ fontSize: 14, color: COLORS.textMuted, lineHeight: 1.6 }}>{t('pending_body')}</div>
       </div>
@@ -1201,13 +1201,13 @@ export default function App() {
       )}
       {postError && (
         <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: COLORS.surface, border: `1px solid ${COLORS.red}`, borderRadius: 10, padding: '10px 20px', fontSize: 13, color: COLORS.red, zIndex: 200, whiteSpace: 'nowrap' }}>
-          ⚠️ {postError}
+          {postError}
         </div>
       )}
 
       <div style={s.header}>
         <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
-        <div style={s.streetBadge}>📍 {streetInfo?.name || 'Reyer Anslostraat'}</div>
+        <div style={s.streetBadge}>{streetInfo?.name || 'Reyer Anslostraat'}</div>
       </div>
 
       {tab === 'feed' && (
@@ -1215,7 +1215,7 @@ export default function App() {
           {!subscribed && permission !== 'denied' && (
             <div style={{ margin: '12px 12px 0', background: 'rgba(232,255,71,0.06)', border: '1px solid rgba(232,255,71,0.25)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 2 }}>🔔 Blijf op de hoogte</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 2 }}>Blijf op de hoogte</div>
                 <div style={{ fontSize: 12, color: COLORS.textMuted, lineHeight: 1.4 }}>Ontvang een melding bij nieuwe berichten in de straat</div>
               </div>
               <button onClick={subscribe} style={{ background: COLORS.accent, color: '#000', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
@@ -1257,13 +1257,13 @@ export default function App() {
 
       <div style={s.tabBar}>
         {[
-          { id: 'feed', icon: '🏠', label: t('feed') },
-          { id: 'streets', icon: '🗺️', label: t('streets') },
-          ...(canModerate ? [{ id: 'admin', icon: '👑', label: t('admin') }] : []),
-          { id: 'settings', icon: '⚙️', label: t('settings') },
+          { id: 'feed', label: t('feed'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg> },
+          { id: 'streets', label: t('streets'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> },
+          ...(canModerate ? [{ id: 'admin', label: t('admin'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> }] : []),
+          { id: 'settings', label: t('settings'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg> },
         ].map(tab_ => (
           <button key={tab_.id} style={s.tab(tab === tab_.id)} onClick={() => setTab(tab_.id)}>
-            <span style={{ fontSize: 18 }}>{tab_.icon}</span>
+            {tab_.svg(tab === tab_.id)}
             <span>{tab_.label}</span>
           </button>
         ))}

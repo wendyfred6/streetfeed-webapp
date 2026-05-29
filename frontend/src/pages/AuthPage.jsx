@@ -116,7 +116,6 @@ export default function AuthPage() {
       <div style={s.page}>
         <div style={s.card}>
           <div style={s.success}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🔐</div>
             <div style={s.successTitle}>Even inloggen…</div>
             <div style={s.successBody}>Je link wordt gecontroleerd.</div>
           </div>
@@ -130,7 +129,6 @@ export default function AuthPage() {
       <div style={s.page}>
         <div style={s.card}>
           <div style={s.success}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📬</div>
             <div style={s.successTitle}>{t('check_email')}</div>
             <div style={s.successBody}>{t('magic_sent', { email })}</div>
           </div>
