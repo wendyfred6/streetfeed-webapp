@@ -208,7 +208,7 @@ function IncidentExtra({ post }) {
   );
 }
 
-// ─── CARRIER BADGE (FRE-268) ───────────────────────────────────────────────────
+// ─── CARRIER BADGE ─────────────────────────────────────────────────────────────
 
 const CARRIER_COLORS = {
   'PostNL':   { bg: '#FF6600', color: '#fff' },
@@ -222,17 +222,37 @@ const CARRIER_COLORS = {
   'Amazon':   { bg: '#FF9900', color: '#000' },
 };
 
+// Klein SVG-pakket icoon — geen copyright, eigen vorm
+function PkgIcon({ color }) {
+  return (
+    <svg width="11" height="11" viewBox="0 0 14 14" fill="none"
+      stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+      style={{ flexShrink: 0 }}>
+      <path d="M7 1L13 4.5V9.5L7 13L1 9.5V4.5L7 1Z"/>
+      <path d="M1 4.5L7 8L13 4.5"/>
+      <line x1="7" y1="8" x2="7" y2="13"/>
+      <path d="M4 2.75L10 6.25"/>
+    </svg>
+  );
+}
+
 function CarrierBadge({ carrier }) {
   const style = CARRIER_COLORS[carrier];
-  if (!style) return <span style={{ ...s.badge(COLORS.blue), fontSize: 11 }}>📦 {carrier}</span>;
+  if (!style) {
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, ...s.badge(COLORS.blue), fontSize: 11, padding: '3px 8px' }}>
+        <PkgIcon color={COLORS.blue} />{carrier}
+      </span>
+    );
+  }
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center',
+      display: 'inline-flex', alignItems: 'center', gap: 5,
       background: style.bg, color: style.color,
       borderRadius: 4, fontSize: 10, fontWeight: 800,
       padding: '3px 8px', letterSpacing: '0.3px',
     }}>
-      {carrier}
+      <PkgIcon color={style.color} />{carrier}
     </span>
   );
 }
@@ -260,32 +280,32 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
   };
   const dateLabel = getDateLabel();
 
+  const firstName = (post.author_name || '').split(' ')[0] || 'Bewoner';
+
   return (
     <div style={s.card(post.pinned)}>
       {/* ── Klikbare header (altijd zichtbaar) ── */}
       <div style={{ cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
-        {/* FRE-262: marginBottom 8 ipv 4; FRE-265: geen pinned-badge, nieuwe datum-logica */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
           <CatBadge cat={post.category} />
-          {dateLabel && <span style={s.endDateBadge}>{dateLabel}</span>}
+          {/* Event-datum: badge; blokkade/container datum: plain tekst */}
+          {dateLabel && (
+            isEvent
+              ? <span style={s.endDateBadge}>{dateLabel}</span>
+              : <span style={{ fontSize: 12, color: COLORS.textMuted, fontWeight: 500 }}>{dateLabel}</span>
+          )}
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
             style={{ flexShrink: 0, marginLeft: 'auto', transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
             <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke={COLORS.textMuted} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
         <div style={s.cardTitle}>{post.title}</div>
-        {/* FRE-264: pakketje toont ophaaladres in collapsed */}
-        {isPackage && post.author_house && (
-          <div style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 3 }}>
-            Ophalen bij nr. {post.author_house}
-          </div>
-        )}
       </div>
 
-      {/* ── Uitgeklapte inhoud ── */}
+      {/* ── Uitgeklapte inhoud — alles links uitgelijnd, geen padding-offset ── */}
       {expanded && (
-        <div style={{ paddingLeft: 18, marginTop: 8 }}>
-          <div style={s.cardBody}>{post.body}</div>
+        <div style={{ marginTop: 8 }}>
+          {post.body && <div style={s.cardBody}>{post.body}</div>}
           {isEvent && post.rsvp && <RsvpBar post={post} onRsvp={onRsvp} />}
           {isIncident && <IncidentExtra post={post} />}
           {post.photo_url && (
@@ -296,16 +316,16 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               onError={e => e.target.style.display = 'none'}
             />
           )}
-          {/* FRE-268: carrier badge met merkkleur */}
           {post.carrier && (
             <div style={{ marginTop: 8 }}>
               <CarrierBadge carrier={post.carrier} />
             </div>
           )}
+          {/* Link: geen emoji, gewoon de URL */}
           {post.link && (
             <a href={post.link} target="_blank" rel="noopener noreferrer"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, background: 'none', border: `1px solid ${COLORS.blue}44`, borderRadius: 8, padding: '7px 12px', fontSize: 12, color: COLORS.blue, textDecoration: 'none' }}>
-              🔗 Meer informatie →
+              style={{ display: 'block', marginTop: 8, fontSize: 12, color: COLORS.blue, textDecoration: 'underline', wordBreak: 'break-all' }}>
+              {post.link}
             </a>
           )}
           {post.attachment_name && (
@@ -325,11 +345,11 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               📅 {t('tap_details')} →
             </button>
           )}
-          {/* FRE-265: meta alleen in expanded */}
+          {/* Meta-rij: voornaam, tijd, acties */}
           <div style={{ ...s.cardMeta, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
             <div style={s.cardMetaLeft}>
               <span style={{ fontSize: 10, fontWeight: 600, color: post.author_role === 'admin' ? COLORS.accent : post.author_role === 'moderator' ? COLORS.purple : COLORS.textDim }}>
-                {post.author_role === 'admin' ? '👑 ' : post.author_role === 'moderator' ? '🛡️ ' : ''}{post.author_name}
+                {post.author_role === 'admin' ? '👑 ' : post.author_role === 'moderator' ? '🛡️ ' : ''}{firstName}
               </span>
               <span>·</span><span>{timeAgo(post.created_at)}</span>
             </div>
@@ -638,11 +658,13 @@ function PhotoUpload({ category, onUploaded }) {
 
 // ─── NEW POST SHEET ────────────────────────────────────────────────────────────
 
-function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
-  // Prevent accidental close on desktop by not closing on overlay click
+function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   const [cat, setCat] = useState('general');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  // Pakketje: huisnummers voor auto-gegenereerde titel
+  const [forHouse, setForHouse] = useState('');
+  const [pickupHouse, setPickupHouse] = useState(user?.house_number || '');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [eventDate, setEventDate] = useState('');
@@ -663,6 +685,14 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
   const isPackage = cat === 'package';
   const isGeneral = cat === 'general';
 
+  // Auto-gegenereerde titel voor pakketje
+  const packageTitle = `Pakket voor ${forHouse.trim() || '—'} · Ophalen bij nr. ${pickupHouse.trim() || '—'}`;
+
+  // Submit mag pas als verplichte velden ingevuld zijn
+  const canSubmit = isPackage
+    ? (forHouse.trim() && pickupHouse.trim())
+    : title.trim();
+
   return (
     <div style={s.overlay}>
       <div style={s.sheet}>
@@ -676,10 +706,39 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
             </div>
           ))}
         </div>
-        <label style={s.label}>{t('title')}</label>
-        <input style={s.input} placeholder={t('title_placeholder')} value={title} onChange={e => setTitle(e.target.value)} />
-        <label style={s.label}>{t('message')}</label>
-        <textarea style={s.textarea} placeholder={t('message_placeholder')} value={body} onChange={e => setBody(e.target.value)} />
+
+        {/* Pakketje: huisnummerpicker i.p.v. vrije titel */}
+        {isPackage ? (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={s.label}>Pakket voor nr.</label>
+                <input style={s.input} placeholder="bijv. 27-2"
+                  value={forHouse} onChange={e => setForHouse(e.target.value)} />
+              </div>
+              <div>
+                <label style={s.label}>Ophalen bij nr.</label>
+                <input style={s.input} placeholder="bijv. 28-2"
+                  value={pickupHouse} onChange={e => setPickupHouse(e.target.value)} />
+              </div>
+            </div>
+            {(forHouse || pickupHouse) && (
+              <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginBottom: 10 }}>
+                Titel: <strong style={{ color: COLORS.text }}>{packageTitle}</strong>
+              </div>
+            )}
+            <label style={s.label}>Extra details (optioneel)</label>
+            <textarea style={{ ...s.textarea, height: 60 }} placeholder="Bijv. staat bij de voordeur, is al geopend..."
+              value={body} onChange={e => setBody(e.target.value)} />
+          </>
+        ) : (
+          <>
+            <label style={s.label}>{t('title')}</label>
+            <input style={s.input} placeholder={t('title_placeholder')} value={title} onChange={e => setTitle(e.target.value)} />
+            <label style={s.label}>{t('message')}</label>
+            <textarea style={s.textarea} placeholder={t('message_placeholder')} value={body} onChange={e => setBody(e.target.value)} />
+          </>
+        )}
         <PhotoUpload category={cat} onUploaded={setPhotoKey} />
         <div style={{ marginBottom: 10 }}>
           <label style={{ ...s.label, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -738,13 +797,19 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
             <input style={s.input} placeholder={t('bring_list_placeholder')} value={bringItems} onChange={e => setBringItems(e.target.value)} />
           </>
         )}
-        {/* FRE-265: start + einddatum voor blokkade/container (iedereen), alleen pin als admin */}
+        {/* Start + einddatum voor blokkade/container */}
         {['blockage', 'container'].includes(cat) && (
           <>
             <label style={s.label}>Startdatum (optioneel)</label>
             <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
             <label style={s.label}>Einddatum (optioneel)</label>
             <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+            {/* Auto-pin hint: wordt vastgepind als admin en einddatum is ingevuld */}
+            {canPin && endDate && (
+              <div style={{ fontSize: 11, color: COLORS.accent, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                📌 Dit bericht wordt automatisch vastgepind t/m de einddatum.
+              </div>
+            )}
           </>
         )}
         {cat === 'event' && canPin && (
@@ -753,17 +818,21 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
             <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
           </>
         )}
-        <button style={s.submitBtn} onClick={() => {
-          if (!title.trim()) return;
-          onSubmit({ category: cat, title, body, startDate: startDate || undefined,
-            endDate, eventDate, eventTime, eventLocation,
-            bringList: bringItems ? bringItems.split(',').map(i => i.trim()) : [],
-            licensePlate: licenseplate || undefined, photoKey: photoKey || undefined,
-            link: link || undefined, carrier: carrier || undefined,
-            attachmentName: attachmentName || undefined, allowJoin,
-            pinned: canPin && isPinnable && !!endDate });
-          onClose();
-        }}>{t('publish')}</button>
+        <button style={{ ...s.submitBtn, opacity: canSubmit ? 1 : 0.5 }}
+          disabled={!canSubmit}
+          onClick={() => {
+            if (!canSubmit) return;
+            const finalTitle = isPackage ? packageTitle : title;
+            onSubmit({ category: cat, title: finalTitle, body,
+              startDate: startDate || undefined,
+              endDate, eventDate, eventTime, eventLocation,
+              bringList: bringItems ? bringItems.split(',').map(i => i.trim()) : [],
+              licensePlate: licenseplate || undefined, photoKey: photoKey || undefined,
+              link: link || undefined, carrier: carrier || undefined,
+              attachmentName: attachmentName || undefined, allowJoin,
+              pinned: canPin && isPinnable && !!endDate });
+            onClose();
+          }}>{t('publish')}</button>
         <button style={s.cancelBtn} onClick={onClose}>{t('cancel')}</button>
       </div>
     </div>
@@ -1202,7 +1271,7 @@ export default function App() {
 
       {showPost && (
         <NewPostSheet onClose={() => setShowPost(false)} onSubmit={(data) => { handleNewPost(data); setShowPost(false); }}
-          streetId={STREET_ID} canPin={canPin} />
+          streetId={STREET_ID} canPin={canPin} user={user} />
       )}
       {eventDetail && (
         <EventDetailSheet post={eventDetail} onClose={() => setEventDetail(null)} onRsvp={handleRsvp} />
