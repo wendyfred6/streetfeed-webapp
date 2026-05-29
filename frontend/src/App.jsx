@@ -783,7 +783,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         {isGeneral && (
           <div onClick={() => setAllowJoin(v => !v)}
             style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: 10 }}>
-            <span style={{ fontSize: 13 }}>"Ik doe mee"-knop inschakelen</span>
+            <span style={{ fontSize: 13 }}>Aanmeldknop toevoegen</span>
             <div style={{ width: 36, height: 20, borderRadius: 10, background: allowJoin ? COLORS.accent : COLORS.border, position: 'relative', flexShrink: 0 }}>
               <div style={{ position: 'absolute', top: 3, left: allowJoin ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: allowJoin ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
             </div>
