@@ -31,6 +31,8 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { refresh } = useAuth();
 
+  const tokenParam = params.get('token');
+
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -40,6 +42,8 @@ export default function AuthPage() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [verifying, setVerifying] = useState(!!tokenParam);
+  const [verifyError, setVerifyError] = useState('');
 
   const HOUSE_REGEX = /^\d+-(hs|\d+)$/i;
 
@@ -54,6 +58,23 @@ export default function AuthPage() {
   };
 
   const errorParam = params.get('error');
+
+  // Optie A: frontend verifies the magic-link token directly so the session
+  // cookie is set in the browser that the user is actually using (not a WebView).
+  useEffect(() => {
+    if (!tokenParam) return;
+    api.get(`/auth/verify?token=${encodeURIComponent(tokenParam)}`)
+      .then(() => refresh().then(() => navigate('/')))
+      .catch((err) => {
+        setVerifying(false);
+        const code = err?.data?.error;
+        if (code === 'expired') {
+          setVerifyError('De link is verlopen. Vraag een nieuwe aan.');
+        } else {
+          setVerifyError('Verificatie mislukt. Probeer opnieuw.');
+        }
+      });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,12 +110,20 @@ export default function AuthPage() {
     }
   };
 
-  // After redirect back from verify, reload user
-  useEffect(() => {
-    if (params.get('auth') === 'ok') {
-      refresh().then(() => navigate('/'));
-    }
-  }, []);
+  // Bezig met token verifiëren — toon laadscherm
+  if (verifying) {
+    return (
+      <div style={s.page}>
+        <div style={s.card}>
+          <div style={s.success}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🔐</div>
+            <div style={s.successTitle}>Even inloggen…</div>
+            <div style={s.successBody}>Je link wordt gecontroleerd.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (sent) {
     return (
@@ -116,8 +145,8 @@ export default function AuthPage() {
         <div style={s.logo}>Street<span style={{ color: COLORS.accent }}>feed</span></div>
         <p style={s.subtitle}>{t('login_subtitle')}</p>
 
-        {errorParam === 'expired' && (
-          <p style={s.error}>De link is verlopen. Vraag een nieuwe aan.</p>
+        {(verifyError || errorParam === 'expired') && (
+          <p style={s.error}>{verifyError || 'De link is verlopen. Vraag een nieuwe aan.'}</p>
         )}
 
         <form onSubmit={handleSubmit}>

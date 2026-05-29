@@ -50,7 +50,7 @@ router.post('/request', async (req, res) => {
   res.json({ ok: true, message: 'Magische link verstuurd — check je e-mail' });
 });
 
-// GET /api/auth/verify?token=xxx — verify magic link
+// GET /api/auth/verify?token=xxx — verify magic link (called by frontend JS, returns JSON)
 router.get('/verify', async (req, res) => {
   const { token } = req.query;
   if (!token) return res.status(400).json({ error: 'Token required' });
@@ -61,8 +61,7 @@ router.get('/verify', async (req, res) => {
   );
 
   if (!tokenRows.length) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    return res.redirect(`${frontendUrl}/auth?error=expired`);
+    return res.status(400).json({ error: 'expired' });
   }
 
   const authToken = tokenRows[0];
@@ -77,8 +76,7 @@ router.get('/verify', async (req, res) => {
   );
 
   if (!userRows.length) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    return res.redirect(`${frontendUrl}/auth?error=user_not_found`);
+    return res.status(400).json({ error: 'user_not_found' });
   }
 
   const user = userRows[0];
@@ -96,13 +94,12 @@ router.get('/verify', async (req, res) => {
   res.cookie('session', sessionToken, {
     httpOnly: true,
     secure: isSecure,
-    sameSite: isSecure ? 'none' : 'lax',
+    sameSite: 'lax',
     expires: sessionExpiry,
     path: '/',
   });
 
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  res.redirect(`${frontendUrl}/?auth=ok`);
+  res.json({ ok: true });
 });
 
 // POST /api/auth/logout

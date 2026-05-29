@@ -30,7 +30,7 @@ export async function sendMagicLink(email, name, token) {
     throw new Error('Geen e-mailservice geconfigureerd (RESEND_API_KEY ontbreekt)');
   }
 
-  const url = `${process.env.APP_URL}/api/auth/verify?token=${token}`;
+  const url = `${process.env.APP_URL}/auth?token=${token}`;
   const subject = 'Jouw Streetfeed inloglink';
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
