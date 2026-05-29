@@ -112,3 +112,6 @@ CREATE TABLE IF NOT EXISTS notification_prefs (
 -- Seed: first street
 INSERT INTO streets (name, households) VALUES ('Reyer Anslostraat', 111)
   ON CONFLICT DO NOTHING;
+
+-- Seed: super admin
+UPDATE users SET is_super_admin = true WHERE email = 'wendy@fred6.nl';
