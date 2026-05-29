@@ -59,7 +59,7 @@ router.get('/:streetId/posts', requireAuth, requireMembership('resident'), async
 // POST /api/streets/:streetId/posts
 router.post('/:streetId/posts', requireAuth, requireMembership('resident'), async (req, res) => {
   const { streetId } = req.params;
-  const { category, title, body, pinned, endDate, licensePlate,
+  const { category, title, body, pinned, endDate, startDate, licensePlate,
           eventDate, eventTime, eventLocation, bringList, photoKey,
           link, carrier, allowJoin } = req.body;
 
@@ -73,15 +73,15 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
 
   const { rows } = await query(
     `INSERT INTO posts
-       (street_id, user_id, category, title, body, pinned, end_date, license_plate,
+       (street_id, user_id, category, title, body, pinned, end_date, start_date, license_plate,
         event_date, event_time, event_location, bring_list, photo_key,
         link, carrier, allow_join)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
      RETURNING *`,
     [
       streetId, req.user.user_id, category, title.trim(), body.trim(),
       canPin && pinned ? true : false,
-      endDate || null, licensePlate || null,
+      endDate || null, startDate || null, licensePlate || null,
       eventDate || null, eventTime || null, eventLocation || null,
       bringList?.length ? bringList : null,
       photoKey || null,

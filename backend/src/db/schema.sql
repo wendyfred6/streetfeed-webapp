@@ -121,5 +121,8 @@ CREATE TABLE IF NOT EXISTS notification_prefs (
 INSERT INTO streets (name, households) VALUES ('Reyer Anslostraat', 111)
   ON CONFLICT DO NOTHING;
 
+-- Migratie: startdatum voor blokkades en containers
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS start_date DATE;
+
 -- Seed: super admin
 UPDATE users SET is_super_admin = true WHERE email = 'wendy@fred6.nl';

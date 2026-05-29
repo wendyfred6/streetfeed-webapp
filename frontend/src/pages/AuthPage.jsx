@@ -32,24 +32,48 @@ export default function AuthPage() {
   const { refresh } = useAuth();
 
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [house, setHouse] = useState('');
+  const [houseError, setHouseError] = useState('');
   const [needsProfile, setNeedsProfile] = useState(false);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const HOUSE_REGEX = /^\d+-(hs|\d+)$/i;
+
+  const handleHouseChange = (e) => {
+    const val = e.target.value;
+    setHouse(val);
+    if (val && !HOUSE_REGEX.test(val.trim())) {
+      setHouseError('Gebruik het formaat 28-hs of 28-1');
+    } else {
+      setHouseError('');
+    }
+  };
 
   const errorParam = params.get('error');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Valideer huisnummer-formaat
+    if (needsProfile && house && !HOUSE_REGEX.test(house.trim())) {
+      setHouseError('Gebruik het formaat 28-hs of 28-1');
+      return;
+    }
+
     setLoading(true);
+    const fullName = needsProfile
+      ? `${firstName.trim()} ${lastName.trim()}`.trim()
+      : undefined;
 
     try {
       await api.post('/auth/request', {
         email: email.trim(),
-        name: name.trim() || undefined,
+        name: fullName || undefined,
         houseNumber: house.trim() || undefined,
         streetId: 1, // default: Reyer Anslostraat
       });
@@ -118,28 +142,49 @@ export default function AuthPage() {
                 De straat admin moet je verzoek goedkeuren voordat je toegang krijgt.
               </div>
 
-              <label style={s.label}>{t('new_user_name')}</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={s.label}>Voornaam</label>
+                  <input
+                    style={s.input}
+                    type="text"
+                    placeholder="bijv. Wendy"
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    required={needsProfile}
+                  />
+                </div>
+                <div>
+                  <label style={s.label}>Achternaam</label>
+                  <input
+                    style={s.input}
+                    type="text"
+                    placeholder="bijv. Jansen"
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
+                    required={needsProfile}
+                  />
+                </div>
+              </div>
+
+              <label style={s.label}>Huisnummer + etage</label>
               <input
-                style={s.input}
+                style={{ ...s.input, borderColor: houseError ? COLORS.red : undefined }}
                 type="text"
-                placeholder={t('new_user_name_placeholder')}
-                value={name}
-                onChange={e => setName(e.target.value)}
+                placeholder="bijv. 52-hs of 52-1"
+                value={house}
+                onChange={handleHouseChange}
                 required={needsProfile}
               />
-
-              <label style={s.label}>{t('new_user_house')}</label>
-              <input
-                style={s.input}
-                type="text"
-                placeholder={t('new_user_house_placeholder')}
-                value={house}
-                onChange={e => setHouse(e.target.value)}
-              />
+              {houseError && <p style={{ ...s.error, marginTop: -8 }}>{houseError}</p>}
             </>
           )}
 
-          <button style={s.btn} type="submit" disabled={loading}>
+          <button
+            style={{ ...s.btn, opacity: (needsProfile && (!firstName.trim() || !lastName.trim() || !house.trim() || !!houseError)) ? 0.5 : 1 }}
+            type="submit"
+            disabled={loading || !!(needsProfile && (!firstName.trim() || !lastName.trim() || !house.trim() || !!houseError))}
+          >
             {loading ? t('loading') : t('send_link')}
           </button>
         </form>

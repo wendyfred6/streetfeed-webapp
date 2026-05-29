@@ -208,30 +208,78 @@ function IncidentExtra({ post }) {
   );
 }
 
+// ─── CARRIER BADGE (FRE-268) ───────────────────────────────────────────────────
+
+const CARRIER_COLORS = {
+  'PostNL':   { bg: '#FF6600', color: '#fff' },
+  'DHL':      { bg: '#FFCC00', color: '#CC0605' },
+  'DPD':      { bg: '#414042', color: '#DC0032' },
+  'GLS':      { bg: '#009900', color: '#fff' },
+  'FedEx':    { bg: '#4D148C', color: '#FF6600' },
+  'UPS':      { bg: '#351C15', color: '#FFB500' },
+  'Bol.com':  { bg: '#0000A4', color: '#fff' },
+  'Coolblue': { bg: '#003878', color: '#fff' },
+  'Amazon':   { bg: '#FF9900', color: '#000' },
+};
+
+function CarrierBadge({ carrier }) {
+  const style = CARRIER_COLORS[carrier];
+  if (!style) return <span style={{ ...s.badge(COLORS.blue), fontSize: 11 }}>📦 {carrier}</span>;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center',
+      background: style.bg, color: style.color,
+      borderRadius: 4, fontSize: 10, fontWeight: 800,
+      padding: '3px 8px', letterSpacing: '0.3px',
+    }}>
+      {carrier}
+    </span>
+  );
+}
+
 // ─── POST CARD ─────────────────────────────────────────────────────────────────
 
 function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate }) {
   const [expanded, setExpanded] = useState(false);
-  const cat = CATEGORIES[post.category];
   const isEvent = post.category === 'event';
   const isIncident = post.category === 'incident';
+  const isPackage = post.category === 'package';
+
+  // FRE-265: datum-badge logica
+  const getDateLabel = () => {
+    if (isEvent && post.event_date) return post.event_date;
+    if (['blockage', 'container'].includes(post.category)) {
+      const fmt = (d) => {
+        const [y, m, day] = d.substring(0, 10).split('-');
+        return new Date(+y, +m - 1, +day).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+      };
+      if (post.start_date && post.end_date) return `${fmt(post.start_date)} – ${fmt(post.end_date)}`;
+      if (post.end_date) return `t/m ${fmt(post.end_date)}`;
+    }
+    return null;
+  };
+  const dateLabel = getDateLabel();
 
   return (
     <div style={s.card(post.pinned)}>
-      {/* ── Klikbare header ── */}
+      {/* ── Klikbare header (altijd zichtbaar) ── */}
       <div style={{ cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
-            {post.pinned && <span style={s.pinnedBadge}>📌 Pinned</span>}
-            {post.end_date && <span style={s.endDateBadge}>{t('until')} {new Date(post.end_date).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' })}</span>}
-            <CatBadge cat={post.category} />
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
-              style={{ flexShrink: 0, marginLeft: 'auto', transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-              <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke={COLORS.textMuted} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <div style={s.cardTitle}>{post.title}</div>
+        {/* FRE-262: marginBottom 8 ipv 4; FRE-265: geen pinned-badge, nieuwe datum-logica */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+          <CatBadge cat={post.category} />
+          {dateLabel && <span style={s.endDateBadge}>{dateLabel}</span>}
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
+            style={{ flexShrink: 0, marginLeft: 'auto', transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+            <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke={COLORS.textMuted} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
+        <div style={s.cardTitle}>{post.title}</div>
+        {/* FRE-264: pakketje toont ophaaladres in collapsed */}
+        {isPackage && post.author_house && (
+          <div style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 3 }}>
+            📦 Ophalen bij nr. {post.author_house}
+          </div>
+        )}
       </div>
 
       {/* ── Uitgeklapte inhoud ── */}
@@ -248,9 +296,10 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               onError={e => e.target.style.display = 'none'}
             />
           )}
+          {/* FRE-268: carrier badge met merkkleur */}
           {post.carrier && (
             <div style={{ marginTop: 8 }}>
-              <span style={{ ...s.badge(COLORS.blue), fontSize: 11 }}>📦 {post.carrier}</span>
+              <CarrierBadge carrier={post.carrier} />
             </div>
           )}
           {post.link && (
@@ -276,29 +325,28 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               📅 {t('tap_details')} →
             </button>
           )}
+          {/* FRE-265: meta alleen in expanded */}
+          <div style={{ ...s.cardMeta, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
+            <div style={s.cardMetaLeft}>
+              <span style={{ fontSize: 10, fontWeight: 600, color: post.author_role === 'admin' ? COLORS.accent : post.author_role === 'moderator' ? COLORS.purple : COLORS.textDim }}>
+                {post.author_role === 'admin' ? '👑 ' : post.author_role === 'moderator' ? '🛡️ ' : ''}{post.author_name}
+              </span>
+              <span>·</span><span>{timeAgo(post.created_at)}</span>
+            </div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <button style={{ ...s.actionBtn, color: post.liked ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>♥ {post.likes}</button>
+              <button style={s.actionBtn} onClick={e => e.stopPropagation()}>💬 {post.comments}</button>
+              {canModerate ? (
+                <button style={{ ...s.reportBtn, color: COLORS.red }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('delete')}>🗑</button>
+              ) : (
+                <button style={{ ...s.reportBtn, color: post.reported ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('report')}>
+                  {post.reported ? '🚩' : '⚑'}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
-
-      {/* ── Meta (altijd zichtbaar) ── */}
-      <div style={{ ...s.cardMeta, marginTop: 10 }}>
-        <div style={s.cardMetaLeft}>
-          <span style={{ fontSize: 10, fontWeight: 600, color: post.author_role === 'admin' ? COLORS.accent : post.author_role === 'moderator' ? COLORS.purple : COLORS.textDim }}>
-            {post.author_role === 'admin' ? '👑 ' : post.author_role === 'moderator' ? '🛡️ ' : ''}{post.author_name}
-          </span>
-          <span>·</span><span>{timeAgo(post.created_at)}</span>
-        </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <button style={{ ...s.actionBtn, color: post.liked ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>♥ {post.likes}</button>
-          <button style={s.actionBtn} onClick={e => e.stopPropagation()}>💬 {post.comments}</button>
-          {canModerate ? (
-            <button style={{ ...s.reportBtn, color: COLORS.red }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('delete')}>🗑</button>
-          ) : (
-            <button style={{ ...s.reportBtn, color: post.reported ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('report')}>
-              {post.reported ? '🚩' : '⚑'}
-            </button>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
@@ -496,6 +544,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
   const [cat, setCat] = useState('general');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [eventTime, setEventTime] = useState('');
@@ -590,7 +639,16 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
             <input style={s.input} placeholder={t('bring_list_placeholder')} value={bringItems} onChange={e => setBringItems(e.target.value)} />
           </>
         )}
-        {isPinnable && canPin && (
+        {/* FRE-265: start + einddatum voor blokkade/container (iedereen), alleen pin als admin */}
+        {['blockage', 'container'].includes(cat) && (
+          <>
+            <label style={s.label}>Startdatum (optioneel)</label>
+            <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+            <label style={s.label}>Einddatum (optioneel)</label>
+            <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          </>
+        )}
+        {cat === 'event' && canPin && (
           <>
             <label style={s.label}>{t('end_date')}</label>
             <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
@@ -598,7 +656,8 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin }) {
         )}
         <button style={s.submitBtn} onClick={() => {
           if (!title.trim()) return;
-          onSubmit({ category: cat, title, body, endDate, eventDate, eventTime, eventLocation,
+          onSubmit({ category: cat, title, body, startDate: startDate || undefined,
+            endDate, eventDate, eventTime, eventLocation,
             bringList: bringItems ? bringItems.split(',').map(i => i.trim()) : [],
             licensePlate: licenseplate || undefined, photoKey: photoKey || undefined,
             link: link || undefined, carrier: carrier || undefined,
@@ -987,8 +1046,8 @@ export default function App() {
           )}
           <div style={s.filterBar}>
             <div style={s.filterChip(filter === 'all')} onClick={() => setFilter('all')}>{t('all')}</div>
-            {Object.entries(CATEGORIES).map(([key, c]) => (
-              <div key={key} style={s.filterChip(filter === key)} onClick={() => setFilter(key)}>{c.emoji} {catLabel(key)}</div>
+            {Object.entries(CATEGORIES).map(([key]) => (
+              <div key={key} style={s.filterChip(filter === key)} onClick={() => setFilter(key)}>{catLabel(key)}</div>
             ))}
           </div>
           {loading
