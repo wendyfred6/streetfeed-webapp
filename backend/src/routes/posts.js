@@ -63,8 +63,8 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
           eventDate, eventTime, eventLocation, bringList, photoKey,
           link, carrier, allowJoin } = req.body;
 
-  if (!category || !title || !body) {
-    return res.status(400).json({ error: 'category, title, and body are required' });
+  if (!category || !title) {
+    return res.status(400).json({ error: 'category and title are required' });
   }
 
   // Only admin/moderator can pin
