@@ -222,14 +222,12 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
       <div style={{ display: 'flex', gap: 10, cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
         <div style={{ width: 8, height: 8, borderRadius: '50%', background: cat?.color || '#888', marginTop: 6, flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              {post.pinned && <span style={s.pinnedBadge}>📌 Pinned</span>}
-              {post.end_date && <span style={s.endDateBadge}>{t('until')} {new Date(post.end_date).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' })}</span>}
-              <CatBadge cat={post.category} />
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+            {post.pinned && <span style={s.pinnedBadge}>📌 Pinned</span>}
+            {post.end_date && <span style={s.endDateBadge}>{t('until')} {new Date(post.end_date).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' })}</span>}
+            <CatBadge cat={post.category} />
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
-              style={{ flexShrink: 0, marginLeft: 8, transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              style={{ flexShrink: 0, marginLeft: 'auto', transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
               <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke={COLORS.textMuted} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
