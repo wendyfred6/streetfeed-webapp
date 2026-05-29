@@ -219,9 +219,8 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
   return (
     <div style={s.card(post.pinned)}>
       {/* ── Klikbare header ── */}
-      <div style={{ display: 'flex', gap: 10, cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: cat?.color || '#888', marginTop: 6, flexShrink: 0 }} />
-        <div style={{ flex: 1 }}>
+      <div style={{ cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
+        <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
             {post.pinned && <span style={s.pinnedBadge}>📌 Pinned</span>}
             {post.end_date && <span style={s.endDateBadge}>{t('until')} {new Date(post.end_date).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' })}</span>}
