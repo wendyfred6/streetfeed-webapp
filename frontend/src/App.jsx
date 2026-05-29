@@ -12,13 +12,12 @@ const COLORS = {
 };
 
 const CATEGORIES = {
-  general:   { label: 'Algemeen',  labelEn: 'General',   emoji: '💬', color: '#888888' },
-  package:   { label: 'Pakket',    labelEn: 'Package',   emoji: '📦', color: '#4488FF' },
-  blockage:  { label: 'Blokkade',  labelEn: 'Blockage',  emoji: '🚧', color: '#FF8833', pinnable: true },
-  waste:     { label: 'Grofvuil',  labelEn: 'Bulk waste',emoji: '🗑️', color: '#FF4444' },
-  container: { label: 'Container', labelEn: 'Container', emoji: '🏗️', color: '#FF8833', pinnable: true },
-  event:     { label: 'Evenement', labelEn: 'Event',     emoji: '🎉', color: '#AA77FF', pinnable: true, isEvent: true },
-  incident:  { label: 'Melding',   labelEn: 'Incident',  emoji: '🚨', color: '#FF4444' },
+  general:   { label: 'Algemeen',      labelEn: 'General',   emoji: '💬', color: '#888888' },
+  package:   { label: 'Pakket',        labelEn: 'Package',   emoji: '📦', color: '#4488FF' },
+  works:     { label: 'Werkzaamheden', labelEn: 'Works',     emoji: '🔧', color: '#FF8833', pinnable: true },
+  waste:     { label: 'Grofvuil',      labelEn: 'Bulk waste',emoji: '🗑️', color: '#FF4444' },
+  event:     { label: 'Evenement',     labelEn: 'Event',     emoji: '🎉', color: '#AA77FF', pinnable: true, isEvent: true },
+  incident:  { label: 'Melding',       labelEn: 'Incident',  emoji: '🚨', color: '#FF4444' },
 };
 
 function catLabel(key) {
@@ -272,11 +271,12 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
   const isEvent = post.category === 'event';
   const isIncident = post.category === 'incident';
   const isPackage = post.category === 'package';
+  const isWorks = post.category === 'works' || ['blockage', 'container'].includes(post.category); // backward compat
 
   // FRE-265: datum-badge logica
   const getDateLabel = () => {
     if (isEvent && post.event_date) return post.event_date;
-    if (['blockage', 'container'].includes(post.category)) {
+    if (isWorks) {
       const fmt = (d) => {
         const [y, m, day] = d.substring(0, 10).split('-');
         return new Date(+y, +m - 1, +day).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
@@ -563,8 +563,8 @@ function EditPostSheet({ post, onClose, onSave }) {
 
   const isEvent = post.category === 'event';
   const isPackage = post.category === 'package';
-  const hasDateRange = ['blockage', 'container'].includes(post.category);
-  const hasLink = ['blockage', 'container', 'waste'].includes(post.category);
+  const hasDateRange = ['works', 'blockage', 'container'].includes(post.category);
+  const hasLink = ['works', 'blockage', 'container', 'waste'].includes(post.category);
 
   return (
     <div style={s.overlay}>
@@ -685,6 +685,15 @@ function PhotoUpload({ category, onUploaded }) {
 
 // ─── NEW POST SHEET ────────────────────────────────────────────────────────────
 
+const WORK_TYPES = [
+  { key: 'blokkade',         label: 'Blokkade' },
+  { key: 'container',        label: 'Container' },
+  { key: 'verbouwing',       label: 'Verbouwing' },
+  { key: 'steiger',          label: 'Steiger' },
+  { key: 'wegwerkzaamheden', label: 'Wegwerkzaamheden' },
+  { key: 'verhuizing',       label: 'Verhuizing' },
+];
+
 const INCIDENT_TYPES = [
   { key: 'grofvuil',        label: 'Grofvuil',           reportTo: 'gemeente' },
   { key: 'parkeeroverlast', label: 'Parkeeroverlast',     reportTo: 'gemeente' },
@@ -699,6 +708,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [incidentType, setIncidentType] = useState('');
+  const [workType, setWorkType] = useState('');
   // Pakketje: huisnummers voor auto-gegenereerde titel
   const [forHouse, setForHouse] = useState('');
   const [pickupHouse, setPickupHouse] = useState(user?.house_number || '');
@@ -718,8 +728,9 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
 
   const isEvent = cat === 'event';
   const isIncident = cat === 'incident';
+  const isWorks = cat === 'works';
   const isPinnable = CATEGORIES[cat]?.pinnable;
-  const hasLink = ['blockage', 'container'].includes(cat);
+  const hasLink = isWorks;
   const isPackage = cat === 'package';
   const isGeneral = cat === 'general';
 
@@ -731,7 +742,9 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
     ? (forHouse.trim() && pickupHouse.trim())
     : isIncident
       ? (incidentType && title.trim())
-      : title.trim();
+      : isWorks
+        ? (workType && title.trim())
+        : title.trim();
 
   return (
     <div style={s.overlay}>
@@ -744,7 +757,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         <div style={{ display: 'flex', gap: 5, overflowX: 'auto', marginBottom: 16, paddingBottom: 4, paddingRight: 4, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
           {Object.entries(CATEGORIES).filter(([key]) => key !== 'waste').map(([key]) => (
             <div key={key} style={{ ...s.catOption(cat === key, key), flexShrink: 0 }}
-              onClick={() => { setCat(key); setIncidentType(''); setTitle(''); }}>
+              onClick={() => { setCat(key); setIncidentType(''); setWorkType(''); setTitle(''); }}>
               {catLabel(key)}
             </div>
           ))}
@@ -759,6 +772,22 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
                 <div key={key}
                   style={{ ...s.filterChip(incidentType === key), borderRadius: 8, fontSize: 12 }}
                   onClick={() => { setIncidentType(key); setTitle(label); setLicenseplate(''); setNearHouseNr(''); }}>
+                  {label}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* 2b. Type werkzaamheden — direct na categorie */}
+        {isWorks && (
+          <>
+            <label style={s.label}>Type werkzaamheden</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+              {WORK_TYPES.map(({ key, label }) => (
+                <div key={key}
+                  style={{ ...s.filterChip(workType === key), borderRadius: 8, fontSize: 12 }}
+                  onClick={() => { setWorkType(key); setTitle(label); }}>
                   {label}
                 </div>
               ))}
@@ -833,8 +862,8 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
           </>
         )}
 
-        {/* Datums voor blokkade/container */}
-        {['blockage', 'container'].includes(cat) && (
+        {/* Datums voor werkzaamheden */}
+        {isWorks && (
           <>
             <label style={s.label}>Startdatum (optioneel)</label>
             <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
