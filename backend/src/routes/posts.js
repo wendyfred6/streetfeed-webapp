@@ -60,7 +60,8 @@ router.get('/:streetId/posts', requireAuth, requireMembership('resident'), async
 router.post('/:streetId/posts', requireAuth, requireMembership('resident'), async (req, res) => {
   const { streetId } = req.params;
   const { category, title, body, pinned, endDate, licensePlate,
-          eventDate, eventTime, eventLocation, bringList, photoKey } = req.body;
+          eventDate, eventTime, eventLocation, bringList, photoKey,
+          link, carrier, allowJoin } = req.body;
 
   if (!category || !title || !body) {
     return res.status(400).json({ error: 'category, title, and body are required' });
@@ -73,8 +74,9 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
   const { rows } = await query(
     `INSERT INTO posts
        (street_id, user_id, category, title, body, pinned, end_date, license_plate,
-        event_date, event_time, event_location, bring_list, photo_key)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+        event_date, event_time, event_location, bring_list, photo_key,
+        link, carrier, allow_join)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
      RETURNING *`,
     [
       streetId, req.user.user_id, category, title.trim(), body.trim(),
@@ -83,6 +85,7 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
       eventDate || null, eventTime || null, eventLocation || null,
       bringList?.length ? bringList : null,
       photoKey || null,
+      link || null, carrier || null, allowJoin || false,
     ]
   );
 

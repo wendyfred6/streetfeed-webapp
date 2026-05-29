@@ -58,8 +58,16 @@ CREATE TABLE IF NOT EXISTS posts (
   event_location TEXT,
   bring_list     TEXT[],
   photo_key      TEXT,
+  link           TEXT,
+  carrier        TEXT,
+  allow_join     BOOLEAN NOT NULL DEFAULT FALSE,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Migratie: voeg ontbrekende kolommen toe aan bestaande posts tabel
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS link       TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS carrier    TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS allow_join BOOLEAN NOT NULL DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS rsvps (
   id         SERIAL PRIMARY KEY,
