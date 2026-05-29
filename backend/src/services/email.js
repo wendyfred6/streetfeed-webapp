@@ -2,6 +2,11 @@ import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const smtpReady = !!(process.env.SMTP_HOST && process.env.SMTP_USER);
+
+if (!resend && !smtpReady) {
+  console.warn('[email] Geen RESEND_API_KEY of SMTP geconfigureerd — e-mails worden niet verstuurd');
+}
 
 function nodemailerTransport() {
   return nodemailer.createTransport({
@@ -11,7 +16,20 @@ function nodemailerTransport() {
   });
 }
 
+function withTimeout(promise, ms = 10000) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Email timeout na 10 seconden')), ms)
+    ),
+  ]);
+}
+
 export async function sendMagicLink(email, name, token) {
+  if (!resend && !smtpReady) {
+    throw new Error('Geen e-mailservice geconfigureerd (RESEND_API_KEY ontbreekt)');
+  }
+
   const url = `${process.env.APP_URL}/api/auth/verify?token=${token}`;
   const subject = 'Jouw Streetfeed inloglink';
   const html = `
@@ -30,12 +48,12 @@ export async function sendMagicLink(email, name, token) {
   `;
 
   if (resend) {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await withTimeout(resend.emails.send({
       from: process.env.EMAIL_FROM || 'Streetfeed <noreply@streetfeed.nl>',
       to: email,
       subject,
       html,
-    });
+    }));
     if (error) {
       console.error('[Resend] Failed to send email:', error);
       throw new Error(`Email send failed: ${error.message}`);
@@ -43,11 +61,11 @@ export async function sendMagicLink(email, name, token) {
     console.log('[Resend] Email sent, id:', data?.id);
   } else {
     const transport = nodemailerTransport();
-    await transport.sendMail({
+    await withTimeout(transport.sendMail({
       from: process.env.EMAIL_FROM || 'Streetfeed <noreply@streetfeed.nl>',
       to: email,
       subject,
       html,
-    });
+    }));
   }
 }
