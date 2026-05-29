@@ -5,16 +5,15 @@ import { dirname, join } from 'path';
 
 const { Pool } = pg;
 
-// Parse DATABASE_URL manually so an empty password is always a string (not undefined),
-// which pg's SCRAM auth requires.
-const dbUrl = new URL(process.env.DATABASE_URL || 'postgresql://streetfeed:@db:5432/streetfeed');
+// pg uses `password || process.env.PGPASSWORD` internally.
+// An empty string is falsy, so '' falls through to PGPASSWORD which is undefined → crash.
+// Setting PGPASSWORD='' ensures '' || '' = '' (a string), which SCRAM accepts.
+if (process.env.PGPASSWORD === undefined) {
+  process.env.PGPASSWORD = '';
+}
 
 const pool = new Pool({
-  host: dbUrl.hostname,
-  port: Number(dbUrl.port) || 5432,
-  user: decodeURIComponent(dbUrl.username),
-  password: decodeURIComponent(dbUrl.password || ''),
-  database: dbUrl.pathname.slice(1),
+  connectionString: process.env.DATABASE_URL || 'postgresql://streetfeed:@db:5432/streetfeed',
   ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
 
