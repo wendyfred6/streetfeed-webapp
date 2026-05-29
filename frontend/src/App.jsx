@@ -228,14 +228,10 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               {post.end_date && <span style={s.endDateBadge}>{t('until')} {new Date(post.end_date).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' })}</span>}
               <CatBadge cat={post.category} />
             </div>
-            <span style={{
-              display: 'inline-block', flexShrink: 0, marginLeft: 8,
-              width: 9, height: 9,
-              borderRight: `2px solid ${COLORS.textMuted}`,
-              borderBottom: `2px solid ${COLORS.textMuted}`,
-              transform: expanded ? 'rotate(-135deg) translateY(4px)' : 'rotate(45deg)',
-              transition: 'transform 0.2s',
-            }} />
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
+              style={{ flexShrink: 0, marginLeft: 8, transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke={COLORS.textMuted} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
           <div style={s.cardTitle}>{post.title}</div>
         </div>
