@@ -88,7 +88,7 @@ function CatBadge({ cat }) {
   const c = CATEGORIES[cat];
   return (
     <span style={{ ...s.badge(c?.color || '#888'), textTransform: 'none', fontSize: 11 }}>
-      {c?.emoji} {catLabel(cat)}
+      {catLabel(cat)}
     </span>
   );
 }
@@ -277,7 +277,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
         {/* FRE-264: pakketje toont ophaaladres in collapsed */}
         {isPackage && post.author_house && (
           <div style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 3 }}>
-            📦 Ophalen bij nr. {post.author_house}
+            Ophalen bij nr. {post.author_house}
           </div>
         )}
       </div>
