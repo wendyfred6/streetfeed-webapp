@@ -12,13 +12,13 @@ const COLORS = {
 };
 
 const CATEGORIES = {
-  package:   { label: 'Pakketje',  labelEn: 'Package',   emoji: '📦', color: '#4488FF' },
+  general:   { label: 'Algemeen',  labelEn: 'General',   emoji: '💬', color: '#888888' },
+  package:   { label: 'Pakket',    labelEn: 'Package',   emoji: '📦', color: '#4488FF' },
   blockage:  { label: 'Blokkade',  labelEn: 'Blockage',  emoji: '🚧', color: '#FF8833', pinnable: true },
   waste:     { label: 'Grofvuil',  labelEn: 'Bulk waste',emoji: '🗑️', color: '#FF4444' },
   container: { label: 'Container', labelEn: 'Container', emoji: '🏗️', color: '#FF8833', pinnable: true },
   event:     { label: 'Evenement', labelEn: 'Event',     emoji: '🎉', color: '#AA77FF', pinnable: true, isEvent: true },
   incident:  { label: 'Melding',   labelEn: 'Incident',  emoji: '🚨', color: '#FF4444' },
-  general:   { label: 'Algemeen',  labelEn: 'General',   emoji: '💬', color: '#888888' },
 };
 
 function catLabel(key) {
@@ -605,7 +605,7 @@ function EditPostSheet({ post, onClose, onSave }) {
           <>
             <label style={s.label}>Bezorger</label>
             <select value={carrier} onChange={e => setCarrier(e.target.value)}
-              style={{ ...s.input, cursor: 'pointer', marginBottom: 10, paddingRight: 32 }}>
+              style={{ ...s.input, cursor: 'pointer', marginBottom: 10, paddingRight: 42 }}>
               <option value="">Selecteer bezorger (optioneel)</option>
               {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => (
                 <option key={c} value={c}>{c}</option>
@@ -792,18 +792,18 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div>
                 <label style={s.label}>Pakket voor nr.</label>
-                <input style={s.input} placeholder="bijv. 27-2"
+                <input style={s.input} placeholder="Bijv. 27-2"
                   value={forHouse} onChange={e => setForHouse(e.target.value)} />
               </div>
               <div>
                 <label style={s.label}>Ophalen bij nr.</label>
-                <input style={s.input} placeholder="bijv. 28-2"
+                <input style={s.input} placeholder="Bijv. 28-2"
                   value={pickupHouse} onChange={e => setPickupHouse(e.target.value)} />
               </div>
             </div>
             {(forHouse || pickupHouse) && (
               <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginBottom: 10 }}>
-                Titel: <strong style={{ color: COLORS.text }}>{packageTitle}</strong>
+                <strong style={{ color: COLORS.text }}>{packageTitle}</strong>
               </div>
             )}
             <label style={s.label}>Extra details (optioneel)</label>
@@ -823,9 +823,9 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         {isEvent && (
           <>
             <label style={s.label}>{t('event_date')}</label>
-            <input style={s.input} placeholder={t('event_date_placeholder')} value={eventDate} onChange={e => setEventDate(e.target.value)} />
+            <input style={s.input} type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} />
             <label style={s.label}>{t('event_time')}</label>
-            <input style={s.input} placeholder={t('event_time_placeholder')} value={eventTime} onChange={e => setEventTime(e.target.value)} />
+            <input style={s.input} type="time" value={eventTime} onChange={e => setEventTime(e.target.value)} />
             <label style={s.label}>{t('event_location')}</label>
             <input style={s.input} placeholder={t('event_location_placeholder')} value={eventLocation} onChange={e => setEventLocation(e.target.value)} />
             <label style={s.label}>{t('bring_list')}</label>
@@ -848,20 +848,12 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
           </>
         )}
 
-        {/* Einddatum voor event (alleen admins) */}
-        {cat === 'event' && canPin && (
-          <>
-            <label style={s.label}>{t('end_date')}</label>
-            <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          </>
-        )}
-
         {/* Bezorger (pakketje) */}
         {isPackage && (
           <>
             <label style={s.label}>Bezorger</label>
             <select value={carrier} onChange={e => setCarrier(e.target.value)}
-              style={{ ...s.input, cursor: 'pointer', marginBottom: 10, paddingRight: 32 }}>
+              style={{ ...s.input, cursor: 'pointer', marginBottom: 10, paddingRight: 42 }}>
               <option value="">Selecteer bezorger (optioneel)</option>
               {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => (
                 <option key={c} value={c}>{c}</option>
