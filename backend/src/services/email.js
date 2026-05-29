@@ -30,12 +30,17 @@ export async function sendMagicLink(email, name, token) {
   `;
 
   if (resend) {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'Streetfeed <noreply@streetfeed.nl>',
       to: email,
       subject,
       html,
     });
+    if (error) {
+      console.error('[Resend] Failed to send email:', error);
+      throw new Error(`Email send failed: ${error.message}`);
+    }
+    console.log('[Resend] Email sent, id:', data?.id);
   } else {
     const transport = nodemailerTransport();
     await transport.sendMail({
