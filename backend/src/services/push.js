@@ -1,13 +1,20 @@
 import webpush from 'web-push';
 import { query } from '../db/index.js';
 
-webpush.setVapidDetails(
-  `mailto:${process.env.VAPID_EMAIL || 'admin@streetfeed.nl'}`,
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
+const vapidReady = process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY;
+
+if (vapidReady) {
+  webpush.setVapidDetails(
+    `mailto:${process.env.VAPID_EMAIL || 'admin@streetfeed.nl'}`,
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+} else {
+  console.warn('[push] VAPID keys not set — push notifications disabled');
+}
 
 export async function sendPushToStreet(streetId, category, payload) {
+  if (!vapidReady) return;
   // Find all subscribed users in the street who have this category enabled
   const { rows } = await query(
     `SELECT ps.subscription, ps.id
