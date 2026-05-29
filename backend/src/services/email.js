@@ -12,7 +12,7 @@ function nodemailerTransport() {
 }
 
 export async function sendMagicLink(email, name, token) {
-  const url = `${process.env.APP_URL}/auth/verify?token=${token}`;
+  const url = `${process.env.APP_URL}/api/auth/verify?token=${token}`;
   const subject = 'Jouw Streetfeed inloglink';
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
