@@ -8,12 +8,14 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
 }
 
+const notifSupported = typeof Notification !== 'undefined';
+
 export function usePush() {
-  const [permission, setPermission] = useState(Notification?.permission || 'default');
+  const [permission, setPermission] = useState(notifSupported ? Notification.permission : 'default');
   const [subscribed, setSubscribed] = useState(false);
 
   const subscribe = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!notifSupported || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
     const perm = await Notification.requestPermission();
     setPermission(perm);
