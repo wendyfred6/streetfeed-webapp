@@ -175,7 +175,7 @@ export default function AuthPage() {
                   <input
                     style={s.input}
                     type="text"
-                    placeholder="bijv. Wendy"
+                    placeholder="Bijv. Wendy"
                     value={firstName}
                     onChange={e => setFirstName(e.target.value)}
                     required={needsProfile}
@@ -186,7 +186,7 @@ export default function AuthPage() {
                   <input
                     style={s.input}
                     type="text"
-                    placeholder="bijv. Jansen"
+                    placeholder="Bijv. Jansen"
                     value={lastName}
                     onChange={e => setLastName(e.target.value)}
                     required={needsProfile}
@@ -198,7 +198,7 @@ export default function AuthPage() {
               <input
                 style={{ ...s.input, borderColor: houseError ? COLORS.red : undefined }}
                 type="text"
-                placeholder="bijv. 52-hs of 52-1"
+                placeholder="Bijv. 52-hs of 52-1"
                 value={house}
                 onChange={handleHouseChange}
                 required={needsProfile}

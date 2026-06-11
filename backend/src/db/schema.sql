@@ -137,5 +137,9 @@ CREATE TABLE IF NOT EXISTS joins (
   UNIQUE (post_id, user_id)
 );
 
+-- Migratie: locatie en sub-type voor berichten
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS location TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS sub_type TEXT;
+
 -- Seed: super admin
 UPDATE users SET is_super_admin = true WHERE email = 'wendy@fred6.nl';

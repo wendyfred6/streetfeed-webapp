@@ -1,28 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './hooks/useAuth.jsx';
-import { usePush } from './hooks/usePush.jsx';
+import { usePush, notifSupported } from './hooks/usePush.jsx';
 import { api } from './api/client.js';
 import { t, getLang, setLang } from './i18n/index.js';
 
 const COLORS = {
   bg: '#0F0F0F', surface: '#1A1A1A', border: '#2A2A2A',
   accent: '#E8FF47', text: '#F0F0F0', textMuted: '#888888', textDim: '#555555',
-  pinned: '#1E2A00', pinnedBorder: '#4A6600',
+  pinned: '#1A1A1A', pinnedBorder: '#3A3A3A',
   red: '#FF4444', blue: '#4488FF', orange: '#FF8833', purple: '#AA77FF', green: '#44BB44',
 };
 
 const CATEGORIES = {
-  general:   { label: 'Algemeen',      labelEn: 'General',   emoji: '💬', color: '#888888' },
-  package:   { label: 'Pakket',        labelEn: 'Package',   emoji: '📦', color: '#4488FF' },
-  works:     { label: 'Werkzaamheden', labelEn: 'Works',     emoji: '🔧', color: '#FF8833', pinnable: true },
-  waste:     { label: 'Grofvuil',      labelEn: 'Bulk waste',emoji: '🗑️', color: '#FF4444' },
-  event:     { label: 'Evenement',     labelEn: 'Event',     emoji: '🎉', color: '#AA77FF', pinnable: true, isEvent: true },
-  incident:  { label: 'Melding',       labelEn: 'Incident',  emoji: '🚨', color: '#FF4444' },
+  package:  { label: 'Pakket',     labelEn: 'Package',     color: '#4488FF' },
+  works:    { label: 'Obstructie', labelEn: 'Obstruction', color: '#FF8833', pinnable: true },
+  incident: { label: 'Melding',    labelEn: 'Report',      color: '#FF4444' },
+  event:    { label: 'Evenement',  labelEn: 'Event',       color: '#AA77FF', pinnable: true, isEvent: true },
+  general:  { label: 'Algemeen',   labelEn: 'General',     color: '#888888' },
+};
+
+const LEGACY_LABELS = {
+  blockage:  { nl: 'Blokkade',  en: 'Blockage'  },
+  container: { nl: 'Container', en: 'Container' },
+  waste:     { nl: 'Grofvuil',  en: 'Bulk waste' },
 };
 
 function catLabel(key) {
   const c = CATEGORIES[key];
-  if (!c) return key;
+  if (!c) return LEGACY_LABELS[key]?.[getLang() === 'en' ? 'en' : 'nl'] || key;
   return getLang() === 'en' ? c.labelEn : c.label;
 }
 
@@ -45,7 +50,7 @@ const s = {
   endDateBadge: { fontSize: 10, color: COLORS.accent, background: 'rgba(232,255,71,0.1)', border: '1px solid rgba(232,255,71,0.2)', borderRadius: 4, padding: '2px 6px' },
   filterBar: { display: 'flex', gap: 6, padding: '12px 20px', overflowX: 'auto', scrollbarWidth: 'none' },
   filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : COLORS.surface, color: active ? '#000' : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : COLORS.border}`, borderRadius: 20, padding: '5px 12px', fontSize: 12, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
-  fab: { position: 'fixed', bottom: 80, right: 20, width: 52, height: 52, borderRadius: '50%', background: COLORS.accent, color: '#000', fontSize: 24, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(232,255,71,0.4)', zIndex: 40, fontWeight: 700 },
+  fab: { position: 'fixed', bottom: 72, left: 12, right: 12, maxWidth: 456, margin: '0 auto', borderRadius: 999, background: COLORS.accent, color: '#000', fontSize: 14, fontWeight: 800, border: 'none', cursor: 'pointer', padding: '14px 0', textAlign: 'center', boxShadow: '0 4px 20px rgba(232,255,71,0.35)', zIndex: 40 },
   tabBar: { position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, background: COLORS.surface, borderTop: `1px solid ${COLORS.border}`, display: 'flex', zIndex: 50 },
   tab: (active) => ({ flex: 1, padding: '12px 0 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: active ? 700 : 400, color: active ? COLORS.accent : COLORS.textDim }),
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' },
@@ -186,26 +191,30 @@ function RdwLookup({ kenteken }) {
 }
 
 function IncidentExtra({ post }) {
-  // Bepaal op basis van de titel welke instantie relevant is
-  const incidentMeta = INCIDENT_TYPES.find(it =>
-    post.title?.toLowerCase().startsWith(it.label.toLowerCase())
-  );
-  const reportTo = incidentMeta?.reportTo ?? 'politie';
+  const titleLower = (post.title || '').toLowerCase();
+  const isGrofvuil = titleLower.startsWith('grofvuil');
+  const isIncident = titleLower.startsWith('incident');
 
   return (
     <div style={{ marginTop: 10 }}>
+      {post.location && (
+        <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>
+          <span style={{ fontWeight: 700, color: COLORS.text }}>Lokatie: </span>{post.location}
+        </div>
+      )}
       {post.license_plate && (
         <div style={{ ...s.infoBox, display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <span style={{ fontSize: 11, color: COLORS.textDim, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Kenteken</span>
           <span style={{ fontFamily: 'monospace', fontSize: 15, fontWeight: 800, background: '#FFD700', color: '#000', padding: '2px 10px', borderRadius: 4, letterSpacing: '2px' }}>{post.license_plate}</span>
         </div>
       )}
-      {reportTo === 'gemeente' ? (
+      {isGrofvuil && (
         <a href="https://meldingen.amsterdam.nl/" target="_blank" rel="noopener noreferrer"
           style={{ display: 'block', background: 'none', border: `1px solid ${COLORS.blue}44`, borderRadius: 8, padding: '8px 12px', fontSize: 12, color: COLORS.blue, textDecoration: 'none', textAlign: 'center' }}>
           Melden bij de Gemeente Amsterdam →
         </a>
-      ) : (
+      )}
+      {isIncident && (
         <a href="https://www.politie.nl/aangifte-of-melding-doen" target="_blank" rel="noopener noreferrer"
           style={{ display: 'block', background: 'none', border: `1px solid ${COLORS.red}44`, borderRadius: 8, padding: '8px 12px', fontSize: 12, color: COLORS.red, textDecoration: 'none', textAlign: 'center' }}>
           {t('police_report')}
@@ -298,9 +307,11 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
     <div style={s.card(post.pinned)}>
       {/* ── Klikbare header (altijd zichtbaar) ── */}
       <div style={{ cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
           <CatBadge cat={post.category} />
-          {/* Event-datum: badge; blokkade/container datum: plain tekst */}
+          {post.sub_type && post.category === 'general' && (
+            <span style={{ fontSize: 10, color: COLORS.textMuted, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 4, padding: '2px 6px' }}>{post.sub_type}</span>
+          )}
           {dateLabel && (
             isEvent
               ? <span style={s.endDateBadge}>{dateLabel}</span>
@@ -312,12 +323,24 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
           </svg>
         </div>
         <div style={s.cardTitle}>{post.title}</div>
+        {/* Altijd zichtbare onderste rij: voornaam + tijd */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: COLORS.textDim }}>
+          <span style={{ fontWeight: 600, color: post.author_role === 'admin' ? COLORS.accent : post.author_role === 'moderator' ? COLORS.purple : COLORS.textDim }}>
+            {firstName}{post.author_role === 'admin' ? ' · Admin' : post.author_role === 'moderator' ? ' · Mod' : ''}
+          </span>
+          <span>·</span><span>{timeAgo(post.created_at)}</span>
+        </div>
       </div>
 
-      {/* ── Uitgeklapte inhoud — alles links uitgelijnd, geen padding-offset ── */}
+      {/* ── Uitgeklapte inhoud ── */}
       {expanded && (
-        <div style={{ marginTop: 8 }}>
+        <div style={{ marginTop: 10, borderTop: `1px solid ${COLORS.border}`, paddingTop: 10 }}>
           {post.body && <div style={s.cardBody}>{post.body}</div>}
+          {(isWorks || isIncident) && post.location && (
+            <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginTop: 8 }}>
+              <span style={{ fontWeight: 700, color: COLORS.text }}>Lokatie: </span>{post.location}
+            </div>
+          )}
           {isEvent && post.rsvp && <RsvpBar post={post} onRsvp={onRsvp} />}
           {isIncident && <IncidentExtra post={post} />}
           {post.photo_url && (
@@ -333,7 +356,6 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               <CarrierBadge carrier={post.carrier} />
             </div>
           )}
-          {/* Link: geen emoji, gewoon de URL */}
           {post.link && (
             <a href={post.link} target="_blank" rel="noopener noreferrer"
               style={{ display: 'block', marginTop: 8, fontSize: 12, color: COLORS.blue, textDecoration: 'underline', wordBreak: 'break-all' }}>
@@ -357,23 +379,17 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               {t('tap_details')} →
             </button>
           )}
-          {/* Meta-rij: voornaam, tijd, acties */}
+          {/* Acties */}
           <div style={{ ...s.cardMeta, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
             <div style={s.cardMetaLeft}>
-              <span style={{ fontSize: 10, fontWeight: 600, color: post.author_role === 'admin' ? COLORS.accent : post.author_role === 'moderator' ? COLORS.purple : COLORS.textDim }}>
-                {firstName}{post.author_role === 'admin' ? ' · Admin' : post.author_role === 'moderator' ? ' · Mod' : ''}
-              </span>
-              <span>·</span><span>{timeAgo(post.created_at)}</span>
-            </div>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              {/* Like — hartje SVG + teller */}
               <button style={{ ...s.actionBtn, gap: 5, color: post.liked ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill={post.liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', flexShrink: 0 }}>
                   <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
                 </svg>
                 <span>{post.likes}</span>
               </button>
-              {/* Edit — potlood SVG */}
+            </div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
               {canEdit && (
                 <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onEdit(post); }} title="Bewerken">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -382,7 +398,6 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
                   </svg>
                 </button>
               )}
-              {/* Delete / Report — prullenbak of tekst */}
               {canModerate ? (
                 <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('delete')}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -715,67 +730,105 @@ function PhotoUpload({ category, onUploaded }) {
 // ─── NEW POST SHEET ────────────────────────────────────────────────────────────
 
 const WORK_TYPES = [
-  { key: 'blokkade',         label: 'Blokkade' },
-  { key: 'container',        label: 'Container' },
-  { key: 'verbouwing',       label: 'Verbouwing' },
-  { key: 'steiger',          label: 'Steiger' },
-  { key: 'wegwerkzaamheden', label: 'Wegwerkzaamheden' },
-  { key: 'verhuizing',       label: 'Verhuizing' },
+  { key: 'container',     label: 'Container'     },
+  { key: 'steiger',       label: 'Steiger'        },
+  { key: 'kraan',         label: 'Kraan'          },
+  { key: 'wegafsluiting', label: 'Wegafsluiting'  },
+  { key: 'anders',        label: 'Anders'         },
 ];
 
 const INCIDENT_TYPES = [
-  { key: 'grofvuil',        label: 'Grofvuil',           reportTo: 'gemeente' },
-  { key: 'parkeeroverlast', label: 'Parkeeroverlast',     reportTo: 'gemeente' },
-  { key: 'geluidsoverlast', label: 'Geluidsoverlast',     reportTo: 'gemeente' },
-  { key: 'schade',          label: 'Schade / gevaar',     reportTo: 'gemeente' },
-  { key: 'verdacht',        label: 'Verdacht gedrag',     reportTo: 'politie'  },
-  { key: 'verlichting',     label: 'Straatverlichting defect', reportTo: 'gemeente' },
+  { key: 'grofvuil', label: 'Grofvuil' },
+  { key: 'incident', label: 'Incident' },
+  { key: 'anders',   label: 'Anders'   },
 ];
+
+const GENERAL_TYPES = ['Vraag', 'Tip', 'Aanbeveling', 'Te leen', 'Te koop', 'Gevonden', 'Verloren', 'Anders'];
+
+function LocationPicker({ value, onChange }) {
+  const [mode, setMode] = useState('single');
+  const [single, setSingle] = useState('');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+
+  const update = (m, s, f, t_) => {
+    if (m === 'single') onChange(s ? `nr. ${s}` : '');
+    else onChange(f && t_ ? `nr. ${f}–${t_}` : '');
+  };
+
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+        {[['single', 'Enkel nummer'], ['range', 'Reeks']].map(([m, lbl]) => (
+          <div key={m} style={{ ...s.filterChip(mode === m), borderRadius: 8, fontSize: 12 }}
+            onClick={() => { setMode(m); update(m, single, from, to); }}>
+            {lbl}
+          </div>
+        ))}
+      </div>
+      {mode === 'single' ? (
+        <input style={s.input} placeholder="Bijv. 27" value={single}
+          onChange={e => { setSingle(e.target.value); update('single', e.target.value, from, to); }} />
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 6, alignItems: 'center' }}>
+          <input style={{ ...s.input, marginBottom: 0 }} placeholder="Van nr." value={from}
+            onChange={e => { setFrom(e.target.value); update('range', single, e.target.value, to); }} />
+          <span style={{ color: COLORS.textDim, fontSize: 13, textAlign: 'center' }}>t/m</span>
+          <input style={{ ...s.input, marginBottom: 0 }} placeholder="Tot nr." value={to}
+            onChange={e => { setTo(e.target.value); update('range', single, from, e.target.value); }} />
+        </div>
+      )}
+    </div>
+  );
+}
 
 function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   const [cat, setCat] = useState('general');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [subType, setSubType] = useState('');
   const [incidentType, setIncidentType] = useState('');
   const [workType, setWorkType] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  // Pakketje: huisnummers voor auto-gegenereerde titel
+  const [customWorkType, setCustomWorkType] = useState('');
+  const [customIncidentType, setCustomIncidentType] = useState('');
+  const [location, setLocation] = useState('');
   const [forHouse, setForHouse] = useState('');
   const [pickupHouse, setPickupHouse] = useState(user?.house_number || '');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [eventTime, setEventTime] = useState('');
-  const [eventLocation, setEventLocation] = useState('');
   const [bringItems, setBringItems] = useState('');
   const [licenseplate, setLicenseplate] = useState('');
-  const [nearHouseNr, setNearHouseNr] = useState('');
   const [photoKey, setPhotoKey] = useState(null);
-  const [link, setLink] = useState('');
   const [carrier, setCarrier] = useState('');
+  const [customCarrier, setCustomCarrier] = useState('');
   const [attachmentName, setAttachmentName] = useState(null);
   const [allowJoin, setAllowJoin] = useState(false);
 
   const isEvent = cat === 'event';
   const isIncident = cat === 'incident';
   const isWorks = cat === 'works';
-  const isPinnable = CATEGORIES[cat]?.pinnable;
-  const hasLink = isWorks;
   const isPackage = cat === 'package';
   const isGeneral = cat === 'general';
+  const isPinnable = CATEGORIES[cat]?.pinnable;
 
-  // Auto-gegenereerde titel voor pakketje
-  const packageTitle = `Pakket voor ${forHouse.trim() || '—'} → Ophalen bij nr. ${pickupHouse.trim() || '—'}`;
+  const packageTitle = (forHouse.trim() || pickupHouse.trim())
+    ? `Pakket voor nr. ${forHouse.trim() || '—'} · Ophalen bij nr. ${pickupHouse.trim() || '—'}`
+    : '';
 
-  // Submit mag pas als verplichte velden ingevuld zijn
+  const finalWorkLabel = workType === 'anders' ? customWorkType.trim() : (WORK_TYPES.find(w => w.key === workType)?.label || '');
+  const finalIncidentLabel = incidentType === 'anders' ? customIncidentType.trim() : (INCIDENT_TYPES.find(i => i.key === incidentType)?.label || '');
+
   const canSubmit = isPackage
     ? (forHouse.trim() && pickupHouse.trim())
     : isIncident
-      ? (incidentType && title.trim())
+      ? (incidentType && (incidentType !== 'anders' || customIncidentType.trim()) && location.trim())
       : isWorks
-        ? (workType && title.trim())
-        : title.trim();
+        ? (workType && (workType !== 'anders' || customWorkType.trim()) && location.trim() && startDate && endDate)
+        : isEvent
+          ? (title.trim() && eventDate && eventTime && location.trim())
+          : (subType && title.trim());
 
   return (
     <div style={s.overlay}>
@@ -783,186 +836,169 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         <div style={s.sheetHandle} />
         <div style={s.sheetTitle}>{t('new_post')}</div>
 
-        {/* 1. Categorie — horizontale scroll-chips */}
+        {/* Categorie */}
         <label style={s.label}>{t('category')}</label>
-        <div style={{ display: 'flex', gap: 5, overflowX: 'auto', marginBottom: 16, paddingBottom: 4, paddingRight: 4, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-          {Object.entries(CATEGORIES).filter(([key]) => key !== 'waste').map(([key]) => (
+        <div style={{ display: 'flex', gap: 5, overflowX: 'auto', marginBottom: 16, paddingBottom: 4, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+          {Object.entries(CATEGORIES).map(([key]) => (
             <div key={key} style={{ ...s.catOption(cat === key, key), flexShrink: 0 }}
-              onClick={() => { setCat(key); setIncidentType(''); setWorkType(''); setTitle(''); }}>
+              onClick={() => { setCat(key); setIncidentType(''); setWorkType(''); setTitle(''); setSubType(''); setLocation(''); setCustomWorkType(''); setCustomIncidentType(''); }}>
               {catLabel(key)}
             </div>
           ))}
         </div>
 
-        {/* 2. Type melding — chips direct na categorie */}
-        {isIncident && (
-          <>
-            <label style={s.label}>Type melding</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-              {INCIDENT_TYPES.map(({ key, label }) => (
-                <div key={key}
-                  style={{ ...s.filterChip(incidentType === key), borderRadius: 8, fontSize: 12 }}
-                  onClick={() => { setIncidentType(key); setTitle(label); setLicenseplate(''); setNearHouseNr(''); }}>
-                  {label}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* 2b. Type werkzaamheden — direct na categorie */}
-        {isWorks && (
-          <>
-            <label style={s.label}>Type werkzaamheden</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-              {WORK_TYPES.map(({ key, label }) => (
-                <div key={key}
-                  style={{ ...s.filterChip(workType === key), borderRadius: 8, fontSize: 12 }}
-                  onClick={() => { setWorkType(key); setTitle(label); }}>
-                  {label}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* 3. Kenteken — alleen bij parkeeroverlast */}
-        {isIncident && incidentType === 'parkeeroverlast' && (
-          <>
-            <label style={s.label}>{t('license_plate')}</label>
-            <input style={{ ...s.input, fontFamily: 'monospace', letterSpacing: '2px', textTransform: 'uppercase' }}
-              placeholder={t('license_plate_placeholder')} value={licenseplate}
-              onChange={e => setLicenseplate(e.target.value.toUpperCase())} />
-            <RdwLookup kenteken={licenseplate} />
-          </>
-        )}
-
-        {/* Ter hoogte van — alleen bij straatverlichting */}
-        {isIncident && incidentType === 'verlichting' && (
-          <>
-            <label style={s.label}>Ter hoogte van nr. (optioneel)</label>
-            <input style={s.input} placeholder="Bijv. 34"
-              value={nearHouseNr} onChange={e => setNearHouseNr(e.target.value)} />
-          </>
-        )}
-
-        {/* 4+5. Titel + Bericht */}
-        {isPackage ? (
+        {/* ── PAKKET ── */}
+        {isPackage && (
           <>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div>
                 <label style={s.label}>Pakket voor nr.</label>
-                <input style={s.input} placeholder="Bijv. 27-2"
-                  value={forHouse} onChange={e => setForHouse(e.target.value)} />
+                <input style={s.input} placeholder="Bijv. 27-hs" value={forHouse} onChange={e => setForHouse(e.target.value)} />
               </div>
               <div>
                 <label style={s.label}>Ophalen bij nr.</label>
-                <input style={s.input} placeholder="Bijv. 28-2"
-                  value={pickupHouse} onChange={e => setPickupHouse(e.target.value)} />
+                <input style={s.input} placeholder="Bijv. 28-hs" value={pickupHouse} onChange={e => setPickupHouse(e.target.value)} />
               </div>
             </div>
-            {(forHouse || pickupHouse) && (
+            {packageTitle && (
               <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginBottom: 10 }}>
                 <strong style={{ color: COLORS.text }}>{packageTitle}</strong>
               </div>
             )}
-            <label style={s.label}>Extra details (optioneel)</label>
-            <textarea style={{ ...s.textarea, height: 60 }} placeholder="Bijv. staat bij de voordeur, is al geopend..."
-              value={body} onChange={e => setBody(e.target.value)} />
-          </>
-        ) : (
-          <>
-            <label style={s.label}>{t('title')}</label>
-            <input style={s.input} placeholder={t('title_placeholder')} value={title} onChange={e => setTitle(e.target.value)} />
-            <label style={s.label}>{t('message')}</label>
-            <textarea style={s.textarea} placeholder={t('message_placeholder')} value={body} onChange={e => setBody(e.target.value)} />
-          </>
-        )}
-
-        {/* Event-velden */}
-        {isEvent && (
-          <>
-            <label style={s.label}>{t('event_date')}</label>
-            <input style={s.input} type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} />
-            <label style={s.label}>{t('event_time')}</label>
-            <input style={s.input} type="time" value={eventTime} onChange={e => setEventTime(e.target.value)} />
-            <label style={s.label}>{t('event_location')}</label>
-            <input style={s.input} placeholder={t('event_location_placeholder')} value={eventLocation} onChange={e => setEventLocation(e.target.value)} />
-            <label style={s.label}>{t('bring_list')}</label>
-            <input style={s.input} placeholder={t('bring_list_placeholder')} value={bringItems} onChange={e => setBringItems(e.target.value)} />
-          </>
-        )}
-
-        {/* Datums + tijden voor werkzaamheden */}
-        {isWorks && (
-          <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                <label style={s.label}>Startdatum (optioneel)</label>
-                <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-              </div>
-              <div>
-                <label style={s.label}>Starttijd (optioneel)</label>
-                <input style={s.input} type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                <label style={s.label}>Einddatum (optioneel)</label>
-                <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-              </div>
-              <div>
-                <label style={s.label}>Eindtijd (optioneel)</label>
-                <input style={s.input} type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
-              </div>
-            </div>
-            {canPin && endDate && (
-              <div style={{ fontSize: 11, color: COLORS.accent, marginBottom: 8 }}>
-                Dit bericht wordt automatisch vastgepind t/m de einddatum.
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Bezorger (pakketje) */}
-        {isPackage && (
-          <>
             <label style={s.label}>Bezorger</label>
             <div style={{ position: 'relative', marginBottom: 10 }}>
               <select value={carrier} onChange={e => setCarrier(e.target.value)}
                 style={{ ...s.input, cursor: 'pointer', marginBottom: 0, paddingRight: 36, appearance: 'none', WebkitAppearance: 'none' }}>
-                <option value="">Selecteer bezorger (optioneel)</option>
-                {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
+                <option value="">Selecteer bezorger</option>
+                {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                 style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
             </div>
+            {carrier === 'Anders' && (
+              <input style={s.input} placeholder="Naam bezorger" value={customCarrier} onChange={e => setCustomCarrier(e.target.value)} />
+            )}
+            <label style={s.label}>Extra details</label>
+            <textarea style={{ ...s.textarea, height: 60 }} placeholder="Bijv. staat bij de voordeur..."
+              value={body} onChange={e => setBody(e.target.value)} />
           </>
         )}
 
-        {/* Externe link (blokkade/container) */}
-        {hasLink && (
+        {/* ── OBSTRUCTIE ── */}
+        {isWorks && (
           <>
-            <label style={s.label}>Externe link (optioneel)</label>
-            <input style={s.input} placeholder="https://..." value={link} onChange={e => setLink(e.target.value)} />
+            <label style={s.label}>Type obstructie</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+              {WORK_TYPES.map(({ key, label: lbl }) => (
+                <div key={key} style={{ ...s.filterChip(workType === key), borderRadius: 8, fontSize: 12 }}
+                  onClick={() => { setWorkType(key); setCustomWorkType(''); }}>
+                  {lbl}
+                </div>
+              ))}
+            </div>
+            {workType === 'anders' && (
+              <input style={s.input} placeholder="Omschrijf de obstructie" value={customWorkType} onChange={e => setCustomWorkType(e.target.value)} />
+            )}
+            <label style={s.label}>Lokatie</label>
+            <LocationPicker value={location} onChange={setLocation} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={s.label}>Van datum</label>
+                <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+              </div>
+              <div>
+                <label style={s.label}>Tot datum</label>
+                <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+              </div>
+            </div>
+            {canPin && startDate && endDate && (
+              <div style={{ fontSize: 11, color: COLORS.accent, marginBottom: 8 }}>
+                Wordt automatisch vastgepind t/m de einddatum.
+              </div>
+            )}
+            <label style={s.label}>Extra info</label>
+            <textarea style={s.textarea} placeholder="Optionele extra details" value={body} onChange={e => setBody(e.target.value)} />
           </>
         )}
 
-        {/* Datum voor algemeen bericht (optioneel) */}
+        {/* ── MELDING ── */}
+        {isIncident && (
+          <>
+            <label style={s.label}>Type melding</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+              {INCIDENT_TYPES.map(({ key, label: lbl }) => (
+                <div key={key} style={{ ...s.filterChip(incidentType === key), borderRadius: 8, fontSize: 12 }}
+                  onClick={() => { setIncidentType(key); setCustomIncidentType(''); setLicenseplate(''); }}>
+                  {lbl}
+                </div>
+              ))}
+            </div>
+            {incidentType === 'anders' && (
+              <input style={s.input} placeholder="Omschrijf de melding" value={customIncidentType} onChange={e => setCustomIncidentType(e.target.value)} />
+            )}
+            <label style={s.label}>Lokatie</label>
+            <LocationPicker value={location} onChange={setLocation} />
+            {incidentType === 'incident' && (
+              <>
+                <label style={s.label}>{t('license_plate')} (optioneel)</label>
+                <input style={{ ...s.input, fontFamily: 'monospace', letterSpacing: '2px', textTransform: 'uppercase' }}
+                  placeholder={t('license_plate_placeholder')} value={licenseplate}
+                  onChange={e => setLicenseplate(e.target.value.toUpperCase())} />
+                <RdwLookup kenteken={licenseplate} />
+              </>
+            )}
+            <label style={s.label}>Extra info</label>
+            <textarea style={s.textarea} placeholder="Optionele extra details" value={body} onChange={e => setBody(e.target.value)} />
+          </>
+        )}
+
+        {/* ── EVENEMENT ── */}
+        {isEvent && (
+          <>
+            <label style={s.label}>{t('title')}</label>
+            <input style={s.input} placeholder={t('title_placeholder')} value={title} onChange={e => setTitle(e.target.value)} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={s.label}>{t('event_date')}</label>
+                <input style={s.input} type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} />
+              </div>
+              <div>
+                <label style={s.label}>{t('event_time')}</label>
+                <input style={s.input} type="time" value={eventTime} onChange={e => setEventTime(e.target.value)} />
+              </div>
+            </div>
+            <label style={s.label}>{t('event_location')}</label>
+            <LocationPicker value={location} onChange={setLocation} />
+            <label style={s.label}>{t('bring_list')}</label>
+            <input style={s.input} placeholder={t('bring_list_placeholder')} value={bringItems} onChange={e => setBringItems(e.target.value)} />
+            <label style={s.label}>{t('message')}</label>
+            <textarea style={s.textarea} placeholder={t('message_placeholder')} value={body} onChange={e => setBody(e.target.value)} />
+          </>
+        )}
+
+        {/* ── ALGEMEEN ── */}
         {isGeneral && (
           <>
+            <label style={s.label}>Type</label>
+            <div style={{ position: 'relative', marginBottom: 10 }}>
+              <select value={subType} onChange={e => setSubType(e.target.value)}
+                style={{ ...s.input, cursor: 'pointer', marginBottom: 0, paddingRight: 36, appearance: 'none', WebkitAppearance: 'none' }}>
+                <option value="">Selecteer type...</option>
+                {GENERAL_TYPES.map(tp => <option key={tp} value={tp}>{tp}</option>)}
+              </select>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+            <label style={s.label}>{t('title')}</label>
+            <input style={s.input} placeholder={t('title_placeholder')} value={title} onChange={e => setTitle(e.target.value)} />
+            <label style={s.label}>{t('message')}</label>
+            <textarea style={s.textarea} placeholder={t('message_placeholder')} value={body} onChange={e => setBody(e.target.value)} />
             <label style={s.label}>Einddatum (optioneel)</label>
             <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          </>
-        )}
-
-        {/* Aanmeldknop (algemeen bericht) */}
-        {isGeneral && (
-          <>
             <div onClick={() => setAllowJoin(v => !v)}
               style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: 6 }}>
               <span style={{ fontSize: 13 }}>Aanmeldknop toevoegen</span>
@@ -971,12 +1007,12 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
               </div>
             </div>
             <p style={{ fontSize: 11, color: COLORS.textMuted, margin: '0 0 14px', lineHeight: 1.5 }}>
-              Buurtbewoners kunnen zich met één tik aanmelden voor dit bericht. Handig voor buurtinitiatieven, opruimacties of gezamenlijke aankopen.
+              Buurtbewoners kunnen zich met één tik aanmelden. Handig voor initiatieven, opruimacties of gezamenlijke aankopen.
             </p>
           </>
         )}
 
-        {/* 6. Foto + Document — altijd direct boven Plaatsen */}
+        {/* Foto + Document */}
         <PhotoUpload category={cat} onUploaded={setPhotoKey} />
         <div style={{ marginBottom: 10 }}>
           <label style={{ ...s.label, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -988,24 +1024,31 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
           </label>
         </div>
 
-        <button style={{ ...s.submitBtn, opacity: canSubmit ? 1 : 0.5 }}
-          disabled={!canSubmit}
+        <button style={{ ...s.submitBtn, opacity: canSubmit ? 1 : 0.5 }} disabled={!canSubmit}
           onClick={() => {
             if (!canSubmit) return;
-            const finalTitle = isPackage
-              ? packageTitle
-              : (isIncident && incidentType === 'verlichting' && nearHouseNr.trim())
-                ? `${title} — ter hoogte van nr. ${nearHouseNr.trim()}`
-                : title;
-            onSubmit({ category: cat, title: finalTitle, body,
+            const finalTitle = isPackage ? packageTitle
+              : isWorks    ? finalWorkLabel
+              : isIncident ? finalIncidentLabel
+              : title;
+            const finalCarrier = carrier === 'Anders' ? customCarrier : carrier;
+            onSubmit({
+              category: cat, title: finalTitle, body,
               startDate: startDate || undefined,
-              endDate, eventDate, eventTime, eventLocation,
+              endDate: endDate || undefined,
+              eventDate: eventDate || undefined,
+              eventTime: eventTime || undefined,
+              eventLocation: isEvent ? location : undefined,
+              location: (isWorks || isIncident) ? location : undefined,
               bringList: bringItems ? bringItems.split(',').map(i => i.trim()) : [],
-              licensePlate: licenseplate || undefined, photoKey: photoKey || undefined,
-              link: link || undefined, carrier: carrier || undefined,
-              startTime: startTime || undefined, endTime: endTime || undefined,
-              attachmentName: attachmentName || undefined, allowJoin,
-              pinned: canPin && isPinnable && !!endDate });
+              licensePlate: licenseplate || undefined,
+              photoKey: photoKey || undefined,
+              carrier: finalCarrier || undefined,
+              allowJoin,
+              attachmentName: attachmentName || undefined,
+              subType: isGeneral ? subType : undefined,
+              pinned: canPin && isPinnable && !!(isWorks ? (startDate && endDate) : false),
+            });
             onClose();
           }}>{t('publish')}</button>
         <button style={s.cancelBtn} onClick={onClose}>{t('cancel')}</button>
@@ -1162,7 +1205,7 @@ function SettingsView({ user, onLogout }) {
         {isIOS && !subscribed && (
           <div style={{ ...s.adminCard, fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>{t('pwa_ios_hint')}</div>
         )}
-        {!subscribed && permission !== 'denied' && (
+        {notifSupported && !subscribed && permission !== 'denied' && (
           <button style={{ ...s.submitBtn, marginBottom: 12 }} onClick={subscribe}>{t('enable_notifications')}</button>
         )}
         {Object.entries(CATEGORIES).map(([key, c]) => (
@@ -1352,16 +1395,21 @@ export default function App() {
   };
 
   const handleJoin = async (id) => {
-    const { joined } = await api.post(`/streets/${STREET_ID}/posts/${id}/join`);
-    const update = (p) => {
-      if (p.id !== id) return p;
-      const joiners = joined
-        ? [...(p.joiners || []), user.name]
-        : (p.joiners || []).filter(n => n !== user.name);
-      return { ...p, my_join: joined, joiners };
-    };
-    setPosts(ps => ps.map(update));
-    if (joinDetail?.id === id) setJoinDetail(update);
+    try {
+      const { joined } = await api.post(`/streets/${STREET_ID}/posts/${id}/join`);
+      const updatedPost = (p) => {
+        if (p.id !== id) return p;
+        const joiners = joined
+          ? [...(p.joiners || []), user.name]
+          : (p.joiners || []).filter(n => n !== user.name);
+        return { ...p, my_join: joined, joiners };
+      };
+      setPosts(ps => ps.map(updatedPost));
+      setJoinDetail(prev => prev?.id === id ? updatedPost(prev) : prev);
+    } catch (e) {
+      setPostError(e.message || 'Aanmelden mislukt');
+      setTimeout(() => setPostError(''), 4000);
+    }
   };
 
   const pinnedPosts = posts.filter(p => p.pinned);
@@ -1387,7 +1435,7 @@ export default function App() {
 
       {tab === 'feed' && (
         <div style={s.feed}>
-          {!subscribed && permission !== 'denied' && (
+          {notifSupported && !subscribed && permission !== 'denied' && (
             <div style={{ margin: '12px 12px 0', background: 'rgba(232,255,71,0.06)', border: '1px solid rgba(232,255,71,0.25)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 2 }}>Blijf op de hoogte</div>
@@ -1398,6 +1446,9 @@ export default function App() {
               </button>
             </div>
           )}
+          <div style={{ padding: '12px 20px 0' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textDim }}>Filter</div>
+          </div>
           <div style={s.filterBar}>
             <div style={s.filterChip(filter === 'all')} onClick={() => setFilter('all')}>{t('all')}</div>
             {Object.entries(CATEGORIES).map(([key]) => (
@@ -1428,7 +1479,9 @@ export default function App() {
       )}
       {tab === 'settings' && <SettingsView user={user} onLogout={logout} />}
 
-      {tab === 'feed' && <button style={s.fab} onClick={() => setShowPost(true)}>+</button>}
+      {tab === 'feed' && (
+        <button style={s.fab} onClick={() => setShowPost(true)}>Nieuw bericht +</button>
+      )}
 
       <div style={s.tabBar}>
         {[
