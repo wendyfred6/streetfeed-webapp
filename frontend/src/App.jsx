@@ -650,9 +650,11 @@ function EditPostSheet({ post, onClose, onSave }) {
   const [link, setLink] = useState(post.link || '');
   const [startTime, setStartTime] = useState(post.start_time || '');
   const [endTime, setEndTime] = useState(post.end_time || '');
+  const [allowJoin, setAllowJoin] = useState(!!post.allow_join);
 
   const isEvent = post.category === 'event';
   const isPackage = post.category === 'package';
+  const isGeneral = post.category === 'general';
   const hasDateRange = ['works', 'blockage', 'container'].includes(post.category);
   const hasTimeRange = post.category === 'works';
   const hasLink = ['works', 'blockage', 'container', 'waste'].includes(post.category);
@@ -732,6 +734,16 @@ function EditPostSheet({ post, onClose, onSave }) {
           </>
         )}
 
+        {isGeneral && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
+            <span style={{ fontSize: 13, color: COLORS.textMuted }}>Ik doe mee-knop tonen</span>
+            <button onClick={() => setAllowJoin(v => !v)}
+              style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: allowJoin ? COLORS.accent : COLORS.border, position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+              <span style={{ position: 'absolute', top: 3, left: allowJoin ? 22 : 3, width: 18, height: 18, borderRadius: 9, background: allowJoin ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
+            </button>
+          </div>
+        )}
+
         <button style={s.submitBtn} disabled={!title.trim()} onClick={() => {
           onSave(post.id, {
             title, body,
@@ -744,6 +756,7 @@ function EditPostSheet({ post, onClose, onSave }) {
             eventLocation: eventLocation || undefined,
             carrier: carrier || undefined,
             link: link || undefined,
+            allowJoin: isGeneral ? allowJoin : undefined,
           });
           onClose();
         }}>

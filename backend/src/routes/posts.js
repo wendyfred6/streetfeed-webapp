@@ -122,7 +122,7 @@ router.patch('/:streetId/posts/:postId', requireAuth, requireMembership('residen
   const canMod = req.user.is_super_admin || ['admin', 'moderator'].includes(req.membership?.role);
   if (!isAuthor && !canMod) return res.status(403).json({ error: 'Forbidden' });
 
-  const { title, body, endDate, startDate, eventDate, eventTime, eventLocation, bringList, link, carrier, startTime, endTime, location, subType } = req.body;
+  const { title, body, endDate, startDate, eventDate, eventTime, eventLocation, bringList, link, carrier, startTime, endTime, location, subType, allowJoin } = req.body;
 
   const { rows } = await query(
     `UPDATE posts SET
@@ -139,8 +139,9 @@ router.patch('/:streetId/posts/:postId', requireAuth, requireMembership('residen
        start_time     = $11,
        end_time       = $12,
        location       = $13,
-       sub_type       = $14
-     WHERE id = $15 AND street_id = $16
+       sub_type       = $14,
+       allow_join     = $15
+     WHERE id = $16 AND street_id = $17
      RETURNING *`,
     [
       title?.trim() || post.title,
@@ -157,6 +158,7 @@ router.patch('/:streetId/posts/:postId', requireAuth, requireMembership('residen
       endTime !== undefined ? (endTime || null) : post.end_time,
       location !== undefined ? (location || null) : post.location,
       subType !== undefined ? (subType || null) : post.sub_type,
+      allowJoin !== undefined ? Boolean(allowJoin) : post.allow_join,
       postId, streetId,
     ]
   );
