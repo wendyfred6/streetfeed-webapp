@@ -7,9 +7,13 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined); // undefined = loading, null = logged out
 
   useEffect(() => {
+    // Timeout van 8s zodat de app op iOS niet eeuwig in de laadstatus hangt
+    // als de fetch niet reageert (bijv. bij openen vanuit een andere app).
+    const timer = setTimeout(() => setUser(null), 8000);
     api.get('/auth/me')
-      .then(setUser)
-      .catch(() => setUser(null));
+      .then(data => { clearTimeout(timer); setUser(data); })
+      .catch(() => { clearTimeout(timer); setUser(null); });
+    return () => clearTimeout(timer);
   }, []);
 
   const logout = async () => {
