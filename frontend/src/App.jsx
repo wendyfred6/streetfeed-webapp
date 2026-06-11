@@ -277,6 +277,32 @@ function CarrierBadge({ carrier }) {
 
 function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate, onEdit, canEdit }) {
   const [expanded, setExpanded] = useState(false);
+  const [threadComments, setThreadComments] = useState(null);
+  const [commentText, setCommentText] = useState('');
+  const [sendingComment, setSendingComment] = useState(false);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (expanded && threadComments === null) {
+      api.get(`/streets/1/posts/${post.id}/comments`)
+        .then(data => setThreadComments(data))
+        .catch(() => setThreadComments([]));
+    }
+  }, [expanded]);
+
+  const submitComment = async (e) => {
+    e.stopPropagation();
+    if (!commentText.trim() || sendingComment) return;
+    setSendingComment(true);
+    try {
+      const comment = await api.post(`/streets/1/posts/${post.id}/comments`, { body: commentText.trim() });
+      setThreadComments(prev => [...(prev || []), { ...comment, author_name: user?.name }]);
+      setCommentText('');
+    } catch {}
+    setSendingComment(false);
+  };
+
+  const commentCount = parseInt(post.comments) || 0;
   const isEvent = post.category === 'event';
   const isIncident = post.category === 'incident';
   const isPackage = post.category === 'package';
@@ -323,12 +349,23 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
           </svg>
         </div>
         <div style={s.cardTitle}>{post.title}</div>
-        {/* Altijd zichtbare onderste rij: voornaam + tijd */}
+        {/* Altijd zichtbare onderste rij: voornaam · tijd · reacties */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: COLORS.textDim }}>
           <span style={{ fontWeight: 600, color: post.author_role === 'admin' ? COLORS.accent : post.author_role === 'moderator' ? COLORS.purple : COLORS.textDim }}>
             {firstName}{post.author_role === 'admin' ? ' · Admin' : post.author_role === 'moderator' ? ' · Mod' : ''}
           </span>
           <span>·</span><span>{timeAgo(post.created_at)}</span>
+          {commentCount > 0 && (
+            <>
+              <span>·</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                </svg>
+                {commentCount}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
@@ -379,6 +416,38 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               {t('tap_details')} →
             </button>
           )}
+          {/* Comments-thread */}
+          <div style={{ marginTop: 14, borderTop: `1px solid ${COLORS.border}`, paddingTop: 12 }}>
+            {threadComments === null && (
+              <div style={{ fontSize: 12, color: COLORS.textDim, paddingBottom: 8 }}>Reacties laden…</div>
+            )}
+            {(threadComments || []).map((c, i) => (
+              <div key={c.id ?? i} style={{ marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: c.author_role === 'admin' ? COLORS.accent : COLORS.textMuted, marginRight: 6 }}>
+                  {(c.author_name || '').split(' ')[0] || 'Bewoner'}
+                  {c.author_role === 'admin' ? ' · Admin' : c.author_role === 'moderator' ? ' · Mod' : ''}
+                </span>
+                <span style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.5 }}>{c.body}</span>
+              </div>
+            ))}
+            {threadComments !== null && (
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', marginTop: 4 }} onClick={e => e.stopPropagation()}>
+                <textarea
+                  value={commentText}
+                  onChange={e => setCommentText(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(e); } }}
+                  placeholder="Reageer…"
+                  rows={1}
+                  style={{ flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 10px', color: COLORS.text, fontSize: 13, outline: 'none', resize: 'none', fontFamily: 'inherit' }}
+                />
+                <button onClick={submitComment} disabled={!commentText.trim() || sendingComment}
+                  style={{ background: commentText.trim() ? COLORS.accent : COLORS.border, color: commentText.trim() ? '#000' : COLORS.textDim, border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: commentText.trim() ? 'pointer' : 'default', flexShrink: 0, transition: 'background 0.15s' }}>
+                  {sendingComment ? '…' : 'Stuur'}
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Acties */}
           <div style={{ ...s.cardMeta, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
             <div style={s.cardMetaLeft}>
