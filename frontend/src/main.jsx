@@ -1,5 +1,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ minHeight: '100vh', background: '#0F0F0F', color: '#F0F0F0', padding: 24, fontFamily: 'monospace', fontSize: 13 }}>
+          <div style={{ color: '#E8FF47', fontWeight: 800, fontSize: 16, marginBottom: 12 }}>App crash — foutmelding:</div>
+          <div style={{ color: '#FF4444', marginBottom: 8 }}>{this.state.error?.message}</div>
+          <pre style={{ color: '#888', whiteSpace: 'pre-wrap', fontSize: 11 }}>{this.state.error?.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
 import { isDemoMode } from './api/client.js';
@@ -44,6 +61,7 @@ function AppRouter() {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <ErrorBoundary>
     <BrowserRouter>
       {isDemoMode && (
         <div style={{
@@ -61,5 +79,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         </AuthProvider>
       </div>
     </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>
 );
