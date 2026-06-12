@@ -103,7 +103,7 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
     url: `/streets/${streetId}`,
     category,
   } : {
-    title: `Nieuw bericht: ${title}`,
+    title,
     body: (body || '').substring(0, 100),
     url: `/streets/${streetId}`,
     category,

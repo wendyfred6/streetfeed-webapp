@@ -38,7 +38,7 @@ const s = {
   accent: { color: COLORS.accent },
   streetBadge: { fontSize: 11, color: COLORS.textMuted, ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.sm, padding: '3px 8px' },
   feed: { padding: '0 0 100px 0' },
-  sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.accent, padding: '16px 20px 8px' },
+  sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textMuted, padding: '16px 20px 8px' },
   card: (pinned) => ({ margin: '0 12px 8px', ...GLASS.card, background: pinned ? COLORS.pinned : 'rgba(255,255,255,0.70)', border: `1px solid ${pinned ? COLORS.pinnedBorder : 'rgba(255,255,255,0.50)'}`, borderRadius: RADIUS.lg, padding: '12px 14px' }),
   cardTitle: { fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 },
   cardBody: { fontSize: 15, color: COLORS.textDim, lineHeight: 1.5 },
@@ -412,6 +412,12 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               <span style={{ fontWeight: 700, color: COLORS.text }}>Lokatie: </span>{post.location}
             </div>
           )}
+          {isEvent && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8 }}>
+              {post.event_date && <div style={{ fontSize: 13, color: COLORS.textMuted }}><strong style={{ color: COLORS.text }}>Wanneer: </strong>{formatEventDate(post.event_date)}{post.event_time ? ` om ${post.event_time}` : ''}</div>}
+              {post.event_location && <div style={{ fontSize: 13, color: COLORS.textMuted }}><strong style={{ color: COLORS.text }}>Waar: </strong>{post.event_location}</div>}
+            </div>
+          )}
           {isEvent && post.rsvp && <RsvpBar post={post} onRsvp={onRsvp} />}
           {isIncident && <IncidentExtra post={post} />}
           {post.photo_url && (
@@ -455,12 +461,6 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
             <button onClick={e => { e.stopPropagation(); onOpenJoin(post); }}
               style={{ marginTop: 10, width: '100%', background: post.my_join ? `${COLORS.green}22` : COLORS.bg, border: `1px solid ${post.my_join ? COLORS.green : COLORS.border}`, borderRadius: 8, padding: '8px 12px', color: post.my_join ? COLORS.green : COLORS.textMuted, fontSize: 13, fontWeight: post.my_join ? 700 : 400, cursor: 'pointer', textAlign: 'left' }}>
               {post.my_join ? t('join_card') : t('join_cta')} <span style={{ color: COLORS.textDim, fontWeight: 400 }}>· {(post.joiners||[]).length} {t('join_participants').toLowerCase()}</span>
-            </button>
-          )}
-          {isEvent && (
-            <button onClick={e => { e.stopPropagation(); onOpenEvent(post); }}
-              style={{ marginTop: 10, width: '100%', background: 'none', border: `1px solid ${COLORS.purple}44`, borderRadius: 8, padding: '8px 12px', color: COLORS.purple, fontSize: 12, cursor: 'pointer', textAlign: 'center' }}>
-              {t('tap_details')} →
             </button>
           )}
           {/* Comments-thread */}
@@ -535,6 +535,46 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
   );
 }
 
+// ─── CATEGORY PICKER SHEET ────────────────────────────────────────────────────
+
+const CAT_META = {
+  package:  { emoji: '📦', sub: 'Bezorging & vermist pakket' },
+  works:    { emoji: '🚧', sub: 'Werkzaamheden in de straat' },
+  incident: { emoji: '⚠️', sub: 'Iets melden aan de buurt' },
+  event:    { emoji: '🎉', sub: 'Buurtactiviteit organiseren' },
+  general:  { emoji: '💬', sub: 'Vraag, tip, te leen, …' },
+};
+
+function CategoryPickerSheet({ onClose, onSelect }) {
+  const [closing, setClosing] = useState(false);
+  const close = () => { setClosing(true); setTimeout(onClose, 270); };
+
+  return (
+    <SheetOverlay closing={closing} onOverlayClick={close}>
+      <div style={s.sheetHandle} />
+      <div style={s.sheetTitle}>Wat wil je delen?</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+        {Object.entries(CATEGORIES).map(([key]) => {
+          const meta = CAT_META[key] || {};
+          return (
+            <div key={key}
+              onClick={() => { setClosing(true); setTimeout(() => onSelect(key), 270); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.50)', borderRadius: RADIUS.lg, padding: '14px 16px', cursor: 'pointer' }}>
+              <span style={{ fontSize: 22, flexShrink: 0, lineHeight: 1 }}>{meta.emoji}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{catLabel(key)}</div>
+                <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 2 }}>{meta.sub}</div>
+              </div>
+              <Chevron size={16} color={COLORS.textDim} />
+            </div>
+          );
+        })}
+      </div>
+      <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
+    </SheetOverlay>
+  );
+}
+
 // ─── SHEET OVERLAY WRAPPER ────────────────────────────────────────────────────
 
 function SheetOverlay({ closing, onOverlayClick, children }) {
@@ -569,9 +609,9 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
         </div>
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{post.title}</div>
         <div style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 16 }}>{post.body}</div>
-        <div style={{ ...s.infoBox, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-          <div style={{ fontSize: 13, color: COLORS.textMuted }}>{formatEventDate(post.event_date)} om {post.event_time}</div>
-          <div style={{ fontSize: 13, color: COLORS.textMuted }}>{post.event_location}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+          <div style={{ fontSize: 13, color: COLORS.textMuted }}><strong style={{ color: COLORS.text }}>Wanneer: </strong>{formatEventDate(post.event_date)} om {post.event_time}</div>
+          <div style={{ fontSize: 13, color: COLORS.textMuted }}><strong style={{ color: COLORS.text }}>Waar: </strong>{post.event_location}</div>
           <div style={{ fontSize: 13, color: COLORS.textMuted }}><strong style={{ color: COLORS.text }}>{yes.length}</strong> komen · <strong style={{ color: COLORS.text }}>{maybe.length}</strong> misschien</div>
         </div>
         {post.bring_list?.length > 0 && (
@@ -853,44 +893,77 @@ function EditPostSheet({ post, onClose, onSave }) {
   );
 }
 
-// ─── PHOTO UPLOAD ──────────────────────────────────────────────────────────────
+// ─── ACTION MENU ───────────────────────────────────────────────────────────────
 
-function PhotoUpload({ category, onUploaded }) {
-  const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState(null);
+function ActionMenu({ items, onClose }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200 }} onClick={onClose}>
+      <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, padding: '0 12px 20px' }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: RADIUS.xl, overflow: 'hidden', marginBottom: 8 }}>
+          {items.map((item, i) => (
+            <div key={i}>
+              {i > 0 && <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '0 16px' }} />}
+              <div onClick={item.action} style={{ padding: '14px 16px', textAlign: 'center', fontSize: 16, color: item.destructive ? COLORS.red : COLORS.text, fontWeight: 400, cursor: 'pointer' }}>
+                {item.label}
+              </div>
+            </div>
+          ))}
+        </div>
+        <button onClick={onClose} style={{ width: '100%', background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: RADIUS.xl, padding: '14px', fontSize: 16, fontWeight: 700, color: COLORS.accent, border: 'none', cursor: 'pointer' }}>
+          Annuleer
+        </button>
+      </div>
+    </div>
+  );
+}
 
-  const handleFile = async (e) => {
+// ─── BIJLAGE UPLOAD ────────────────────────────────────────────────────────────
+
+function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, documentName, uploading }) {
+  const [showMenu, setShowMenu] = useState(false);
+  const cameraRef = useRef(null);
+  const photoRef = useRef(null);
+  const docRef = useRef(null);
+
+  const handlePhoto = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setUploading(true);
-    setPreview(URL.createObjectURL(file));
+    onPhotoUploaded(URL.createObjectURL(file), null);
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
+      const res = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: formData });
       if (!res.ok) throw new Error('Upload mislukt');
       const { key } = await res.json();
-      onUploaded(key);
-    } catch (e) {
-      console.error('Upload failed', e);
-    }
-    setUploading(false);
+      onPhotoUploaded(URL.createObjectURL(file), key);
+    } catch (e) { console.error('Upload failed', e); }
   };
 
+  const hasAttachment = photoPreview || documentName;
+
   return (
-    <div style={{ flex: 1 }}>
-      <label style={{ cursor: 'pointer', display: 'block' }}>
-        <span style={{ display: 'block', textAlign: 'center', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: preview ? COLORS.accent : COLORS.textMuted }}>
-          {uploading ? 'Uploaden...' : preview ? 'Foto gekozen' : 'Foto'}
-        </span>
-        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} disabled={uploading} />
-      </label>
-      {preview && <img src={preview} alt="" style={{ width: '100%', borderRadius: 8, marginTop: 6, objectFit: 'cover', maxHeight: 160 }} />}
-    </div>
+    <>
+      <button type="button" onClick={() => setShowMenu(true)}
+        style={{ width: '100%', background: COLORS.bg, border: `1px solid ${hasAttachment ? COLORS.accent : COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: hasAttachment ? COLORS.accent : COLORS.textMuted, cursor: 'pointer', marginBottom: 4 }}>
+        {uploading ? 'Uploaden…' : hasAttachment ? (documentName || 'Foto gekozen') : 'Bijlage toevoegen'}
+      </button>
+      {photoPreview && <img src={photoPreview} alt="" style={{ width: '100%', borderRadius: 8, marginBottom: 10, objectFit: 'cover', maxHeight: 160 }} />}
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handlePhoto} />
+      <input ref={photoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
+      <input ref={docRef} type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
+        onChange={e => { onDocumentChosen(e.target.files[0]?.name || null); setShowMenu(false); }} />
+      {showMenu && (
+        <ActionMenu
+          onClose={() => setShowMenu(false)}
+          items={[
+            { label: 'Foto maken', action: () => { setShowMenu(false); cameraRef.current?.click(); } },
+            { label: 'Kies foto', action: () => { setShowMenu(false); photoRef.current?.click(); } },
+            { label: 'Kies bestand', action: () => { setShowMenu(false); docRef.current?.click(); } },
+          ]}
+        />
+      )}
+    </>
   );
 }
 
@@ -949,8 +1022,8 @@ function LocationPicker({ value, onChange }) {
   );
 }
 
-function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
-  const [cat, setCat] = useState('general');
+function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 'general' }) {
+  const [cat, setCat] = useState(initialCat);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [subType, setSubType] = useState('');
@@ -968,6 +1041,8 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   const [bringItems, setBringItems] = useState('');
   const [licenseplate, setLicenseplate] = useState('');
   const [photoKey, setPhotoKey] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [carrier, setCarrier] = useState('');
   const [customCarrier, setCustomCarrier] = useState('');
   const [attachmentName, setAttachmentName] = useState(null);
@@ -1009,15 +1084,10 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   return (
     <SheetOverlay closing={closing}>
         <div style={s.sheetHandle} />
-        <div style={s.sheetTitle}>{t('new_post')}</div>
-
-        {/* Categorie */}
-        <SegmentedControl
-          value={cat}
-          onChange={(key) => { setCat(key); setIncidentType(''); setWorkType(''); setTitle(''); setSubType(''); setLocation(''); setCustomWorkType(''); setCustomIncidentType(''); }}
-          options={Object.entries(CATEGORIES).map(([key]) => ({ key, label: FILTER_LABELS[key] || catLabel(key) }))}
-          style={{ padding: '0 0 16px' }}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+          <div style={s.sheetTitle, { fontSize: 18, fontWeight: 800, letterSpacing: '-0.3px' }}>{t('new_post')}</div>
+          <CatBadge cat={cat} />
+        </div>
 
         {/* ── PAKKET ── */}
         {isPackage && (
@@ -1206,16 +1276,15 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
           </>
         )}
 
-        {/* Foto + Document — naast elkaar */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'flex-start' }}>
-          <PhotoUpload category={cat} onUploaded={setPhotoKey} />
-          <label style={{ flex: 1, cursor: 'pointer', display: 'block' }}>
-            <span style={{ display: 'block', textAlign: 'center', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: attachmentName ? COLORS.accent : COLORS.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {attachmentName || 'Document'}
-            </span>
-            <input type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
-              onChange={e => setAttachmentName(e.target.files[0]?.name || null)} />
-          </label>
+        {/* Bijlage */}
+        <div style={{ marginBottom: 10 }}>
+          <AttachmentUpload
+            photoPreview={photoPreview}
+            documentName={attachmentName}
+            uploading={uploading}
+            onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); if (key) setPhotoKey(key); }}
+            onDocumentChosen={setAttachmentName}
+          />
         </div>
 
         <button style={{ ...s.submitBtn, opacity: canSubmit ? 1 : 0.5 }} disabled={!canSubmit}
@@ -1453,9 +1522,8 @@ function StreetsView({ user }) {
             <span>{st.members} {t('members')}</span>
           </div>
           <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
-            {st.role === 'admin' && <span style={s.badge(COLORS.accent)}>Admin</span>}
-            {st.role === 'moderator' && <span style={s.badge(COLORS.purple)}>Mod</span>}
-            <span style={s.badge(COLORS.blue)}>LID</span>
+            {st.role === 'admin' && <span style={s.badge(COLORS.accent)}>admin</span>}
+            {st.role === 'moderator' && <span style={s.badge(COLORS.purple)}>mod</span>}
           </div>
         </div>
       ))}
@@ -1497,7 +1565,7 @@ function SegmentedControl({ options, value, onChange, label, style }) {
   return (
     <div style={{ padding: '10px 16px 6px', ...style }}>
       {label && (
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.accent, marginBottom: 6 }}>{label}</div>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textMuted, marginBottom: 6 }}>{label}</div>
       )}
       <div ref={containerRef} style={{
         position: 'relative',
@@ -1540,7 +1608,7 @@ function SegmentedControl({ options, value, onChange, label, style }) {
               cursor: 'pointer',
               whiteSpace: 'nowrap',
               userSelect: 'none',
-              flexShrink: 0,
+              flex: 1,
               transition: 'color 0.25s',
             }}
           >
@@ -1562,6 +1630,8 @@ export default function App() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPost, setShowPost] = useState(false);
+  const [showCatPicker, setShowCatPicker] = useState(false);
+  const [pendingCat, setPendingCat] = useState('general');
   const [eventDetail, setEventDetail] = useState(null);
   const [joinDetail, setJoinDetail] = useState(null);
   const [reportedToast, setReportedToast] = useState(false);
@@ -1698,7 +1768,7 @@ export default function App() {
       </div>
 
       {tab === 'feed' && (
-        <div style={s.feed}>
+        <div style={{ ...s.feed, filter: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'blur(4px)' : 'none', transition: 'filter 0.2s', pointerEvents: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'none' : 'auto' }}>
           {notifSupported && !subscribed && permission !== 'denied' && (
             <div style={{ margin: '12px 12px 0', background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div>
@@ -1716,10 +1786,7 @@ export default function App() {
             onChange={setFilter}
             options={[
               { key: 'all', label: t('all') },
-              ...Object.entries(CATEGORIES).map(([key]) => ({
-                key,
-                label: FILTER_LABELS[key] || catLabel(key),
-              })),
+              ...Object.entries(CATEGORIES).map(([key]) => ({ key, label: catLabel(key) })),
             ]}
           />
           {loading
@@ -1747,7 +1814,7 @@ export default function App() {
       {tab === 'settings' && <SettingsView user={user} onLogout={logout} />}
 
       {tab === 'feed' && (
-        <button style={s.fab} onClick={() => setShowPost(true)}>Nieuw bericht +</button>
+        <button style={s.fab} onClick={() => setShowCatPicker(true)}>Nieuw bericht</button>
       )}
 
       <div style={s.tabBar}>
@@ -1764,9 +1831,15 @@ export default function App() {
         ))}
       </div>
 
+      {showCatPicker && (
+        <CategoryPickerSheet
+          onClose={() => setShowCatPicker(false)}
+          onSelect={(cat) => { setPendingCat(cat); setShowCatPicker(false); setTimeout(() => setShowPost(true), 270); }}
+        />
+      )}
       {showPost && (
         <NewPostSheet onClose={() => setShowPost(false)} onSubmit={(data) => { handleNewPost(data); setShowPost(false); }}
-          streetId={STREET_ID} canPin={canPin} user={user} />
+          streetId={STREET_ID} canPin={canPin} user={user} initialCat={pendingCat} />
       )}
       {eventDetail && (
         <EventDetailSheet post={eventDetail} onClose={() => setEventDetail(null)} onRsvp={handleRsvp} />
