@@ -296,7 +296,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
     setSendingComment(true);
     try {
       const comment = await api.post(`/streets/1/posts/${post.id}/comments`, { body: commentText.trim() });
-      setThreadComments(prev => [...(prev || []), { ...comment, author_name: user?.name }]);
+      setThreadComments(prev => [...(prev || []), { ...comment, author_name: user?.name, author_house: user?.house_number, author_role: user?.role }]);
       setCommentText('');
     } catch {}
     setSendingComment(false);
@@ -352,7 +352,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
         {/* Altijd zichtbare onderste rij: voornaam · tijd · reacties */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: COLORS.textDim }}>
           <span style={{ fontWeight: 600, color: post.author_role === 'admin' ? COLORS.accent : post.author_role === 'moderator' ? COLORS.purple : COLORS.textDim }}>
-            {firstName}{post.author_role === 'admin' ? ' · Admin' : post.author_role === 'moderator' ? ' · Mod' : ''}
+            {firstName}{post.author_house ? ` ${post.author_house}` : ''}{post.author_role === 'admin' ? ' · Admin' : post.author_role === 'moderator' ? ' · Mod' : ''}
           </span>
           <span>·</span><span>{timeAgo(post.created_at)}</span>
           {commentCount > 0 && (
@@ -422,12 +422,12 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               <div style={{ fontSize: 12, color: COLORS.textDim, paddingBottom: 8 }}>Reacties laden…</div>
             )}
             {(threadComments || []).map((c, i) => (
-              <div key={c.id ?? i} style={{ marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: c.author_role === 'admin' ? COLORS.accent : COLORS.textMuted, marginRight: 6 }}>
-                  {(c.author_name || '').split(' ')[0] || 'Bewoner'}
+              <div key={c.id ?? i} style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: c.author_role === 'admin' ? COLORS.accent : c.author_role === 'moderator' ? COLORS.purple : COLORS.textMuted, marginBottom: 2 }}>
+                  {(c.author_name || '').split(' ')[0] || 'Bewoner'}{c.author_house ? ` ${c.author_house}` : ''}
                   {c.author_role === 'admin' ? ' · Admin' : c.author_role === 'moderator' ? ' · Mod' : ''}
-                </span>
-                <span style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.5 }}>{c.body}</span>
+                </div>
+                <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.5 }}>{c.body}</div>
               </div>
             ))}
             {threadComments !== null && (

@@ -265,7 +265,7 @@ router.post('/:streetId/posts/:postId/report', requireAuth, requireMembership('r
 // GET /api/streets/:streetId/posts/:postId/comments
 router.get('/:streetId/posts/:postId/comments', requireAuth, requireMembership('resident'), async (req, res) => {
   const { rows } = await query(
-    `SELECT c.id, c.body, c.created_at, u.name AS author_name, m.role AS author_role
+    `SELECT c.id, c.body, c.created_at, u.name AS author_name, u.house_number AS author_house, m.role AS author_role
      FROM comments c
      JOIN users u ON u.id = c.user_id
      LEFT JOIN memberships m ON m.user_id = c.user_id AND m.street_id = $2
