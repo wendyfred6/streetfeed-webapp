@@ -4,7 +4,7 @@ import { usePush, notifSupported } from './hooks/usePush.jsx';
 import { api } from './api/client.js';
 import { t, getLang, setLang } from './i18n/index.js';
 
-import { COLORS, RADIUS } from './design/tokens.js';
+import { COLORS, RADIUS, ALPHA } from './design/tokens.js';
 
 const CATEGORIES = {
   package:  { label: 'Pakket',     labelEn: 'Package',     color: '#4488FF' },
@@ -31,45 +31,45 @@ function catLabel(key) {
 const s = {
   app: { fontFamily: "'DM Sans','Helvetica Neue',sans-serif", background: COLORS.bg, color: COLORS.text, minHeight: '100vh', maxWidth: 480, margin: '0 auto' },
   header: { background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}`, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 },
-  logo: { fontSize: 18, fontWeight: 800, letterSpacing: '-0.5px' },
+  logo: { fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px' },
   accent: { color: COLORS.accent },
   streetBadge: { fontSize: 11, color: COLORS.textMuted, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.sm, padding: '3px 8px' },
   feed: { padding: '0 0 100px 0' },
-  sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textDim, padding: '16px 20px 8px' },
-  card: (pinned) => ({ margin: '0 12px 8px', background: pinned ? COLORS.pinned : COLORS.surface, border: `1px solid ${pinned ? COLORS.pinnedBorder : COLORS.border}`, borderRadius: RADIUS.xl, padding: '14px 16px' }),
-  cardTitle: { fontSize: 14, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 },
-  cardBody: { fontSize: 13, color: COLORS.textMuted, lineHeight: 1.5 },
+  sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textMuted, padding: '16px 20px 8px' },
+  card: (pinned) => ({ margin: '0 12px 8px', background: pinned ? COLORS.pinned : COLORS.surface, border: `1px solid ${pinned ? COLORS.pinnedBorder : COLORS.border}`, borderRadius: RADIUS.lg, padding: '12px 14px' }),
+  cardTitle: { fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 },
+  cardBody: { fontSize: 15, color: COLORS.textDim, lineHeight: 1.5 },
   cardMeta: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
-  cardMetaLeft: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: COLORS.textDim },
-  pinnedBadge: { background: COLORS.accent, color: '#000', fontSize: 9, fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', padding: '2px 6px', borderRadius: RADIUS.xs },
-  endDateBadge: { fontSize: 10, color: COLORS.accent, background: 'rgba(232,255,71,0.1)', border: '1px solid rgba(232,255,71,0.2)', borderRadius: RADIUS.xs, padding: '2px 6px' },
+  cardMetaLeft: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: COLORS.textMuted },
+  pinnedBadge: { background: COLORS.accent, color: '#FFFFFF', fontSize: 9, fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', padding: '2px 6px', borderRadius: RADIUS.xs },
+  endDateBadge: { fontSize: 10, color: COLORS.accent, background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.xs, padding: '2px 6px' },
   filterBar: { display: 'flex', gap: 6, padding: '12px 20px', overflowX: 'auto', scrollbarWidth: 'none' },
-  filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : COLORS.surface, color: active ? '#000' : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : COLORS.border}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 12, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
-  fab: { position: 'fixed', bottom: 72, left: 12, right: 12, maxWidth: 456, margin: '0 auto', borderRadius: RADIUS.lg, background: COLORS.accent, color: '#000', fontSize: 14, fontWeight: 800, border: 'none', cursor: 'pointer', padding: '14px 0', textAlign: 'center', boxShadow: '0 4px 20px rgba(232,255,71,0.35)', zIndex: 40 },
+  filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : COLORS.surface, color: active ? '#FFFFFF' : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : COLORS.border}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
+  fab: { position: 'fixed', bottom: 72, left: 12, right: 12, maxWidth: 456, margin: '0 auto', borderRadius: RADIUS.pill, background: COLORS.terracotta, color: '#FFFFFF', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer', padding: '13px 0', textAlign: 'center', boxShadow: `0 4px 20px ${ALPHA.terraGlow}`, zIndex: 40 },
   tabBar: { position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, background: COLORS.surface, borderTop: `1px solid ${COLORS.border}`, display: 'flex', zIndex: 50 },
-  tab: (active) => ({ flex: 1, padding: '12px 0 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: active ? 700 : 400, color: active ? COLORS.accent : COLORS.textDim }),
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' },
-  sheet: { background: COLORS.surface, borderRadius: `${RADIUS['2xl']}px ${RADIUS['2xl']}px 0 0`, width: '100%', maxWidth: 480, padding: '20px 20px 40px', maxHeight: '90vh', overflowY: 'auto' },
+  tab: (active) => ({ flex: 1, padding: '12px 0 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: active ? 700 : 400, color: active ? COLORS.accent : COLORS.textMuted }),
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' },
+  sheet: { background: COLORS.surface, borderRadius: `${RADIUS.xl}px ${RADIUS.xl}px 0 0`, width: '100%', maxWidth: 480, padding: '20px 20px 40px', maxHeight: '90vh', overflowY: 'auto' },
   sheetHandle: { width: 36, height: 4, background: COLORS.border, borderRadius: 2, margin: '0 auto 20px' },
   sheetTitle: { fontSize: 18, fontWeight: 800, marginBottom: 20, letterSpacing: '-0.3px' },
-  input: { width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
-  textarea: { width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', resize: 'none', height: 80, marginBottom: 10 },
+  input: { width: '100%', background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
+  textarea: { width: '100%', background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 15, outline: 'none', boxSizing: 'border-box', resize: 'none', height: 80, marginBottom: 10 },
   label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textMuted, display: 'block', marginBottom: 6 },
   catGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 },
-  catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}22` : COLORS.bg, border: `1px solid ${selected ? CATEGORIES[cat]?.color : COLORS.border}`, borderRadius: RADIUS.pill, padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
-  submitBtn: { width: '100%', background: COLORS.accent, color: '#000', border: 'none', borderRadius: RADIUS.lg, padding: '14px', fontSize: 14, fontWeight: 800, cursor: 'pointer', marginTop: 8 },
-  cancelBtn: { width: '100%', background: 'none', color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.lg, padding: '12px', fontSize: 14, cursor: 'pointer', marginTop: 8 },
-  badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}22`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 10, fontWeight: 700, padding: '2px 6px' }),
+  catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}18` : COLORS.surface, border: `1px solid ${selected ? CATEGORIES[cat]?.color : COLORS.border}`, borderRadius: RADIUS.pill, padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
+  submitBtn: { width: '100%', background: COLORS.terracotta, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '13px 24px', fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 8 },
+  cancelBtn: { width: '100%', background: COLORS.surface, color: COLORS.terracotta, border: `2px solid ${COLORS.terracotta}`, borderRadius: RADIUS.pill, padding: '11px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
+  badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}18`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 11, fontWeight: 700, padding: '2px 7px' }),
   infoBox: { background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', marginBottom: 10 },
-  adminCard: { background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.xl, padding: '14px 16px', marginBottom: 8 },
+  adminCard: { background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.lg, padding: '14px 16px', marginBottom: 8 },
   statRow: { display: 'flex', gap: 8, marginBottom: 12 },
-  statCard: { flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.lg, padding: '12px', textAlign: 'center' },
+  statCard: { flex: 1, background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.lg, padding: '12px', textAlign: 'center' },
   statNum: { fontSize: 24, fontWeight: 800, color: COLORS.accent },
   statLabel: { fontSize: 10, color: COLORS.textMuted, marginTop: 2 },
-  streetCard: { margin: '0 12px 8px', background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.xl, padding: '16px', cursor: 'pointer' },
-  emptyState: { textAlign: 'center', padding: '40px 20px', color: COLORS.textDim, fontSize: 13 },
-  actionBtn: { background: 'none', border: 'none', color: COLORS.textDim, fontSize: 12, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 },
-  reportBtn: { background: 'none', border: 'none', color: COLORS.textDim, fontSize: 11, cursor: 'pointer', padding: 0 },
+  streetCard: { margin: '0 12px 8px', background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.lg, padding: '16px', cursor: 'pointer' },
+  emptyState: { textAlign: 'center', padding: '40px 20px', color: COLORS.textMuted, fontSize: 15 },
+  actionBtn: { background: 'none', border: 'none', color: COLORS.textMuted, fontSize: 13, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 },
+  reportBtn: { background: 'none', border: 'none', color: COLORS.textMuted, fontSize: 12, cursor: 'pointer', padding: 0 },
 };
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
@@ -173,7 +173,7 @@ function RdwLookup({ kenteken }) {
       {loading && <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, textAlign: 'center' }}>{t('rdw_loading')}</div>}
       {error && <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.red }}>{error}</div>}
       {result && !confirmed && (
-        <div style={{ background: `${COLORS.blue}11`, border: `1px solid ${COLORS.blue}44`, borderRadius: 10, padding: '12px 14px', marginTop: 4 }}>
+        <div style={{ background: `${COLORS.blue}18`, border: `1px solid ${COLORS.blue}44`, borderRadius: RADIUS.lg, padding: '12px 14px', marginTop: 4 }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.blue, marginBottom: 8 }}>{t('rdw_only_you')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 12 }}>
             {[['Merk', result.merk], ['Type', result.type], ['Kleur', result.kleur], ['Bouwjaar', result.bouwjaar]].map(([label, val]) => (
@@ -1523,12 +1523,12 @@ export default function App() {
       {tab === 'feed' && (
         <div style={s.feed}>
           {notifSupported && !subscribed && permission !== 'denied' && (
-            <div style={{ margin: '12px 12px 0', background: 'rgba(232,255,71,0.06)', border: '1px solid rgba(232,255,71,0.25)', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ margin: '12px 12px 0', background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 2 }}>Blijf op de hoogte</div>
                 <div style={{ fontSize: 12, color: COLORS.textMuted, lineHeight: 1.4 }}>Ontvang een melding bij nieuwe berichten in de straat</div>
               </div>
-              <button onClick={subscribe} style={{ background: COLORS.accent, color: '#000', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <button onClick={subscribe} style={{ background: COLORS.terracotta, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 Aanzetten
               </button>
             </div>

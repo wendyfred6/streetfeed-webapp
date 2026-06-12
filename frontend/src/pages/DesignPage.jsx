@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { COLORS, RADIUS, FONT } from '../design/tokens.js';
+import { COLORS, RADIUS, FONT, ALPHA } from '../design/tokens.js';
 
 const s = {
   page: { fontFamily: "'DM Sans','Helvetica Neue',sans-serif", background: COLORS.bg, color: COLORS.text, minHeight: '100vh', maxWidth: 480, margin: '0 auto', padding: '24px 20px 80px' },
@@ -60,7 +60,7 @@ function FontDemo({ name, size }) {
 
 function BtnPrimary({ children, disabled }) {
   return (
-    <button disabled={disabled} style={{ background: disabled ? COLORS.border : COLORS.accent, color: disabled ? COLORS.textDim : '#000', border: 'none', borderRadius: RADIUS.lg, padding: '11px 20px', fontSize: 14, fontWeight: 800, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
+    <button disabled={disabled} style={{ background: COLORS.terracotta, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '11px 20px', fontSize: 15, fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
       {children}
     </button>
   );
@@ -68,7 +68,7 @@ function BtnPrimary({ children, disabled }) {
 
 function BtnSecondary({ children }) {
   return (
-    <button style={{ background: 'none', color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.lg, padding: '11px 20px', fontSize: 14, cursor: 'pointer' }}>
+    <button style={{ background: COLORS.surface, color: COLORS.terracotta, border: `2px solid ${COLORS.terracotta}`, borderRadius: RADIUS.pill, padding: '11px 20px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
       {children}
     </button>
   );
@@ -76,7 +76,7 @@ function BtnSecondary({ children }) {
 
 function BtnGhost({ children }) {
   return (
-    <button style={{ background: 'none', border: 'none', color: COLORS.textDim, fontSize: 12, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+    <button style={{ background: COLORS.surface, color: COLORS.accent, border: `2px solid ${COLORS.accent}`, borderRadius: RADIUS.pill, padding: '11px 20px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
       {children}
     </button>
   );
@@ -84,7 +84,7 @@ function BtnGhost({ children }) {
 
 function BtnSmall({ children, color }) {
   return (
-    <button style={{ background: `${color}22`, color, border: `1px solid ${color}`, borderRadius: RADIUS.md, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+    <button style={{ background: `${color}18`, color, border: `1px solid ${color}`, borderRadius: RADIUS.md, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
       {children}
     </button>
   );

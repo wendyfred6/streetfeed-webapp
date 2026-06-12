@@ -5,22 +5,22 @@ import { useAuth } from '../hooks/useAuth.jsx';
 import { t } from '../i18n/index.js';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 
-import { COLORS } from '../design/tokens.js';
+import { COLORS, RADIUS, ALPHA } from '../design/tokens.js';
 
 const s = {
   page: { minHeight: '100vh', background: COLORS.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  card: { width: '100%', maxWidth: 400, background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: 16, padding: '32px 28px' },
+  card: { width: '100%', maxWidth: 400, background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.xl, padding: '32px 28px' },
   logo: { fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', marginBottom: 8 },
   subtitle: { fontSize: 14, color: COLORS.textMuted, marginBottom: 28, lineHeight: 1.5 },
   label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textMuted, display: 'block', marginBottom: 6 },
-  input: { width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '12px 14px', color: COLORS.text, fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 14 },
-  btn: { width: '100%', background: COLORS.accent, color: '#000', border: 'none', borderRadius: 10, padding: 14, fontSize: 15, fontWeight: 800, cursor: 'pointer', marginTop: 4 },
+  input: { width: '100%', background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '12px 14px', color: COLORS.text, fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 14 },
+  btn: { width: '100%', background: COLORS.terracotta, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 4 },
   error: { color: COLORS.red, fontSize: 13, marginBottom: 12 },
   success: { textAlign: 'center', padding: '8px 0' },
   successTitle: { fontSize: 20, fontWeight: 800, marginBottom: 8 },
   successBody: { fontSize: 14, color: COLORS.textMuted, lineHeight: 1.6 },
   divider: { borderTop: `1px solid ${COLORS.border}`, margin: '20px 0' },
-  pendingBox: { background: `rgba(232,255,71,0.06)`, border: `1px solid rgba(232,255,71,0.2)`, borderRadius: 10, padding: '14px 16px', fontSize: 13, color: COLORS.textMuted, lineHeight: 1.6, marginTop: 12 },
+  pendingBox: { background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '14px 16px', fontSize: 13, color: COLORS.textMuted, lineHeight: 1.6, marginTop: 12 },
 };
 
 export default function AuthPage() {

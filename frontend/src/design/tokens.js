@@ -1,36 +1,51 @@
 export const COLORS = {
-  bg: '#0F0F0F', surface: '#1A1A1A', border: '#2A2A2A',
-  accent: '#E8FF47', text: '#F0F0F0', textMuted: '#888888', textDim: '#555555',
-  pinned: '#1A1A1A', pinnedBorder: '#3A3A3A',
-  red: '#FF4444', blue: '#4488FF', orange: '#FF8833', purple: '#AA77FF', green: '#44BB44',
+  bg:           '#F0F2EC', // pagina achtergrond, inactieve pill fill
+  surface:      '#FFFFFF', // kaarten, header, secondary button fill
+  border:       '#C8D0C0', // alle randen
+  accent:       '#4A5E3A', // legergroen — logo, actieve pills, navigatie
+  terracotta:   '#C4704A', // primary button, links, RSVP-acties
+  text:         '#1C2418', // primaire tekst
+  textMuted:    '#8A9A80', // meta-informatie, tijdstempels
+  textDim:      '#5A6A50', // card body tekst
+  pinned:       '#E4EDE0', // achtergrond vastgepinde kaarten
+  pinnedBorder: '#B8C8B0', // rand vastgepinde kaarten
+  red:          '#FF4444',
+  blue:         '#4488FF',
+  orange:       '#FF8833',
+  purple:       '#AA77FF',
+  green:        '#44BB44',
+};
+
+// Semitransparante varianten — voor fills, borders en glows
+export const ALPHA = {
+  accentSubtle: 'rgba(74,94,58,0.08)',
+  accentBorder: 'rgba(74,94,58,0.2)',
+  terraGlow:    'rgba(196,112,74,0.25)',
 };
 
 // Border-radius schaal
 // xs  → badges, kleine accenten
 // sm  → sub-badges, streetBadge
 // md  → inputs, selects, kleine actie-knoppen
-// lg  → CTA-knoppen (submit, cancel, FAB)
-// xl  → cards, adminCards
-// 2xl → sheets, modals
-// pill → filter-/selectie-chips
+// lg  → cards (10px per briefing)
+// xl  → sheets, overlays (16px)
+// pill → alle knoppen en chips (999px per briefing)
 export const RADIUS = {
   xs:   4,
   sm:   6,
   md:   8,
   lg:   10,
-  xl:   12,
-  '2xl': 16,
+  xl:   16,
   pill: 999,
 };
 
 export const FONT = {
   '2xs': 10,  // labels, meta
   xs:    11,  // secundaire meta
-  sm:    12,  // body-klein
-  md:    13,  // body-standaard
-  base:  14,  // basis body
+  sm:    13,  // body-klein / meta (was 12, +1 per briefing)
+  md:    15,  // body-standaard (was 13/14, +1-2 per briefing)
+  base:  15,
   lg:    18,  // sheet-titels
-  xl:    20,  // detail-titels
+  xl:    20,  // logo / detail-titels
   '2xl': 24,  // stat-nummers
-  '3xl': 28,  // auth-logo
 };
