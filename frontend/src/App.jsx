@@ -351,8 +351,8 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
         <div style={s.cardTitle}>{post.title}</div>
         {/* Altijd zichtbare onderste rij: voornaam · tijd · reacties */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: COLORS.textDim }}>
-          <span style={{ fontWeight: 600, color: post.author_role === 'admin' ? COLORS.accent : post.author_role === 'moderator' ? COLORS.purple : COLORS.textDim }}>
-            {firstName}{post.author_house ? ` ${post.author_house}` : ''}{post.author_role === 'admin' ? ' · Admin' : post.author_role === 'moderator' ? ' · Mod' : ''}
+          <span style={{ fontWeight: 600, color: COLORS.textMuted }}>
+            {firstName}{post.author_house ? ` ${post.author_house}` : ''}
           </span>
           <span>·</span><span>{timeAgo(post.created_at)}</span>
           {commentCount > 0 && (
@@ -423,9 +423,8 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
             )}
             {(threadComments || []).map((c, i) => (
               <div key={c.id ?? i} style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: c.author_role === 'admin' ? COLORS.accent : c.author_role === 'moderator' ? COLORS.purple : COLORS.textMuted, marginBottom: 2 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textMuted, marginBottom: 2 }}>
                   {(c.author_name || '').split(' ')[0] || 'Bewoner'}{c.author_house ? ` ${c.author_house}` : ''}
-                  {c.author_role === 'admin' ? ' · Admin' : c.author_role === 'moderator' ? ' · Mod' : ''}
                 </div>
                 <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.5 }}>{c.body}</div>
               </div>
@@ -788,10 +787,10 @@ function PhotoUpload({ category, onUploaded }) {
   };
 
   return (
-    <div style={{ marginBottom: 10 }}>
-      <label style={{ ...s.label, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: COLORS.textMuted }}>
-          {uploading ? 'Uploaden...' : t('photo')}
+    <div style={{ flex: 1 }}>
+      <label style={{ cursor: 'pointer', display: 'block' }}>
+        <span style={{ display: 'block', textAlign: 'center', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: preview ? COLORS.accent : COLORS.textMuted }}>
+          {uploading ? 'Uploaden...' : preview ? 'Foto gekozen' : 'Foto'}
         </span>
         <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} disabled={uploading} />
       </label>
@@ -1073,12 +1072,12 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
           </>
         )}
 
-        {/* Foto + Document */}
-        <PhotoUpload category={cat} onUploaded={setPhotoKey} />
-        <div style={{ marginBottom: 10 }}>
-          <label style={{ ...s.label, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: attachmentName ? COLORS.accent : COLORS.textMuted }}>
-              {attachmentName ? attachmentName : 'Document toevoegen (PDF)'}
+        {/* Foto + Document — naast elkaar */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'flex-start' }}>
+          <PhotoUpload category={cat} onUploaded={setPhotoKey} />
+          <label style={{ flex: 1, cursor: 'pointer', display: 'block' }}>
+            <span style={{ display: 'block', textAlign: 'center', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: attachmentName ? COLORS.accent : COLORS.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {attachmentName || 'Document'}
             </span>
             <input type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
               onChange={e => setAttachmentName(e.target.files[0]?.name || null)} />
