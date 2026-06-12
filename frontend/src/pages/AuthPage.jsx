@@ -199,7 +199,8 @@ export default function AuthPage() {
               <HouseNumberPicker
                 value={house}
                 onChange={(v) => { setHouse(v); setHouseError(''); }}
-                streetId={1}
+                streetName="Reyer Anslostraat"
+                city="Amsterdam"
                 style={{ marginBottom: 14 }}
               />
               {houseError && <p style={{ ...s.error, marginTop: -8 }}>{houseError}</p>}

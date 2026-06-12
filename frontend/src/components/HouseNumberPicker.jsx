@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api/client.js';
 
 const COLORS = {
   bg: '#0F0F0F', border: '#2A2A2A', text: '#F0F0F0',
@@ -21,6 +20,53 @@ const inputStyle = {
   WebkitAppearance: 'none',
 };
 
+const PDOK = 'https://api.pdok.nl/bzk/locatieserver/search/v3_1/free';
+
+function normalizeSuffix(huisletter, toevoeging) {
+  const raw = (toevoeging || huisletter || '').toUpperCase().trim();
+  if (!raw) return null;
+  if (['H', 'HUIS', 'BG'].includes(raw)) return 'hs';
+  return raw.toLowerCase();
+}
+
+async function loadAddresses(streetName, city) {
+  let all = [];
+  let start = 0;
+  const rows = 100;
+
+  while (true) {
+    const params = new URLSearchParams({
+      q: `${streetName} ${city}`,
+      fq: 'type:adres',
+      rows: String(rows),
+      start: String(start),
+    });
+    const res = await fetch(`${PDOK}?${params}`);
+    if (!res.ok) throw new Error(`PDOK ${res.status}`);
+    const data = await res.json();
+    const docs = data.response?.docs || [];
+    all = all.concat(docs);
+    if (all.length >= (data.response?.numFound || 0) || docs.length < rows) break;
+    start += rows;
+    if (start > 500) break;
+  }
+
+  return all
+    .map(a => {
+      const suf = normalizeSuffix(a.huisletter, a.huisnummertoevoeging);
+      return suf ? `${a.huisnummer}-${suf}` : String(a.huisnummer);
+    })
+    .filter((v, i, arr) => arr.indexOf(v) === i)
+    .sort((a, b) => {
+      const [na, sa = ''] = a.split('-');
+      const [nb, sb = ''] = b.split('-');
+      if (+na !== +nb) return +na - +nb;
+      if (sa === 'hs' && sb !== 'hs') return -1;
+      if (sb === 'hs' && sa !== 'hs') return 1;
+      return sa.localeCompare(sb, undefined, { numeric: true });
+    });
+}
+
 // Groups ["28-hs","28-1","28-2","30-hs","30-1"] into { "28": ["hs","1","2"], "30": ["hs","1"] }
 function groupAddresses(flat) {
   const map = {};
@@ -34,16 +80,16 @@ function groupAddresses(flat) {
   return map;
 }
 
-export default function HouseNumberPicker({ value, onChange, streetId = 1, style = {} }) {
+export default function HouseNumberPicker({ value, onChange, streetName = 'Reyer Anslostraat', city = 'Amsterdam', style = {} }) {
   const [addresses, setAddresses] = useState(null); // null = loading, [] = failed/empty
   const [num, setNum] = useState('');
   const [suf, setSuf] = useState('');
 
   useEffect(() => {
-    api.get(`/bag/addresses/${streetId}`)
+    loadAddresses(streetName, city)
       .then(data => setAddresses(data))
       .catch(() => setAddresses([]));
-  }, [streetId]);
+  }, [streetName, city]);
 
   // Sync picker back from external value (e.g. when editing existing profile)
   useEffect(() => {
@@ -61,7 +107,6 @@ export default function HouseNumberPicker({ value, onChange, streetId = 1, style
     if (!n) { onChange(''); return; }
     const grouped = groupAddresses(addresses || []);
     const subs = grouped[n] || [];
-    // If only one option (or none), emit immediately
     if (subs.length <= 1) emit(n, subs[0] || '');
     else onChange(''); // wait for suffix selection
   };
@@ -71,7 +116,7 @@ export default function HouseNumberPicker({ value, onChange, streetId = 1, style
     if (s) emit(num, s);
   };
 
-  // Fallback: text input if API not configured or failed with empty list
+  // Fallback: text input if PDOK failed or returned nothing
   if (addresses !== null && addresses.length === 0) {
     return (
       <input
