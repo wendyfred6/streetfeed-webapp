@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useAuth } from './hooks/useAuth.jsx';
 import { usePush, notifSupported } from './hooks/usePush.jsx';
 import { api } from './api/client.js';
@@ -25,6 +25,8 @@ function catLabel(key) {
   if (!c) return LEGACY_LABELS[key]?.[getLang() === 'en' ? 'en' : 'nl'] || key;
   return getLang() === 'en' ? c.labelEn : c.label;
 }
+
+const FILTER_LABELS = { works: 'Werk', event: 'Event', general: 'Overig' };
 
 // ─── STYLES ────────────────────────────────────────────────────────────────────
 
@@ -1456,6 +1458,72 @@ function PendingView() {
   );
 }
 
+// ─── SEGMENTED CONTROL ────────────────────────────────────────────────────────
+
+function SegmentedControl({ options, value, onChange }) {
+  const containerRef = useRef(null);
+  const itemRefs = useRef({});
+  const [capsule, setCapsule] = useState({ left: 0, width: 60 });
+
+  useLayoutEffect(() => {
+    const item = itemRefs.current[value];
+    if (!item) return;
+    setCapsule({ left: item.offsetLeft, width: item.offsetWidth });
+  }, [value]);
+
+  return (
+    <div style={{ padding: '10px 16px 6px' }}>
+      <div ref={containerRef} style={{
+        position: 'relative',
+        display: 'flex',
+        background: 'rgba(255,255,255,0.35)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        borderRadius: RADIUS.pill,
+        padding: 4,
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: 4,
+          left: 4 + capsule.left,
+          height: 'calc(100% - 8px)',
+          width: capsule.width,
+          background: 'rgba(255,255,255,0.92)',
+          borderRadius: RADIUS.pill,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.10)',
+          transition: 'left 0.35s cubic-bezier(0.34,1.56,0.64,1), width 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+          pointerEvents: 'none',
+        }} />
+        {options.map(({ key, label }) => (
+          <div
+            key={key}
+            ref={el => { itemRefs.current[key] = el; }}
+            onClick={() => onChange(key)}
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              padding: '7px 12px',
+              fontSize: 13,
+              fontWeight: value === key ? 700 : 500,
+              color: value === key ? COLORS.text : COLORS.textMuted,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              userSelect: 'none',
+              flexShrink: 0,
+              transition: 'color 0.25s',
+            }}
+          >
+            {label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN APP ──────────────────────────────────────────────────────────────────
 
 export default function App() {
@@ -1614,15 +1682,17 @@ export default function App() {
               </button>
             </div>
           )}
-          <div style={{ padding: '12px 20px 0' }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textDim }}>Filter</div>
-          </div>
-          <div style={s.filterBar}>
-            <div style={s.filterChip(filter === 'all')} onClick={() => setFilter('all')}>{t('all')}</div>
-            {Object.entries(CATEGORIES).map(([key]) => (
-              <div key={key} style={s.filterChip(filter === key)} onClick={() => setFilter(key)}>{catLabel(key)}</div>
-            ))}
-          </div>
+          <SegmentedControl
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { key: 'all', label: t('all') },
+              ...Object.entries(CATEGORIES).map(([key]) => ({
+                key,
+                label: FILTER_LABELS[key] || catLabel(key),
+              })),
+            ]}
+          />
           {loading
             ? <div style={s.emptyState}>{t('loading')}</div>
             : <>
