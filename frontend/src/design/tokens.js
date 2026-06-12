@@ -1,15 +1,15 @@
 // ─── Kleuren ────────────────────────────────────────────────────────────────────
 export const COLORS = {
-  bg:           '#F5D5B8',              // warm perzik — fills, inactive chips
+  bg:           'rgba(255,255,255,0.60)', // frosted glass neutraal oppervlak
   surface:      'rgba(255,255,255,0.75)', // frosted glass basisoppervlak
-  border:       'rgba(255,0,102,0.15)',  // subtiele roze rand
-  accent:       '#FF0066',              // Electric Pink — labels, CTA, actieve states
-  terracotta:   '#FF0066',              // zelfde als accent (Electric Pink vervangt terracotta)
-  text:         '#1A0A12',              // primaire tekst
-  textMuted:    '#6B3050',              // secundaire tekst
-  textDim:      '#4A2035',              // dimmere tekst
-  pinned:       'rgba(255,0,102,0.05)', // vastgepinde kaart achtergrond
-  pinnedBorder: 'rgba(255,0,102,0.2)',  // vastgepinde kaart rand
+  border:       'rgba(255,0,102,0.15)',   // subtiele roze rand
+  accent:       '#FF0066',               // Electric Pink — labels, CTA, actieve states
+  terracotta:   '#FF0066',               // zelfde als accent
+  text:         '#1C1A18',               // neutraal bijna-zwart, geen paarse ondertoon
+  textMuted:    '#6C6860',               // neutraal grijs, geen roze/paarse ondertoon
+  textDim:      '#8E8C84',               // licht neutraal grijs
+  pinned:       'rgba(255,255,255,0.82)',// vastgepinde kaart — iets minder transparant
+  pinnedBorder: 'rgba(255,0,102,0.22)', // vastgepinde kaart rand — Electric Pink outline
   red:          '#FF4444',
   blue:         '#4488FF',
   orange:       '#FF8833',
@@ -18,7 +18,7 @@ export const COLORS = {
 };
 
 // ─── Paginagradiënt ─────────────────────────────────────────────────────────────
-export const BG_GRADIENT = 'radial-gradient(ellipse at 60% 40%, #F5D5B8 0%, #F0C49A 40%, #EDD884 100%)';
+export const BG_GRADIENT = 'radial-gradient(ellipse at 60% 30%, #FDFCFA 0%, #F8F4EE 45%, #F2ECE2 100%)';
 
 // ─── Semitransparante varianten ──────────────────────────────────────────────────
 export const ALPHA = {

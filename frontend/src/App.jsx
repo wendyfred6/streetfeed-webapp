@@ -5,6 +5,7 @@ import { api } from './api/client.js';
 import { t, getLang, setLang } from './i18n/index.js';
 
 import { COLORS, RADIUS, ALPHA, GLASS } from './design/tokens.js';
+import HouseNumberPicker from './components/HouseNumberPicker.jsx';
 
 const CATEGORIES = {
   package:  { label: 'Pakket',     labelEn: 'Package',     color: '#4488FF' },
@@ -97,9 +98,17 @@ function Chevron({ size = 14, color, rotate = 0, style }) {
 }
 
 function CatBadge({ cat }) {
-  const c = CATEGORIES[cat];
   return (
-    <span style={{ ...s.badge(c?.color || '#888'), textTransform: 'none', fontSize: 11 }}>
+    <span style={{
+      display: 'inline-block',
+      background: 'rgba(0,0,0,0.06)',
+      border: '1px solid rgba(0,0,0,0.08)',
+      borderRadius: RADIUS.pill,
+      fontSize: 11, fontWeight: 600,
+      color: COLORS.textMuted,
+      padding: '2px 8px',
+      whiteSpace: 'nowrap',
+    }}>
       {catLabel(cat)}
     </span>
   );
@@ -364,7 +373,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
             <span style={{ fontSize: 10, color: COLORS.textMuted, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 4, padding: '2px 6px' }}>{post.sub_type}</span>
           )}
           {isPackage && post.sub_type === 'search' && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: COLORS.orange, background: `${COLORS.orange}18`, border: `1px solid ${COLORS.orange}44`, borderRadius: 4, padding: '2px 6px' }}>Gezocht</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: COLORS.textMuted, background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: RADIUS.pill, padding: '2px 8px' }}>Gezocht</span>
           )}
           {dateLabel && (
             isEvent
@@ -555,7 +564,7 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
     <SheetOverlay closing={closing} onOverlayClick={close}>
         <div style={s.sheetHandle} />
         <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-          <span style={s.badge(COLORS.purple)}>Evenement</span>
+          <CatBadge cat="event" />
           {post.pinned && <span style={s.pinnedBadge}>Pinned</span>}
         </div>
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{post.title}</div>
@@ -1003,15 +1012,12 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         <div style={s.sheetTitle}>{t('new_post')}</div>
 
         {/* Categorie */}
-        <label style={s.label}>{t('category')}</label>
-        <div style={{ display: 'flex', gap: 5, overflowX: 'auto', marginBottom: 16, paddingBottom: 4, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-          {Object.entries(CATEGORIES).map(([key]) => (
-            <div key={key} style={{ ...s.catOption(cat === key, key), flexShrink: 0 }}
-              onClick={() => { setCat(key); setIncidentType(''); setWorkType(''); setTitle(''); setSubType(''); setLocation(''); setCustomWorkType(''); setCustomIncidentType(''); }}>
-              {catLabel(key)}
-            </div>
-          ))}
-        </div>
+        <SegmentedControl
+          value={cat}
+          onChange={(key) => { setCat(key); setIncidentType(''); setWorkType(''); setTitle(''); setSubType(''); setLocation(''); setCustomWorkType(''); setCustomIncidentType(''); }}
+          options={Object.entries(CATEGORIES).map(([key]) => ({ key, label: FILTER_LABELS[key] || catLabel(key) }))}
+          style={{ padding: '0 0 16px' }}
+        />
 
         {/* ── PAKKET ── */}
         {isPackage && (
@@ -1029,15 +1035,13 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
 
             {pkgSubType === 'have' ? (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <div>
-                    <label style={s.label}>Pakket voor nr.</label>
-                    <input style={s.input} placeholder="Bijv. 27-hs" value={forHouse} onChange={e => setForHouse(e.target.value)} />
-                  </div>
-                  <div>
-                    <label style={s.label}>Ophalen bij nr.</label>
-                    <input style={s.input} placeholder="Bijv. 28-hs" value={pickupHouse} onChange={e => setPickupHouse(e.target.value)} />
-                  </div>
+                <div>
+                  <label style={s.label}>Pakket voor nr.</label>
+                  <HouseNumberPicker value={forHouse} onChange={setForHouse} style={{ marginBottom: 10 }} />
+                </div>
+                <div style={{ marginBottom: 10 }}>
+                  <label style={s.label}>Ophalen bij nr.</label>
+                  <HouseNumberPicker value={pickupHouse} onChange={setPickupHouse} />
                 </div>
                 {packageTitle && (
                   <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginBottom: 10 }}>
@@ -1479,7 +1483,7 @@ function PendingView() {
 
 // ─── SEGMENTED CONTROL ────────────────────────────────────────────────────────
 
-function SegmentedControl({ options, value, onChange }) {
+function SegmentedControl({ options, value, onChange, label, style }) {
   const containerRef = useRef(null);
   const itemRefs = useRef({});
   const [capsule, setCapsule] = useState({ left: 0, width: 60 });
@@ -1491,8 +1495,10 @@ function SegmentedControl({ options, value, onChange }) {
   }, [value]);
 
   return (
-    <div style={{ padding: '10px 16px 6px' }}>
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.accent, marginBottom: 6 }}>Filter</div>
+    <div style={{ padding: '10px 16px 6px', ...style }}>
+      {label && (
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.accent, marginBottom: 6 }}>{label}</div>
+      )}
       <div ref={containerRef} style={{
         position: 'relative',
         display: 'flex',
@@ -1517,7 +1523,7 @@ function SegmentedControl({ options, value, onChange }) {
           transition: 'left 0.35s cubic-bezier(0.34,1.56,0.64,1), width 0.35s cubic-bezier(0.34,1.56,0.64,1)',
           pointerEvents: 'none',
         }} />
-        {options.map(({ key, label }) => (
+        {options.map(({ key, label: optLabel }) => (
           <div
             key={key}
             ref={el => { itemRefs.current[key] = el; }}
@@ -1526,6 +1532,8 @@ function SegmentedControl({ options, value, onChange }) {
               position: 'relative',
               zIndex: 1,
               padding: '7px 12px',
+              minHeight: 34,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 13,
               fontWeight: value === key ? 700 : 500,
               color: value === key ? COLORS.accent : COLORS.textMuted,
@@ -1536,7 +1544,7 @@ function SegmentedControl({ options, value, onChange }) {
               transition: 'color 0.25s',
             }}
           >
-            {label}
+            {optLabel}
           </div>
         ))}
       </div>
@@ -1703,6 +1711,7 @@ export default function App() {
             </div>
           )}
           <SegmentedControl
+            label="Filter"
             value={filter}
             onChange={setFilter}
             options={[
