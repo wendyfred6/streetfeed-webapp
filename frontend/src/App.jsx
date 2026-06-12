@@ -734,7 +734,7 @@ function EditPostSheet({ post, onClose, onSave }) {
           </>
         )}
 
-        {isGeneral && (
+        {isGeneral && post.allow_join && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
             <span style={{ fontSize: 13, color: COLORS.textMuted }}>Ik doe mee-knop tonen</span>
             <button onClick={() => setAllowJoin(v => !v)}
@@ -1079,18 +1079,6 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
             <input style={s.input} placeholder={t('title_placeholder')} value={title} onChange={e => setTitle(e.target.value)} />
             <label style={s.label}>{t('message')}</label>
             <textarea style={s.textarea} placeholder={t('message_placeholder')} value={body} onChange={e => setBody(e.target.value)} />
-            <label style={s.label}>Einddatum (optioneel)</label>
-            <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-            <div onClick={() => setAllowJoin(v => !v)}
-              style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: 6 }}>
-              <span style={{ fontSize: 13 }}>Aanmeldknop toevoegen</span>
-              <div style={{ width: 36, height: 20, borderRadius: 10, background: allowJoin ? COLORS.accent : COLORS.border, position: 'relative', flexShrink: 0 }}>
-                <div style={{ position: 'absolute', top: 3, left: allowJoin ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: allowJoin ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
-              </div>
-            </div>
-            <p style={{ fontSize: 11, color: COLORS.textMuted, margin: '0 0 14px', lineHeight: 1.5 }}>
-              Buurtbewoners kunnen zich met één tik aanmelden. Handig voor initiatieven, opruimacties of gezamenlijke aankopen.
-            </p>
           </>
         )}
 
