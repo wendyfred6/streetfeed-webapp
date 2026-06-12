@@ -1,21 +1,22 @@
-import { useState } from 'react';
-import { COLORS, RADIUS, FONT, ALPHA } from '../design/tokens.js';
+import { useState, useRef, useLayoutEffect } from 'react';
+import { COLORS, RADIUS, FONT, GLASS, BG_GRADIENT } from '../design/tokens.js';
+
+const CAT_OPTIONS = [
+  { key: 'package',  label: 'Pakket' },
+  { key: 'works',    label: 'Obstructie' },
+  { key: 'incident', label: 'Melding' },
+  { key: 'event',    label: 'Evenement' },
+  { key: 'general',  label: 'Algemeen' },
+];
 
 const s = {
-  page: { fontFamily: "'DM Sans','Helvetica Neue',sans-serif", background: COLORS.bg, color: COLORS.text, minHeight: '100vh', maxWidth: 480, margin: '0 auto', padding: '24px 20px 80px' },
-  heading: { fontSize: 10, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textDim, marginBottom: 16, marginTop: 32, paddingTop: 24, borderTop: `1px solid ${COLORS.border}` },
+  page: { fontFamily: "'Inter', 'Helvetica Neue', sans-serif", background: BG_GRADIENT, color: COLORS.text, minHeight: '100vh', maxWidth: 480, margin: '0 auto', padding: '24px 20px 80px' },
+  heading: { fontSize: 10, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textDim, marginBottom: 16, marginTop: 32, paddingTop: 24, borderTop: '1px solid rgba(0,0,0,0.07)' },
   firstHeading: { fontSize: 10, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textDim, marginBottom: 16 },
   label: { fontSize: 10, color: COLORS.textDim, marginTop: 4, textAlign: 'center' },
+  meta: { fontSize: 10, color: COLORS.textDim, marginBottom: 8 },
   row: { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start', marginBottom: 12 },
   col: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
-};
-
-const CATEGORIES = {
-  package:  { label: 'Pakket',     color: '#4488FF' },
-  works:    { label: 'Obstructie', color: '#FF8833' },
-  incident: { label: 'Melding',    color: '#FF4444' },
-  event:    { label: 'Evenement',  color: '#AA77FF' },
-  general:  { label: 'Algemeen',   color: '#888888' },
 };
 
 function Section({ title, first, children }) {
@@ -27,12 +28,14 @@ function Section({ title, first, children }) {
   );
 }
 
+// ── Tokens ───────────────────────────────────────────────────────────────────
+
 function Token({ name, value }) {
   return (
     <div style={{ ...s.col, minWidth: 60 }}>
-      <div style={{ width: 40, height: 40, borderRadius: RADIUS.md, background: value, border: `1px solid rgba(255,255,255,0.08)`, marginBottom: 4 }} />
+      <div style={{ width: 40, height: 40, borderRadius: RADIUS.md, background: value, border: '1px solid rgba(0,0,0,0.08)', marginBottom: 4 }} />
       <div style={{ fontSize: 9, color: COLORS.textMuted, textAlign: 'center', lineHeight: 1.3 }}>{name}</div>
-      <div style={{ fontSize: 9, color: COLORS.textDim, fontFamily: 'monospace' }}>{value}</div>
+      <div style={{ fontSize: 9, color: COLORS.textDim, fontFamily: 'monospace', textAlign: 'center', wordBreak: 'break-all' }}>{value}</div>
     </div>
   );
 }
@@ -40,41 +43,33 @@ function Token({ name, value }) {
 function RadiusDemo({ name, value }) {
   return (
     <div style={{ ...s.col, minWidth: 56 }}>
-      <div style={{ width: 48, height: 32, background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: value, marginBottom: 4 }} />
+      <div style={{ width: 48, height: 32, background: 'rgba(255,255,255,0.75)', border: `1px solid ${COLORS.border}`, borderRadius: value, marginBottom: 4 }} />
       <div style={{ fontSize: 9, color: COLORS.textMuted, fontFamily: 'monospace' }}>{name}</div>
-      <div style={{ fontSize: 9, color: COLORS.textDim }}>{value === 999 ? '999' : `${value}px`}</div>
+      <div style={{ fontSize: 9, color: COLORS.textDim }}>{value === 999 ? 'pill' : `${value}px`}</div>
     </div>
   );
 }
 
 function FontDemo({ name, size }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '4px 0', borderBottom: `1px solid ${COLORS.border}` }}>
-      <div style={{ fontSize: size, fontWeight: 600, color: COLORS.text, minWidth: 140 }}>Reyer Anslostraat</div>
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '4px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+      <div style={{ fontSize: size, fontWeight: 600, color: COLORS.text, minWidth: 160 }}>Reyer Anslostraat</div>
       <div style={{ fontSize: 10, color: COLORS.textDim, fontFamily: 'monospace' }}>{name} · {size}px</div>
     </div>
   );
 }
 
-// ── Knop-varianten ──────────────────────────────────────────────────────────
+// ── Knoppen ──────────────────────────────────────────────────────────────────
 
 function BtnPrimary({ children, disabled }) {
   return (
-    <button disabled={disabled} style={{ background: COLORS.terracotta, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '11px 20px', fontSize: 15, fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
+    <button disabled={disabled} style={{ background: COLORS.accent, color: '#fff', border: 'none', borderRadius: RADIUS.pill, padding: '11px 20px', fontSize: 15, fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
       {children}
     </button>
   );
 }
 
 function BtnSecondary({ children }) {
-  return (
-    <button style={{ background: COLORS.surface, color: COLORS.terracotta, border: `2px solid ${COLORS.terracotta}`, borderRadius: RADIUS.pill, padding: '11px 20px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
-      {children}
-    </button>
-  );
-}
-
-function BtnGhost({ children }) {
   return (
     <button style={{ background: COLORS.surface, color: COLORS.accent, border: `2px solid ${COLORS.accent}`, borderRadius: RADIUS.pill, padding: '11px 20px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
       {children}
@@ -90,45 +85,81 @@ function BtnSmall({ children, color }) {
   );
 }
 
-// ── Chips ───────────────────────────────────────────────────────────────────
+// ── Segmented Control ────────────────────────────────────────────────────────
 
-function FilterChip({ label, active }) {
+function SegmentedControl({ options, value, onChange, label }) {
+  const itemRefs = useRef({});
+  const [capsule, setCapsule] = useState({ left: 0, width: 60 });
+
+  useLayoutEffect(() => {
+    const item = itemRefs.current[value];
+    if (!item) return;
+    setCapsule({ left: item.offsetLeft, width: item.offsetWidth });
+  }, [value]);
+
   return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', background: active ? COLORS.accent : COLORS.surface, color: active ? '#000' : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : COLORS.border}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 12, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-      {label}
+    <div style={{ padding: '4px 0 8px' }}>
+      {label && (
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.accent, marginBottom: 6 }}>{label}</div>
+      )}
+      <div style={{
+        position: 'relative', display: 'flex',
+        background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+        borderRadius: RADIUS.pill, padding: 4, overflowX: 'auto', scrollbarWidth: 'none',
+      }}>
+        <div style={{
+          position: 'absolute', top: 4, left: 4 + capsule.left, height: 'calc(100% - 8px)', width: capsule.width,
+          background: 'rgba(255,255,255,0.92)', borderRadius: RADIUS.pill,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.10)',
+          transition: 'left 0.35s cubic-bezier(0.34,1.56,0.64,1), width 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+          pointerEvents: 'none',
+        }} />
+        {options.map(({ key, label: optLabel }) => (
+          <div key={key} ref={el => { itemRefs.current[key] = el; }} onClick={() => onChange(key)}
+            style={{
+              position: 'relative', zIndex: 1, padding: '7px 12px', minHeight: 34,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 13, fontWeight: value === key ? 700 : 500,
+              color: value === key ? COLORS.accent : COLORS.textMuted,
+              cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none', flexShrink: 0, transition: 'color 0.25s',
+            }}>
+            {optLabel}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-function CatChip({ label, color, selected }) {
-  return (
-    <div style={{ background: selected ? `${color}22` : COLORS.bg, border: `1px solid ${selected ? color : COLORS.border}`, borderRadius: RADIUS.pill, padding: '7px 14px', fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-      {label}
-    </div>
-  );
-}
+// ── Badges ───────────────────────────────────────────────────────────────────
 
-// ── Badges ──────────────────────────────────────────────────────────────────
-
-function Badge({ label, color }) {
+function CatBadge({ label }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', background: `${color}22`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 10, fontWeight: 700, padding: '2px 6px' }}>
+    <span style={{ display: 'inline-block', background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: RADIUS.pill, fontSize: 11, fontWeight: 600, color: COLORS.textMuted, padding: '2px 8px', whiteSpace: 'nowrap' }}>
       {label}
     </span>
   );
 }
 
-// ── Toggle ──────────────────────────────────────────────────────────────────
-
-function Toggle({ on }) {
+function AccentBadge({ label, color }) {
   return (
-    <div style={{ width: 36, height: 20, borderRadius: 10, background: on ? COLORS.accent : COLORS.border, position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
-      <div style={{ position: 'absolute', top: 3, left: on ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: on ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
+    <span style={{ display: 'inline-flex', alignItems: 'center', background: `${color}18`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 10, fontWeight: 700, padding: '2px 6px' }}>
+      {label}
+    </span>
+  );
+}
+
+// ── Toggle ───────────────────────────────────────────────────────────────────
+
+function Toggle({ on, onClick }) {
+  return (
+    <div onClick={onClick} style={{ width: 36, height: 20, borderRadius: 10, background: on ? COLORS.accent : 'rgba(0,0,0,0.14)', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+      <div style={{ position: 'absolute', top: 3, left: on ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.20)', transition: 'left 0.2s' }} />
     </div>
   );
 }
 
-// ── Chevron ─────────────────────────────────────────────────────────────────
+// ── Chevron ──────────────────────────────────────────────────────────────────
 
 function Chevron({ rotate = 0, color }) {
   return (
@@ -141,29 +172,50 @@ function Chevron({ rotate = 0, color }) {
   );
 }
 
-// ── Kaart-voorbeeld ─────────────────────────────────────────────────────────
+// ── Kaart ─────────────────────────────────────────────────────────────────────
 
-function CardExample() {
+function CardExample({ pinned }) {
   return (
-    <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.xl, padding: '14px 16px' }}>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-        <Badge label="Pakket" color={COLORS.blue} />
+    <div style={{
+      background: pinned ? COLORS.pinned : 'rgba(255,255,255,0.70)',
+      border: `1px solid ${pinned ? COLORS.pinnedBorder : 'rgba(255,255,255,0.50)'}`,
+      backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+      boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+      borderRadius: RADIUS.lg, padding: '12px 14px',
+    }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+        <CatBadge label="Pakket" />
+        {pinned && (
+          <span style={{ fontSize: 10, fontWeight: 700, color: COLORS.accent, background: `${COLORS.accent}12`, border: `1px solid ${COLORS.accent}30`, borderRadius: RADIUS.pill, padding: '2px 8px' }}>Pinned</span>
+        )}
       </div>
-      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Pakket voor nr. 28-hs</div>
+      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: COLORS.text }}>Pakket voor nr. 28-hs</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: COLORS.textDim }}>
         <span style={{ fontWeight: 600, color: COLORS.textMuted }}>Wendy 52-2</span>
-        <span>·</span><span>3 min geleden</span>
+        <span>·</span>
+        <span>3 min geleden</span>
         <Chevron rotate={0} />
       </div>
     </div>
   );
 }
 
-// ── Hoofd-pagina ─────────────────────────────────────────────────────────────
+// ── Glass presets ─────────────────────────────────────────────────────────────
+
+function GlassDemo({ name, preset }) {
+  return (
+    <div style={{ ...s.col, flex: 1, minWidth: 80 }}>
+      <div style={{ width: '100%', height: 52, borderRadius: RADIUS.md, ...preset, border: `1px solid rgba(0,0,0,0.06)` }} />
+      <div style={{ fontSize: 9, color: COLORS.textMuted, marginTop: 4, fontFamily: 'monospace' }}>{name}</div>
+    </div>
+  );
+}
+
+// ── Hoofd-pagina ──────────────────────────────────────────────────────────────
 
 export default function DesignPage() {
-  const [chipActive, setChipActive] = useState('package');
-  const [filterActive, setFilterActive] = useState('all');
+  const [segFilter, setSegFilter] = useState('all');
+  const [segCat, setSegCat] = useState('package');
   const [toggleOn, setToggleOn] = useState(true);
   const [chevronRotated, setChevronRotated] = useState(false);
 
@@ -186,7 +238,19 @@ export default function DesignPage() {
         </div>
       </Section>
 
-      {/* ── RADIUS ── */}
+      {/* ── GRADIËNT + GLASS ── */}
+      <Section title="Achtergrond & Glass">
+        <div style={s.meta}>BG_GRADIENT — pagina-achtergrond (radial-ellipse warm wit)</div>
+        <div style={{ height: 48, borderRadius: RADIUS.lg, background: BG_GRADIENT, border: '1px solid rgba(0,0,0,0.06)', marginBottom: 12 }} />
+        <div style={s.meta}>GLASS presets — backdrop-filter blur</div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          {Object.entries(GLASS).map(([name, preset]) => (
+            <GlassDemo key={name} name={name} preset={preset} />
+          ))}
+        </div>
+      </Section>
+
+      {/* ── BORDER RADIUS ── */}
       <Section title="Border radius">
         <div style={s.row}>
           {Object.entries(RADIUS).map(([name, value]) => (
@@ -196,7 +260,7 @@ export default function DesignPage() {
       </Section>
 
       {/* ── TYPOGRAFIE ── */}
-      <Section title="Typografie">
+      <Section title="Typografie · Inter">
         {Object.entries(FONT).map(([name, size]) => (
           <FontDemo key={name} name={name} size={size} />
         ))}
@@ -204,17 +268,16 @@ export default function DesignPage() {
 
       {/* ── KNOPPEN ── */}
       <Section title="Knoppen">
-        <div style={{ fontSize: 10, color: COLORS.textDim, marginBottom: 8 }}>Primary · Secondary · Ghost · Small-action</div>
+        <div style={s.meta}>Primary · Secondary</div>
         <div style={{ ...s.row, alignItems: 'center', marginBottom: 16 }}>
           <BtnPrimary>Plaatsen</BtnPrimary>
           <BtnSecondary>Annuleren</BtnSecondary>
-          <BtnGhost>Melden</BtnGhost>
         </div>
-        <div style={{ fontSize: 10, color: COLORS.textDim, marginBottom: 8 }}>Primary disabled</div>
+        <div style={s.meta}>Primary disabled</div>
         <div style={{ ...s.row, alignItems: 'center', marginBottom: 16 }}>
           <BtnPrimary disabled>Plaatsen</BtnPrimary>
         </div>
-        <div style={{ fontSize: 10, color: COLORS.textDim, marginBottom: 8 }}>Small-action (goedkeuren / afwijzen)</div>
+        <div style={s.meta}>Small-action</div>
         <div style={s.row}>
           <BtnSmall color={COLORS.accent}>Goedkeuren</BtnSmall>
           <BtnSmall color={COLORS.red}>Afwijzen</BtnSmall>
@@ -222,45 +285,52 @@ export default function DesignPage() {
         </div>
       </Section>
 
-      {/* ── CHIPS ── */}
-      <Section title="Chips">
-        <div style={{ fontSize: 10, color: COLORS.textDim, marginBottom: 8 }}>Filter chips (filterBar)</div>
-        <div style={{ ...s.row, marginBottom: 16 }}>
-          {['all', 'package', 'works', 'incident', 'event', 'general'].map(k => (
-            <FilterChip key={k} label={k === 'all' ? 'Alle' : CATEGORIES[k]?.label || k} active={filterActive === k} onClick={() => setFilterActive(k)} />
-          ))}
-        </div>
-        <div style={{ fontSize: 10, color: COLORS.textDim, marginBottom: 8 }}>Categorie-chips (nieuw bericht)</div>
-        <div style={s.row}>
-          {Object.entries(CATEGORIES).map(([key, { label, color }]) => (
-            <CatChip key={key} label={label} color={color} selected={chipActive === key} onClick={() => setChipActive(key)} />
-          ))}
-        </div>
+      {/* ── SEGMENTED CONTROL ── */}
+      <Section title="Segmented Control">
+        <div style={s.meta}>Feed-filter — met "Filter" label (small-caps Electric Pink)</div>
+        <SegmentedControl
+          label="Filter"
+          value={segFilter}
+          onChange={setSegFilter}
+          options={[{ key: 'all', label: 'Alle' }, ...CAT_OPTIONS]}
+        />
+        <div style={{ ...s.meta, marginTop: 12 }}>Categorie-selector nieuw bericht — zonder label</div>
+        <SegmentedControl
+          value={segCat}
+          onChange={setSegCat}
+          options={CAT_OPTIONS}
+        />
       </Section>
 
       {/* ── BADGES ── */}
       <Section title="Badges">
+        <div style={s.meta}>Categorie-badges — neutraal frosted glass</div>
         <div style={s.row}>
-          {Object.entries(CATEGORIES).map(([, { label, color }]) => (
-            <Badge key={label} label={label} color={color} />
-          ))}
-          <Badge label="Pinned" color={COLORS.accent} />
+          {CAT_OPTIONS.map(({ label }) => <CatBadge key={label} label={label} />)}
+          <CatBadge label="Gezocht" />
+        </div>
+        <div style={{ ...s.meta, marginTop: 4 }}>Speciale badges — gekleurd</div>
+        <div style={s.row}>
+          <AccentBadge label="Pinned" color={COLORS.accent} />
+          <AccentBadge label="Admin" color={COLORS.accent} />
+          <AccentBadge label="Mod" color={COLORS.purple} />
+          <AccentBadge label="LID" color={COLORS.blue} />
         </div>
       </Section>
 
       {/* ── INPUTS ── */}
       <Section title="Inputs">
-        <div style={{ fontSize: 10, color: COLORS.textDim, marginBottom: 8 }}>Text input — tik erin voor focus-state (gele rand)</div>
+        <div style={s.meta}>Text input</div>
         <input
           style={{ width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 10 }}
           placeholder="Bijv. Ladder te leen voor het weekend"
         />
-        <div style={{ fontSize: 10, color: COLORS.textDim, marginBottom: 8 }}>Textarea</div>
+        <div style={s.meta}>Textarea</div>
         <textarea
           style={{ width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', resize: 'none', height: 72, marginBottom: 10, fontFamily: 'inherit' }}
           placeholder="Extra details..."
         />
-        <div style={{ fontSize: 10, color: COLORS.textDim, marginBottom: 8 }}>Select</div>
+        <div style={s.meta}>Select</div>
         <div style={{ position: 'relative', marginBottom: 10 }}>
           <select style={{ width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer' }}>
             <option>Selecteer bezorger</option>
@@ -277,8 +347,8 @@ export default function DesignPage() {
       <Section title="Toggle">
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Toggle on={toggleOn} />
-            <span style={{ fontSize: 13, color: COLORS.textMuted }} onClick={() => setToggleOn(v => !v)}>
+            <Toggle on={toggleOn} onClick={() => setToggleOn(v => !v)} />
+            <span style={{ fontSize: 13, color: COLORS.textMuted, cursor: 'pointer' }} onClick={() => setToggleOn(v => !v)}>
               {toggleOn ? 'Aan' : 'Uit'} — klik om te wisselen
             </span>
           </div>
@@ -291,17 +361,19 @@ export default function DesignPage() {
         <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
           <div style={{ ...s.col, cursor: 'pointer' }} onClick={() => setChevronRotated(v => !v)}>
             <Chevron rotate={chevronRotated ? 180 : 0} />
-            <div style={s.label}>Klik om te draaien</div>
+            <div style={s.label}>klik om te draaien</div>
           </div>
           <div style={s.col}><Chevron rotate={90} color={COLORS.accent} /><div style={s.label}>90° · accent</div></div>
           <div style={s.col}><Chevron rotate={270} color={COLORS.textDim} /><div style={s.label}>270° · dim</div></div>
-          <div style={s.col}><Chevron rotate={0} color={COLORS.blue} /><div style={s.label}>0° · blue</div></div>
         </div>
       </Section>
 
       {/* ── KAART ── */}
       <Section title="Kaart">
-        <CardExample />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <CardExample />
+          <CardExample pinned />
+        </div>
       </Section>
 
       {/* ── INFOBOX ── */}
@@ -309,8 +381,8 @@ export default function DesignPage() {
         <div style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: COLORS.textMuted }}>
           <span style={{ fontWeight: 700, color: COLORS.text }}>Lokatie: </span>nr. 27–34
         </div>
-        <div style={{ background: `rgba(232,255,71,0.06)`, border: `1px solid rgba(232,255,71,0.2)`, borderRadius: RADIUS.md, padding: '12px 14px', fontSize: 13, color: COLORS.textMuted }}>
-          Accent infobox — bijv. voor de notificatie-banner
+        <div style={{ background: 'rgba(255,0,102,0.05)', border: '1px solid rgba(255,0,102,0.18)', borderRadius: RADIUS.md, padding: '12px 14px', fontSize: 13, color: COLORS.textMuted }}>
+          Accent infobox — notificatie-banner of hoofd-actie highlight
         </div>
       </Section>
     </div>
