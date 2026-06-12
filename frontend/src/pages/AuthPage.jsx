@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { t } from '../i18n/index.js';
+import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 
 const COLORS = {
   bg: '#0F0F0F', surface: '#1A1A1A', border: '#2A2A2A',
@@ -195,13 +196,11 @@ export default function AuthPage() {
               </div>
 
               <label style={s.label}>Huisnummer + etage</label>
-              <input
-                style={{ ...s.input, borderColor: houseError ? COLORS.red : undefined }}
-                type="text"
-                placeholder="Bijv. 52-hs of 52-1"
+              <HouseNumberPicker
                 value={house}
-                onChange={handleHouseChange}
-                required={needsProfile}
+                onChange={(v) => { setHouse(v); setHouseError(''); }}
+                streetId={1}
+                style={{ marginBottom: 14 }}
               />
               {houseError && <p style={{ ...s.error, marginTop: -8 }}>{houseError}</p>}
             </>
