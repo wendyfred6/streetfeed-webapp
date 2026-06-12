@@ -137,7 +137,7 @@ export default function AuthPage() {
   return (
     <div style={s.page}>
       <div style={s.card}>
-        <div style={s.logo}>Street<span style={{ color: COLORS.accent }}>feed</span></div>
+        <div style={s.logo}>Street<span style={{ color: COLORS.terracotta }}>feed</span></div>
         <p style={s.subtitle}>{t('login_subtitle')}</p>
 
         {(verifyError || errorParam === 'expired') && (
