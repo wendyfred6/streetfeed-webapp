@@ -5,8 +5,8 @@ export const COLORS = {
   accent:       '#4A5E3A', // legergroen — logo, actieve pills, navigatie
   terracotta:   '#C4704A', // primary button, links, RSVP-acties
   text:         '#1C2418', // primaire tekst
-  textMuted:    '#8A9A80', // meta-informatie, tijdstempels
-  textDim:      '#5A6A50', // card body tekst
+  textMuted:    '#706B65', // secundaire tekst, meta-informatie, tijdstempels
+  textDim:      '#4D4844', // dimme body tekst, placeholders
   pinned:       '#E4EDE0', // achtergrond vastgepinde kaarten
   pinnedBorder: '#B8C8B0', // rand vastgepinde kaarten
   red:          '#FF4444',

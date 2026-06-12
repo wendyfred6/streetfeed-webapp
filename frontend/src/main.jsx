@@ -15,7 +15,7 @@ function AppRouter() {
   if (user === undefined) {
     return (
       <div style={{ minHeight: '100vh', background: COLORS.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: COLORS.accent, fontSize: 24, fontWeight: 800 }}>Street<span style={{ color: COLORS.text }}>feed</span></div>
+        <div style={{ color: COLORS.text, fontSize: 24, fontWeight: 800 }}>Street<span style={{ color: COLORS.terracotta }}>feed</span></div>
       </div>
     );
   }

@@ -12,7 +12,7 @@ const s = {
   card: { width: '100%', maxWidth: 400, background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.xl, padding: '32px 28px' },
   logo: { fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', marginBottom: 8, color: COLORS.text },
   subtitle: { fontSize: 14, color: COLORS.textMuted, marginBottom: 28, lineHeight: 1.5 },
-  label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textMuted, display: 'block', marginBottom: 6 },
+  label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.accent, display: 'block', marginBottom: 6 },
   input: { width: '100%', background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '12px 14px', color: COLORS.text, fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 14 },
   btn: { width: '100%', background: COLORS.terracotta, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 4 },
   error: { color: COLORS.red, fontSize: 13, marginBottom: 12 },

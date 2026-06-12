@@ -35,7 +35,7 @@ const s = {
   accent: { color: COLORS.accent },
   streetBadge: { fontSize: 11, color: COLORS.textMuted, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.sm, padding: '3px 8px' },
   feed: { padding: '0 0 100px 0' },
-  sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textMuted, padding: '16px 20px 8px' },
+  sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.accent, padding: '16px 20px 8px' },
   card: (pinned) => ({ margin: '0 12px 8px', background: pinned ? COLORS.pinned : COLORS.surface, border: `1px solid ${pinned ? COLORS.pinnedBorder : COLORS.border}`, borderRadius: RADIUS.lg, padding: '12px 14px' }),
   cardTitle: { fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 },
   cardBody: { fontSize: 15, color: COLORS.textDim, lineHeight: 1.5 },
@@ -54,7 +54,7 @@ const s = {
   sheetTitle: { fontSize: 18, fontWeight: 800, marginBottom: 20, letterSpacing: '-0.3px' },
   input: { width: '100%', background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
   textarea: { width: '100%', background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 15, outline: 'none', boxSizing: 'border-box', resize: 'none', height: 80, marginBottom: 10 },
-  label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textMuted, display: 'block', marginBottom: 6 },
+  label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.accent, display: 'block', marginBottom: 6 },
   catGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 },
   catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}18` : COLORS.surface, border: `1px solid ${selected ? CATEGORIES[cat]?.color : COLORS.border}`, borderRadius: RADIUS.pill, padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
   submitBtn: { width: '100%', background: COLORS.terracotta, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '13px 24px', fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 8 },
@@ -1097,7 +1097,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
               </div>
             </div>
             {canPin && startDate && endDate && (
-              <div style={{ fontSize: 11, color: COLORS.accent, marginBottom: 8 }}>
+              <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 8 }}>
                 Wordt automatisch vastgepind t/m de einddatum.
               </div>
             )}
