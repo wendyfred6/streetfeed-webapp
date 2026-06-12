@@ -118,7 +118,7 @@ function RsvpBar({ post, onRsvp }) {
   return (
     <div style={{ marginTop: 12 }}>
       <div style={{ ...s.infoBox, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
-        <div style={{ fontSize: 12, color: COLORS.textMuted }}>{post.event_date} {post.event_time}</div>
+        <div style={{ fontSize: 12, color: COLORS.textMuted }}>{formatEventDate(post.event_date)} {post.event_time}</div>
         <div style={{ fontSize: 12, color: COLORS.textMuted }}>{post.event_location}</div>
       </div>
       <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>
@@ -310,7 +310,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
 
   // FRE-265: datum-badge logica
   const getDateLabel = () => {
-    if (isEvent && post.event_date) return post.event_date;
+    if (isEvent && post.event_date) return formatEventDate(post.event_date);
     if (isWorks) {
       const fmt = (d) => {
         const [y, m, day] = d.substring(0, 10).split('-');
@@ -504,7 +504,7 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{post.title}</div>
         <div style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 16 }}>{post.body}</div>
         <div style={{ ...s.infoBox, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-          <div style={{ fontSize: 13, color: COLORS.textMuted }}>{post.event_date} om {post.event_time}</div>
+          <div style={{ fontSize: 13, color: COLORS.textMuted }}>{formatEventDate(post.event_date)} om {post.event_time}</div>
           <div style={{ fontSize: 13, color: COLORS.textMuted }}>{post.event_location}</div>
           <div style={{ fontSize: 13, color: COLORS.textMuted }}><strong style={{ color: COLORS.text }}>{yes.length}</strong> komen · <strong style={{ color: COLORS.text }}>{maybe.length}</strong> misschien</div>
         </div>
@@ -558,13 +558,27 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
 
 const DUTCH_MONTHS = { 'januari':0,'februari':1,'maart':2,'april':3,'mei':4,'juni':5,'juli':6,'augustus':7,'september':8,'oktober':9,'november':10,'december':11 };
 
-function parseDutchDate(dateStr, timeStr = '00:00') {
-  const p = (dateStr || '').trim().split(' ');
+function parseEventDate(dateStr, timeStr = '00:00') {
+  if (!dateStr) return null;
+  const [h, m] = (timeStr || '00:00').split(':').map(Number);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [y, mo, d] = dateStr.split('-').map(Number);
+    return new Date(y, mo - 1, d, h || 0, m || 0);
+  }
+  const p = dateStr.trim().split(' ');
   if (p.length < 3) return null;
   const month = DUTCH_MONTHS[p[1]?.toLowerCase()];
   if (month === undefined) return null;
-  const [h, m] = (timeStr || '00:00').split(':').map(Number);
   return new Date(parseInt(p[2]), month, parseInt(p[0]), h || 0, m || 0);
+}
+
+function formatEventDate(dateStr) {
+  if (!dateStr) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [y, mo, d] = dateStr.split('-').map(Number);
+    return new Date(y, mo - 1, d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  return dateStr;
 }
 
 function toICSDate(d) {
@@ -573,7 +587,7 @@ function toICSDate(d) {
 }
 
 function downloadICS(post) {
-  const start = parseDutchDate(post.event_date, post.event_time);
+  const start = parseEventDate(post.event_date, post.event_time);
   if (!start) return;
   const end = new Date(start.getTime() + 2 * 3600 * 1000);
   const ics = [
@@ -594,7 +608,7 @@ function downloadICS(post) {
 }
 
 function googleCalendarUrl(post) {
-  const start = parseDutchDate(post.event_date, post.event_time);
+  const start = parseEventDate(post.event_date, post.event_time);
   if (!start) return '#';
   const end = new Date(start.getTime() + 2 * 3600 * 1000);
   const fmt = d => d.toISOString().replace(/[-:.]/g,'').slice(0,15);
@@ -713,10 +727,16 @@ function EditPostSheet({ post, onClose, onSave }) {
 
         {isEvent && (
           <>
-            <label style={s.label}>{t('event_date')}</label>
-            <input style={s.input} value={eventDate} onChange={e => setEventDate(e.target.value)} />
-            <label style={s.label}>{t('event_time')}</label>
-            <input style={s.input} value={eventTime} onChange={e => setEventTime(e.target.value)} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={s.label}>{t('event_date')}</label>
+                <input style={s.input} type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} />
+              </div>
+              <div>
+                <label style={s.label}>{t('event_time')}</label>
+                <input style={s.input} type="time" value={eventTime} onChange={e => setEventTime(e.target.value)} />
+              </div>
+            </div>
             <label style={s.label}>{t('event_location')}</label>
             <input style={s.input} value={eventLocation} onChange={e => setEventLocation(e.target.value)} />
           </>
