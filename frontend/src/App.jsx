@@ -367,22 +367,15 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
     <div style={s.card(post.pinned)}>
       {/* ── Klikbare header (altijd zichtbaar) ── */}
       <div className="tap-feedback" style={{ cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-          <CatBadge cat={post.category} />
-          {post.sub_type && post.category === 'general' && (
-            <span style={{ fontSize: 10, color: COLORS.textMuted, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 4, padding: '2px 6px' }}>{post.sub_type}</span>
-          )}
-          {isPackage && post.sub_type === 'search' && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: COLORS.textMuted, background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: RADIUS.pill, padding: '2px 8px' }}>Gezocht</span>
-          )}
-          {dateLabel && (
-            isEvent
-              ? <span style={s.endDateBadge}>{dateLabel}</span>
-              : <span style={{ fontSize: 12, color: COLORS.textMuted, fontWeight: 500 }}>{dateLabel}</span>
-          )}
-          <Chevron size={18} rotate={expanded ? 180 : 0} style={{ marginLeft: 'auto' }} />
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+          <div style={{ flex: 1, fontSize: 16, fontWeight: 700, lineHeight: 1.35 }}>
+            <span style={{ color: COLORS.textDim, fontWeight: 400 }}>
+              {[catLabel(post.category), isPackage && post.sub_type === 'search' ? 'Gezocht' : dateLabel || (post.sub_type && post.category === 'general' ? post.sub_type : null)].filter(Boolean).join(' · ')}{' · '}
+            </span>
+            {post.title}
+          </div>
+          <Chevron size={18} rotate={expanded ? 180 : 0} style={{ flexShrink: 0, marginTop: 3 }} />
         </div>
-        <div style={s.cardTitle}>{post.title}</div>
         {/* Altijd zichtbare onderste rij: voornaam · tijd · reacties */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: COLORS.textDim }}>
           <span style={{ fontWeight: 600, color: COLORS.textMuted }}>
@@ -1820,8 +1813,10 @@ export default function App() {
       <div style={s.tabBar}>
         {[
           { id: 'feed', label: t('feed'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg> },
-          { id: 'streets', label: t('streets'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> },
-          ...(canModerate ? [{ id: 'admin', label: t('admin'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> }] : []),
+          ...(canModerate ? [
+            { id: 'streets', label: t('streets'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> },
+            { id: 'admin', label: t('admin'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> },
+          ] : []),
           { id: 'settings', label: t('settings'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg> },
         ].map(tab_ => (
           <button key={tab_.id} style={s.tab(tab === tab_.id)} onClick={() => setTab(tab_.id)}>
