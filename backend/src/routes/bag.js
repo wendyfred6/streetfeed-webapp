@@ -3,7 +3,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { query } from '../db/index.js';
 
 const router = Router();
-const BAG_BASE = 'https://api.bag.kadaster.nl/lvbag/individuelebevragingen/v2';
+const PDOK_BASE = 'https://api.pdok.nl/bzk/locatieserver/search/v3_1/free';
 const addressCache = new Map();
 const CACHE_TTL = 24 * 3600 * 1000;
 
@@ -14,31 +14,33 @@ function normalizeSuffix(huisletter, toevoeging) {
   return raw.toLowerCase();
 }
 
-async function fetchBagAddresses(streetName, city) {
-  const key = process.env.BAG_API_KEY;
-  if (!key) return null;
-
+async function fetchAddresses(streetName, city) {
   const cacheKey = `${streetName}::${city}`;
   const cached = addressCache.get(cacheKey);
   if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data;
 
   let all = [];
-  let url = `${BAG_BASE}/adressen?` + new URLSearchParams({
-    openbareRuimteNaam: streetName,
-    woonplaatsNaam: city,
-    pageSize: '200',
-  });
+  let start = 0;
+  const rows = 100;
 
-  for (let page = 0; page < 10; page++) {
-    const res = await fetch(url, {
-      headers: { 'X-Api-Key': key, 'Accept': 'application/hal+json' },
+  while (true) {
+    const params = new URLSearchParams({
+      q: `${streetName} ${city}`,
+      fq: 'type:adres',
+      rows: String(rows),
+      start: String(start),
+      fl: 'huisnummer,huisletter,huisnummertoevoeging',
     });
-    if (!res.ok) throw new Error(`BAG API error ${res.status}`);
+
+    const res = await fetch(`${PDOK_BASE}?${params}`);
+    if (!res.ok) throw new Error(`PDOK error ${res.status}`);
     const data = await res.json();
-    all = all.concat(data._embedded?.adressen || []);
-    const next = data._links?.next?.href;
-    if (!next) break;
-    url = next;
+    const docs = data.response?.docs || [];
+    all = all.concat(docs);
+
+    if (all.length >= data.response?.numFound || docs.length < rows) break;
+    start += rows;
+    if (start > 500) break; // safety limit
   }
 
   const addresses = all
@@ -69,9 +71,7 @@ router.get('/addresses/:streetId', requireAuth, async (req, res) => {
   if (!rows.length) return res.status(404).json({ error: 'Street not found' });
 
   const { name, city } = rows[0];
-  const addresses = await fetchBagAddresses(name, city);
-
-  if (!addresses) return res.status(503).json({ error: 'BAG_API_KEY not configured' });
+  const addresses = await fetchAddresses(name, city);
   res.json(addresses);
 });
 
