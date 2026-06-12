@@ -373,7 +373,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
       {expanded && (
         <div style={{ marginTop: 10, borderTop: `1px solid ${COLORS.border}`, paddingTop: 10 }}>
           {post.body && <div style={s.cardBody}>{post.body}</div>}
-          {(isWorks || isIncident) && post.location && (
+          {isWorks && post.location && (
             <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginTop: 8 }}>
               <span style={{ fontWeight: 700, color: COLORS.text }}>Lokatie: </span>{post.location}
             </div>
@@ -650,6 +650,7 @@ function EditPostSheet({ post, onClose, onSave }) {
   const [startTime, setStartTime] = useState(post.start_time || '');
   const [endTime, setEndTime] = useState(post.end_time || '');
   const [allowJoin, setAllowJoin] = useState(!!post.allow_join);
+  const [location, setLocation] = useState(post.location || '');
 
   const isEvent = post.category === 'event';
   const isPackage = post.category === 'package';
@@ -657,6 +658,7 @@ function EditPostSheet({ post, onClose, onSave }) {
   const hasDateRange = ['works', 'blockage', 'container'].includes(post.category);
   const hasTimeRange = post.category === 'works';
   const hasLink = ['works', 'blockage', 'container', 'waste'].includes(post.category);
+  const hasLocation = ['works', 'incident', 'blockage', 'container'].includes(post.category);
 
   return (
     <div style={s.overlay}>
@@ -672,6 +674,13 @@ function EditPostSheet({ post, onClose, onSave }) {
 
         <label style={s.label}>{t('message')}</label>
         <textarea style={s.textarea} value={body} onChange={e => setBody(e.target.value)} />
+
+        {hasLocation && (
+          <>
+            <label style={s.label}>Locatie</label>
+            <input style={s.input} placeholder="bijv. nr. 27 of nr. 27–34" value={location} onChange={e => setLocation(e.target.value)} />
+          </>
+        )}
 
         {hasDateRange && (
           <>
@@ -746,6 +755,7 @@ function EditPostSheet({ post, onClose, onSave }) {
             eventLocation: eventLocation || undefined,
             carrier: carrier || undefined,
             link: link || undefined,
+            location: hasLocation ? (location || undefined) : undefined,
             allowJoin: isGeneral ? undefined : allowJoin,
           });
           onClose();
