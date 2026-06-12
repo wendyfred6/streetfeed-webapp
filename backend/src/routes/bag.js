@@ -29,18 +29,24 @@ async function fetchAddresses(streetName, city) {
       fq: 'type:adres',
       rows: String(rows),
       start: String(start),
-      fl: 'huisnummer,huisletter,huisnummertoevoeging',
     });
 
-    const res = await fetch(`${PDOK_BASE}?${params}`);
-    if (!res.ok) throw new Error(`PDOK error ${res.status}`);
+    const url = `${PDOK_BASE}?${params}`;
+    console.log('[bag] PDOK fetch:', url);
+    const res = await fetch(url);
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('[bag] PDOK error', res.status, text);
+      throw new Error(`PDOK error ${res.status}`);
+    }
     const data = await res.json();
     const docs = data.response?.docs || [];
+    console.log(`[bag] PDOK page start=${start} got ${docs.length}/${data.response?.numFound}`);
     all = all.concat(docs);
 
-    if (all.length >= data.response?.numFound || docs.length < rows) break;
+    if (all.length >= (data.response?.numFound || 0) || docs.length < rows) break;
     start += rows;
-    if (start > 500) break; // safety limit
+    if (start > 500) break;
   }
 
   const addresses = all
@@ -71,8 +77,13 @@ router.get('/addresses/:streetId', requireAuth, async (req, res) => {
   if (!rows.length) return res.status(404).json({ error: 'Street not found' });
 
   const { name, city } = rows[0];
-  const addresses = await fetchAddresses(name, city);
-  res.json(addresses);
+  try {
+    const addresses = await fetchAddresses(name, city);
+    res.json(addresses);
+  } catch (err) {
+    console.error('[bag] fetchAddresses failed:', err.message);
+    res.status(502).json({ error: err.message });
+  }
 });
 
 export default router;
