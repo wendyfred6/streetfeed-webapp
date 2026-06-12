@@ -286,6 +286,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
   const [threadComments, setThreadComments] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [sendingComment, setSendingComment] = useState(false);
+  const [claimSent, setClaimSent] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -304,6 +305,22 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
       const comment = await api.post(`/streets/1/posts/${post.id}/comments`, { body: commentText.trim() });
       setThreadComments(prev => [...(prev || []), { ...comment, author_name: user?.name, author_house: user?.house_number, author_role: user?.role }]);
       setCommentText('');
+    } catch {}
+    setSendingComment(false);
+  };
+
+  const handleClaim = async (e) => {
+    e.stopPropagation();
+    if (claimSent || sendingComment) return;
+    const claimText = user?.house_number
+      ? `Ik heb het pakket — kom maar ophalen bij nr. ${user.house_number}!`
+      : 'Ik heb het pakket — kom maar langs!';
+    setSendingComment(true);
+    try {
+      const comment = await api.post(`/streets/1/posts/${post.id}/comments`, { body: claimText });
+      setThreadComments(prev => [...(prev || []), { ...comment, author_name: user?.name, author_house: user?.house_number }]);
+      setClaimSent(true);
+      if (!expanded) setExpanded(true);
     } catch {}
     setSendingComment(false);
   };
@@ -343,6 +360,9 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
           <CatBadge cat={post.category} />
           {post.sub_type && post.category === 'general' && (
             <span style={{ fontSize: 10, color: COLORS.textMuted, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 4, padding: '2px 6px' }}>{post.sub_type}</span>
+          )}
+          {isPackage && post.sub_type === 'search' && (
+            <span style={{ fontSize: 10, fontWeight: 700, color: COLORS.orange, background: `${COLORS.orange}18`, border: `1px solid ${COLORS.orange}44`, borderRadius: 4, padding: '2px 6px' }}>Gezocht</span>
           )}
           {dateLabel && (
             isEvent
@@ -394,6 +414,19 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
           {post.carrier && (
             <div style={{ marginTop: 8 }}>
               <CarrierBadge carrier={post.carrier} />
+            </div>
+          )}
+          {isPackage && post.sub_type === 'search' && !claimSent && (
+            <button onClick={handleClaim}
+              style={{ marginTop: 10, width: '100%', background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 14px', color: COLORS.accent, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+              <PkgIcon color={COLORS.accent} />
+              Ik heb het — kom maar ophalen!
+            </button>
+          )}
+          {isPackage && post.sub_type === 'search' && claimSent && (
+            <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.accent, marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <PkgIcon color={COLORS.accent} />
+              <span>Reactie gepost — de eigenaar kan nu langskomen.</span>
             </div>
           )}
           {post.link && (
@@ -910,6 +943,8 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   const [customCarrier, setCustomCarrier] = useState('');
   const [attachmentName, setAttachmentName] = useState(null);
   const [allowJoin, setAllowJoin] = useState(false);
+  const [pkgSubType, setPkgSubType] = useState('have');
+  const [deliveryDate, setDeliveryDate] = useState('');
 
   const isEvent = cat === 'event';
   const isIncident = cat === 'incident';
@@ -918,15 +953,19 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
   const isGeneral = cat === 'general';
   const isPinnable = CATEGORIES[cat]?.pinnable;
 
-  const packageTitle = (forHouse.trim() || pickupHouse.trim())
-    ? `Pakket voor nr. ${forHouse.trim() || '—'} · Ophalen bij nr. ${pickupHouse.trim() || '—'}`
+  const packageTitle = isPackage
+    ? pkgSubType === 'search'
+      ? `Pakket gezocht — nr. ${user?.house_number || '?'}`
+      : (forHouse.trim() || pickupHouse.trim())
+        ? `Pakket voor nr. ${forHouse.trim() || '—'} · Ophalen bij nr. ${pickupHouse.trim() || '—'}`
+        : ''
     : '';
 
   const finalWorkLabel = workType === 'anders' ? customWorkType.trim() : (WORK_TYPES.find(w => w.key === workType)?.label || '');
   const finalIncidentLabel = incidentType === 'anders' ? customIncidentType.trim() : (INCIDENT_TYPES.find(i => i.key === incidentType)?.label || '');
 
   const canSubmit = isPackage
-    ? (forHouse.trim() && pickupHouse.trim())
+    ? pkgSubType === 'have' ? (forHouse.trim() && pickupHouse.trim()) : true
     : isIncident
       ? (incidentType && (incidentType !== 'anders' || customIncidentType.trim()) && location.trim())
       : isWorks
@@ -955,34 +994,76 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
         {/* ── PAKKET ── */}
         {isPackage && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                <label style={s.label}>Pakket voor nr.</label>
-                <input style={s.input} placeholder="Bijv. 27-hs" value={forHouse} onChange={e => setForHouse(e.target.value)} />
-              </div>
-              <div>
-                <label style={s.label}>Ophalen bij nr.</label>
-                <input style={s.input} placeholder="Bijv. 28-hs" value={pickupHouse} onChange={e => setPickupHouse(e.target.value)} />
-              </div>
+            {/* Sub-type keuze */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+              {[['have', 'Ik heb een pakket'], ['search', 'Ik zoek mijn pakket']].map(([key, label]) => (
+                <div key={key}
+                  style={{ ...s.filterChip(pkgSubType === key), flex: 1, textAlign: 'center', justifyContent: 'center' }}
+                  onClick={() => { setPkgSubType(key); setForHouse(''); setDeliveryDate(''); setCarrier(''); }}>
+                  {label}
+                </div>
+              ))}
             </div>
-            {packageTitle && (
-              <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginBottom: 10 }}>
-                <strong style={{ color: COLORS.text }}>{packageTitle}</strong>
-              </div>
+
+            {pkgSubType === 'have' ? (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <label style={s.label}>Pakket voor nr.</label>
+                    <input style={s.input} placeholder="Bijv. 27-hs" value={forHouse} onChange={e => setForHouse(e.target.value)} />
+                  </div>
+                  <div>
+                    <label style={s.label}>Ophalen bij nr.</label>
+                    <input style={s.input} placeholder="Bijv. 28-hs" value={pickupHouse} onChange={e => setPickupHouse(e.target.value)} />
+                  </div>
+                </div>
+                {packageTitle && (
+                  <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginBottom: 10 }}>
+                    <strong style={{ color: COLORS.text }}>{packageTitle}</strong>
+                  </div>
+                )}
+                <label style={s.label}>Bezorger</label>
+                <div style={{ position: 'relative', marginBottom: 10 }}>
+                  <select value={carrier} onChange={e => setCarrier(e.target.value)}
+                    style={{ ...s.input, cursor: 'pointer', marginBottom: 0, paddingRight: 36, appearance: 'none', WebkitAppearance: 'none' }}>
+                    <option value="">Selecteer bezorger</option>
+                    {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <Chevron size={14} color={COLORS.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
+                </div>
+                {carrier === 'Anders' && (
+                  <input style={s.input} placeholder="Naam bezorger" value={customCarrier} onChange={e => setCustomCarrier(e.target.value)} />
+                )}
+              </>
+            ) : (
+              <>
+                <div style={{ ...s.infoBox, fontSize: 13, color: COLORS.textMuted, marginBottom: 12, lineHeight: 1.5 }}>
+                  De hele straat krijgt een notificatie. Wie jouw pakket heeft kan reageren via de comments.
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <label style={s.label}>Bezorgd op</label>
+                    <input style={s.input} type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <label style={s.label}>Bezorger</label>
+                    <div style={{ position: 'relative' }}>
+                      <select value={carrier} onChange={e => setCarrier(e.target.value)}
+                        style={{ ...s.input, marginBottom: 0, cursor: 'pointer', paddingRight: 36, appearance: 'none', WebkitAppearance: 'none' }}>
+                        <option value="">Onbekend</option>
+                        {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <Chevron size={14} color={COLORS.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
+                    </div>
+                  </div>
+                </div>
+                {carrier === 'Anders' && (
+                  <input style={s.input} placeholder="Naam bezorger" value={customCarrier} onChange={e => setCustomCarrier(e.target.value)} />
+                )}
+              </>
             )}
-            <label style={s.label}>Bezorger</label>
-            <div style={{ position: 'relative', marginBottom: 10 }}>
-              <select value={carrier} onChange={e => setCarrier(e.target.value)}
-                style={{ ...s.input, cursor: 'pointer', marginBottom: 0, paddingRight: 36, appearance: 'none', WebkitAppearance: 'none' }}>
-                <option value="">Selecteer bezorger</option>
-                {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <Chevron size={14} color={COLORS.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
-            </div>
-            {carrier === 'Anders' && (
-              <input style={s.input} placeholder="Naam bezorger" value={customCarrier} onChange={e => setCustomCarrier(e.target.value)} />
-            )}
-            <label style={s.label}>Extra details</label>
+
+            <label style={s.label}>Extra details{pkgSubType === 'search' ? ' (optioneel)' : ''}</label>
             <textarea style={{ ...s.textarea, height: 60 }} placeholder="Bijv. staat bij de voordeur..."
               value={body} onChange={e => setBody(e.target.value)} />
           </>
@@ -1123,7 +1204,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
               category: cat, title: finalTitle, body,
               startDate: startDate || undefined,
               endDate: endDate || undefined,
-              eventDate: eventDate || undefined,
+              eventDate: (isPackage && pkgSubType === 'search' ? deliveryDate : eventDate) || undefined,
               eventTime: eventTime || undefined,
               eventLocation: isEvent ? location : undefined,
               location: (isWorks || isIncident) ? location : undefined,
@@ -1133,7 +1214,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
               carrier: finalCarrier || undefined,
               allowJoin,
               attachmentName: attachmentName || undefined,
-              subType: isGeneral ? subType : undefined,
+              subType: isGeneral ? subType : (isPackage ? pkgSubType : undefined),
               pinned: canPin && isPinnable && !!(isWorks ? (startDate && endDate) : false),
             });
             onClose();
