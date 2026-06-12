@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
 import { isDemoMode } from './api/client.js';
 import App from './App.jsx';
 import AuthPage from './pages/AuthPage.jsx';
+import DesignPage from './pages/DesignPage.jsx';
 
 function AppRouter() {
   const { user } = useAuth();
@@ -24,6 +25,11 @@ function AppRouter() {
   return (
     <Routes>
       <Route path="/auth" element={user && !isPending ? <Navigate to="/" replace /> : <AuthPage />} />
+      <Route path="/design" element={
+        !user ? <Navigate to="/auth" replace /> :
+        user?.is_super_admin ? <DesignPage /> :
+        <Navigate to="/" replace />
+      } />
       <Route path="/*" element={
         !user ? <Navigate to="/auth" replace /> :
         isPending ? (
