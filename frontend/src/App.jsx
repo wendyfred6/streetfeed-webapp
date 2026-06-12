@@ -357,7 +357,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
   return (
     <div style={s.card(post.pinned)}>
       {/* ── Klikbare header (altijd zichtbaar) ── */}
-      <div style={{ cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
+      <div className="tap-feedback" style={{ cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
           <CatBadge cat={post.category} />
           {post.sub_type && post.category === 'general' && (
@@ -526,14 +526,33 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
   );
 }
 
+// ─── SHEET OVERLAY WRAPPER ────────────────────────────────────────────────────
+
+function SheetOverlay({ closing, onOverlayClick, children }) {
+  return (
+    <div
+      style={{ ...s.overlay, animation: `${closing ? 'overlayOut 0.27s ease-in' : 'overlayIn 0.22s ease-out'} forwards` }}
+      onClick={onOverlayClick}
+    >
+      <div
+        style={{ ...s.sheet, animation: `${closing ? 'sheetOut 0.27s ease-in' : 'sheetIn 0.32s cubic-bezier(0.22,1,0.36,1)'} forwards` }}
+        onClick={e => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 // ─── EVENT DETAIL SHEET ────────────────────────────────────────────────────────
 
 function EventDetailSheet({ post, onClose, onRsvp }) {
+  const [closing, setClosing] = useState(false);
+  const close = () => { setClosing(true); setTimeout(onClose, 270); };
   const yes = post.rsvp?.yes || [];
   const maybe = post.rsvp?.maybe || [];
   return (
-    <div style={s.overlay} onClick={onClose}>
-      <div style={s.sheet} onClick={e => e.stopPropagation()}>
+    <SheetOverlay closing={closing} onOverlayClick={close}>
         <div style={s.sheetHandle} />
         <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
           <span style={s.badge(COLORS.purple)}>Evenement</span>
@@ -586,9 +605,8 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
             {t('calendar_google')}
           </a>
         </div>
-        <button style={s.cancelBtn} onClick={onClose}>{t('close')}</button>
-      </div>
-    </div>
+        <button style={s.cancelBtn} onClick={close}>{t('close')}</button>
+    </SheetOverlay>
   );
 }
 
@@ -656,10 +674,11 @@ function googleCalendarUrl(post) {
 // ─── JOIN DETAIL SHEET ─────────────────────────────────────────────────────────
 
 function JoinDetailSheet({ post, onClose, onJoin }) {
+  const [closing, setClosing] = useState(false);
+  const close = () => { setClosing(true); setTimeout(onClose, 270); };
   const joiners = post.joiners || [];
   return (
-    <div style={s.overlay} onClick={onClose}>
-      <div style={s.sheet} onClick={e => e.stopPropagation()}>
+    <SheetOverlay closing={closing} onOverlayClick={close}>
         <div style={s.sheetHandle} />
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{post.title}</div>
         <div style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 16 }}>
@@ -679,9 +698,8 @@ function JoinDetailSheet({ post, onClose, onJoin }) {
             </div>
           </>
         )}
-        <button style={s.cancelBtn} onClick={onClose}>{t('close')}</button>
-      </div>
-    </div>
+        <button style={s.cancelBtn} onClick={close}>{t('close')}</button>
+    </SheetOverlay>
   );
 }
 
@@ -703,6 +721,8 @@ function EditPostSheet({ post, onClose, onSave }) {
   const [endTime, setEndTime] = useState(post.end_time || '');
   const [allowJoin, setAllowJoin] = useState(!!post.allow_join);
   const [location, setLocation] = useState(post.location || '');
+  const [closing, setClosing] = useState(false);
+  const close = () => { setClosing(true); setTimeout(onClose, 270); };
 
   const isEvent = post.category === 'event';
   const isPackage = post.category === 'package';
@@ -713,8 +733,7 @@ function EditPostSheet({ post, onClose, onSave }) {
   const hasLocation = ['works', 'incident', 'blockage', 'container'].includes(post.category);
 
   return (
-    <div style={s.overlay}>
-      <div style={s.sheet}>
+    <SheetOverlay closing={closing}>
         <div style={s.sheetHandle} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <div style={s.sheetTitle}>Bericht bewerken</div>
@@ -816,13 +835,12 @@ function EditPostSheet({ post, onClose, onSave }) {
             location: hasLocation ? (location || undefined) : undefined,
             allowJoin: isGeneral ? undefined : allowJoin,
           });
-          onClose();
+          close();
         }}>
           Opslaan
         </button>
-        <button style={s.cancelBtn} onClick={onClose}>{t('cancel')}</button>
-      </div>
-    </div>
+        <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
+    </SheetOverlay>
   );
 }
 
@@ -976,9 +994,11 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
           ? (title.trim() && eventDate && eventTime && location.trim())
           : (subType && title.trim());
 
+  const [closing, setClosing] = useState(false);
+  const close = () => { setClosing(true); setTimeout(onClose, 270); };
+
   return (
-    <div style={s.overlay}>
-      <div style={s.sheet}>
+    <SheetOverlay closing={closing}>
         <div style={s.sheetHandle} />
         <div style={s.sheetTitle}>{t('new_post')}</div>
 
@@ -1219,11 +1239,10 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
               subType: isGeneral ? subType : (isPackage ? pkgSubType : undefined),
               pinned: canPin && isPinnable && !!(isWorks ? (startDate && endDate) : false),
             });
-            onClose();
+            close();
           }}>{t('publish')}</button>
-        <button style={s.cancelBtn} onClick={onClose}>{t('cancel')}</button>
-      </div>
-    </div>
+        <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
+    </SheetOverlay>
   );
 }
 
@@ -1473,6 +1492,7 @@ function SegmentedControl({ options, value, onChange }) {
 
   return (
     <div style={{ padding: '10px 16px 6px' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.accent, marginBottom: 6 }}>Filter</div>
       <div ref={containerRef} style={{
         position: 'relative',
         display: 'flex',
@@ -1508,7 +1528,7 @@ function SegmentedControl({ options, value, onChange }) {
               padding: '7px 12px',
               fontSize: 13,
               fontWeight: value === key ? 700 : 500,
-              color: value === key ? COLORS.text : COLORS.textMuted,
+              color: value === key ? COLORS.accent : COLORS.textMuted,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
               userSelect: 'none',

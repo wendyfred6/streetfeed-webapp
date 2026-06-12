@@ -34,3 +34,13 @@ input, select, textarea {
 /* Scrollbars verbergen */
 * { scrollbar-width: none; }
 *::-webkit-scrollbar { display: none; }
+
+/* Card header tap feedback */
+.tap-feedback { transition: transform 0.1s, opacity 0.1s; }
+.tap-feedback:active { transform: scale(0.98); opacity: 0.85; }
+
+/* Sheet open/close keyframes */
+@keyframes overlayIn  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes overlayOut { from { opacity: 1 } to { opacity: 0 } }
+@keyframes sheetIn    { from { transform: translateY(100%) } to { transform: translateY(0) } }
+@keyframes sheetOut   { from { transform: translateY(0) } to { transform: translateY(100%) } }
