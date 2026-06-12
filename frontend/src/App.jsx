@@ -404,7 +404,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               {post.attachment_name}
             </div>
           )}
-          {post.allow_join && (
+          {post.allow_join && post.category !== 'general' && (
             <button onClick={e => { e.stopPropagation(); onOpenJoin(post); }}
               style={{ marginTop: 10, width: '100%', background: post.my_join ? `${COLORS.green}22` : COLORS.bg, border: `1px solid ${post.my_join ? COLORS.green : COLORS.border}`, borderRadius: 8, padding: '8px 12px', color: post.my_join ? COLORS.green : COLORS.textMuted, fontSize: 13, fontWeight: post.my_join ? 700 : 400, cursor: 'pointer', textAlign: 'left' }}>
               {post.my_join ? t('join_card') : t('join_cta')} <span style={{ color: COLORS.textDim, fontWeight: 400 }}>· {(post.joiners||[]).length} {t('join_participants').toLowerCase()}</span>
@@ -734,15 +734,6 @@ function EditPostSheet({ post, onClose, onSave }) {
           </>
         )}
 
-        {isGeneral && post.allow_join && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
-            <span style={{ fontSize: 13, color: COLORS.textMuted }}>Ik doe mee-knop tonen</span>
-            <button onClick={() => setAllowJoin(v => !v)}
-              style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: allowJoin ? COLORS.accent : COLORS.border, position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-              <span style={{ position: 'absolute', top: 3, left: allowJoin ? 22 : 3, width: 18, height: 18, borderRadius: 9, background: allowJoin ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
-            </button>
-          </div>
-        )}
 
         <button style={s.submitBtn} disabled={!title.trim()} onClick={() => {
           onSave(post.id, {
@@ -756,7 +747,7 @@ function EditPostSheet({ post, onClose, onSave }) {
             eventLocation: eventLocation || undefined,
             carrier: carrier || undefined,
             link: link || undefined,
-            allowJoin: isGeneral ? allowJoin : undefined,
+            allowJoin: isGeneral ? undefined : allowJoin,
           });
           onClose();
         }}>
