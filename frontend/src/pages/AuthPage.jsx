@@ -5,11 +5,7 @@ import { useAuth } from '../hooks/useAuth.jsx';
 import { t } from '../i18n/index.js';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 
-const COLORS = {
-  bg: '#0F0F0F', surface: '#1A1A1A', border: '#2A2A2A',
-  accent: '#E8FF47', text: '#F0F0F0', textMuted: '#888888',
-  red: '#FF4444',
-};
+import { COLORS } from '../design/tokens.js';
 
 const s = {
   page: { minHeight: '100vh', background: COLORS.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 },

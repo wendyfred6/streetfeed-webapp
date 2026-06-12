@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const COLORS = {
-  bg: '#0F0F0F', border: '#2A2A2A', text: '#F0F0F0',
-  textMuted: '#888888',
-};
+import { COLORS } from '../design/tokens.js';
 
 const inputStyle = {
   background: COLORS.bg,

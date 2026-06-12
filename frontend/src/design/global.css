@@ -1,0 +1,35 @@
+/* Focus states — kunnen niet via inline React styles */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: #E8FF47 !important;
+  box-shadow: 0 0 0 2px rgba(232, 255, 71, 0.12);
+}
+
+/* Knoppen: subtiele hover/active feedback */
+button {
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+
+button:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+button:active:not(:disabled) {
+  opacity: 0.6;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Inputs en selects: font-family overerven */
+input, select, textarea {
+  font-family: inherit;
+}
+
+/* Scrollbars verbergen */
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }

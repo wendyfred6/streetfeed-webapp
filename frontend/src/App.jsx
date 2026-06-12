@@ -4,12 +4,7 @@ import { usePush, notifSupported } from './hooks/usePush.jsx';
 import { api } from './api/client.js';
 import { t, getLang, setLang } from './i18n/index.js';
 
-const COLORS = {
-  bg: '#0F0F0F', surface: '#1A1A1A', border: '#2A2A2A',
-  accent: '#E8FF47', text: '#F0F0F0', textMuted: '#888888', textDim: '#555555',
-  pinned: '#1A1A1A', pinnedBorder: '#3A3A3A',
-  red: '#FF4444', blue: '#4488FF', orange: '#FF8833', purple: '#AA77FF', green: '#44BB44',
-};
+import { COLORS, RADIUS } from './design/tokens.js';
 
 const CATEGORIES = {
   package:  { label: 'Pakket',     labelEn: 'Package',     color: '#4488FF' },
@@ -38,40 +33,40 @@ const s = {
   header: { background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}`, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 },
   logo: { fontSize: 18, fontWeight: 800, letterSpacing: '-0.5px' },
   accent: { color: COLORS.accent },
-  streetBadge: { fontSize: 11, color: COLORS.textMuted, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 6, padding: '3px 8px' },
+  streetBadge: { fontSize: 11, color: COLORS.textMuted, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.sm, padding: '3px 8px' },
   feed: { padding: '0 0 100px 0' },
   sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textDim, padding: '16px 20px 8px' },
-  card: (pinned) => ({ margin: '0 12px 8px', background: pinned ? COLORS.pinned : COLORS.surface, border: `1px solid ${pinned ? COLORS.pinnedBorder : COLORS.border}`, borderRadius: 12, padding: '14px 16px' }),
+  card: (pinned) => ({ margin: '0 12px 8px', background: pinned ? COLORS.pinned : COLORS.surface, border: `1px solid ${pinned ? COLORS.pinnedBorder : COLORS.border}`, borderRadius: RADIUS.xl, padding: '14px 16px' }),
   cardTitle: { fontSize: 14, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 },
   cardBody: { fontSize: 13, color: COLORS.textMuted, lineHeight: 1.5 },
   cardMeta: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
   cardMetaLeft: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: COLORS.textDim },
-  pinnedBadge: { background: COLORS.accent, color: '#000', fontSize: 9, fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 4 },
-  endDateBadge: { fontSize: 10, color: COLORS.accent, background: 'rgba(232,255,71,0.1)', border: '1px solid rgba(232,255,71,0.2)', borderRadius: 4, padding: '2px 6px' },
+  pinnedBadge: { background: COLORS.accent, color: '#000', fontSize: 9, fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', padding: '2px 6px', borderRadius: RADIUS.xs },
+  endDateBadge: { fontSize: 10, color: COLORS.accent, background: 'rgba(232,255,71,0.1)', border: '1px solid rgba(232,255,71,0.2)', borderRadius: RADIUS.xs, padding: '2px 6px' },
   filterBar: { display: 'flex', gap: 6, padding: '12px 20px', overflowX: 'auto', scrollbarWidth: 'none' },
-  filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : COLORS.surface, color: active ? '#000' : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : COLORS.border}`, borderRadius: 20, padding: '5px 12px', fontSize: 12, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
-  fab: { position: 'fixed', bottom: 72, left: 12, right: 12, maxWidth: 456, margin: '0 auto', borderRadius: 10, background: COLORS.accent, color: '#000', fontSize: 14, fontWeight: 800, border: 'none', cursor: 'pointer', padding: '14px 0', textAlign: 'center', boxShadow: '0 4px 20px rgba(232,255,71,0.35)', zIndex: 40 },
+  filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : COLORS.surface, color: active ? '#000' : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : COLORS.border}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 12, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
+  fab: { position: 'fixed', bottom: 72, left: 12, right: 12, maxWidth: 456, margin: '0 auto', borderRadius: RADIUS.lg, background: COLORS.accent, color: '#000', fontSize: 14, fontWeight: 800, border: 'none', cursor: 'pointer', padding: '14px 0', textAlign: 'center', boxShadow: '0 4px 20px rgba(232,255,71,0.35)', zIndex: 40 },
   tabBar: { position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, background: COLORS.surface, borderTop: `1px solid ${COLORS.border}`, display: 'flex', zIndex: 50 },
   tab: (active) => ({ flex: 1, padding: '12px 0 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: active ? 700 : 400, color: active ? COLORS.accent : COLORS.textDim }),
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' },
-  sheet: { background: COLORS.surface, borderRadius: '16px 16px 0 0', width: '100%', maxWidth: 480, padding: '20px 20px 40px', maxHeight: '90vh', overflowY: 'auto' },
+  sheet: { background: COLORS.surface, borderRadius: `${RADIUS['2xl']}px ${RADIUS['2xl']}px 0 0`, width: '100%', maxWidth: 480, padding: '20px 20px 40px', maxHeight: '90vh', overflowY: 'auto' },
   sheetHandle: { width: 36, height: 4, background: COLORS.border, borderRadius: 2, margin: '0 auto 20px' },
   sheetTitle: { fontSize: 18, fontWeight: 800, marginBottom: 20, letterSpacing: '-0.3px' },
-  input: { width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 12px', color: COLORS.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
-  textarea: { width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 12px', color: COLORS.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', resize: 'none', height: 80, marginBottom: 10 },
+  input: { width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
+  textarea: { width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', resize: 'none', height: 80, marginBottom: 10 },
   label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textMuted, display: 'block', marginBottom: 6 },
   catGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 },
-  catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}22` : COLORS.bg, border: `1px solid ${selected ? CATEGORIES[cat]?.color : COLORS.border}`, borderRadius: 8, padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
-  submitBtn: { width: '100%', background: COLORS.accent, color: '#000', border: 'none', borderRadius: 10, padding: '14px', fontSize: 14, fontWeight: 800, cursor: 'pointer', marginTop: 8 },
-  cancelBtn: { width: '100%', background: 'none', color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: '12px', fontSize: 14, cursor: 'pointer', marginTop: 8 },
-  badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}22`, color, border: `1px solid ${color}44`, borderRadius: 4, fontSize: 10, fontWeight: 700, padding: '2px 6px' }),
-  infoBox: { background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '10px 12px', marginBottom: 10 },
-  adminCard: { background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: '14px 16px', marginBottom: 8 },
+  catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}22` : COLORS.bg, border: `1px solid ${selected ? CATEGORIES[cat]?.color : COLORS.border}`, borderRadius: RADIUS.pill, padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
+  submitBtn: { width: '100%', background: COLORS.accent, color: '#000', border: 'none', borderRadius: RADIUS.lg, padding: '14px', fontSize: 14, fontWeight: 800, cursor: 'pointer', marginTop: 8 },
+  cancelBtn: { width: '100%', background: 'none', color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.lg, padding: '12px', fontSize: 14, cursor: 'pointer', marginTop: 8 },
+  badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}22`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 10, fontWeight: 700, padding: '2px 6px' }),
+  infoBox: { background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', marginBottom: 10 },
+  adminCard: { background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.xl, padding: '14px 16px', marginBottom: 8 },
   statRow: { display: 'flex', gap: 8, marginBottom: 12 },
-  statCard: { flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: '12px', textAlign: 'center' },
+  statCard: { flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.lg, padding: '12px', textAlign: 'center' },
   statNum: { fontSize: 24, fontWeight: 800, color: COLORS.accent },
   statLabel: { fontSize: 10, color: COLORS.textMuted, marginTop: 2 },
-  streetCard: { margin: '0 12px 8px', background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: '16px', cursor: 'pointer' },
+  streetCard: { margin: '0 12px 8px', background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.xl, padding: '16px', cursor: 'pointer' },
   emptyState: { textAlign: 'center', padding: '40px 20px', color: COLORS.textDim, fontSize: 13 },
   actionBtn: { background: 'none', border: 'none', color: COLORS.textDim, fontSize: 12, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 },
   reportBtn: { background: 'none', border: 'none', color: COLORS.textDim, fontSize: 11, cursor: 'pointer', padding: 0 },
@@ -86,6 +81,17 @@ function timeAgo(ts) {
   if (diff < 86400) return t('time_hour_ago', { n: Math.floor(diff / 3600) });
   if (diff < 172800) return t('time_yesterday');
   return new Date(ts).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' });
+}
+
+function Chevron({ size = 14, color, rotate = 0, style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color || COLORS.textMuted} strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round"
+      style={{ flexShrink: 0, pointerEvents: 'none', transition: 'transform 0.2s', transform: `rotate(${rotate}deg)`, ...style }}>
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  );
 }
 
 function CatBadge({ cat }) {
@@ -343,10 +349,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               ? <span style={s.endDateBadge}>{dateLabel}</span>
               : <span style={{ fontSize: 12, color: COLORS.textMuted, fontWeight: 500 }}>{dateLabel}</span>
           )}
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
-            style={{ flexShrink: 0, marginLeft: 'auto', transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-            <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke={COLORS.textMuted} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <Chevron size={18} rotate={expanded ? 180 : 0} style={{ marginLeft: 'auto' }} />
         </div>
         <div style={s.cardTitle}>{post.title}</div>
         {/* Altijd zichtbare onderste rij: voornaam · tijd · reacties */}
@@ -437,7 +440,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(e); } }}
                   placeholder="Reageer…"
                   rows={1}
-                  style={{ flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '8px 10px', color: COLORS.text, fontSize: 13, outline: 'none', resize: 'none', fontFamily: 'inherit' }}
+                  style={{ ...s.textarea, flex: 1, padding: '8px 10px', fontSize: 13, height: 'auto', marginBottom: 0 }}
                 />
                 <button onClick={submitComment} disabled={!commentText.trim() || sendingComment}
                   style={{ background: commentText.trim() ? COLORS.accent : COLORS.border, color: commentText.trim() ? '#000' : COLORS.textDim, border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: commentText.trim() ? 'pointer' : 'default', flexShrink: 0, transition: 'background 0.15s' }}>
@@ -862,7 +865,7 @@ function LocationPicker({ value, onChange }) {
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
         {[['single', 'Enkel nummer'], ['range', 'Reeks']].map(([m, lbl]) => (
-          <div key={m} style={{ ...s.filterChip(mode === m), borderRadius: 8, fontSize: 12 }}
+          <div key={m} style={{ ...s.filterChip(mode === m), fontSize: 12 }}
             onClick={() => { setMode(m); update(m, single, from, to); }}>
             {lbl}
           </div>
@@ -974,10 +977,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
                 <option value="">Selecteer bezorger</option>
                 {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
+              <Chevron size={14} color={COLORS.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
             </div>
             {carrier === 'Anders' && (
               <input style={s.input} placeholder="Naam bezorger" value={customCarrier} onChange={e => setCustomCarrier(e.target.value)} />
@@ -994,7 +994,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
             <label style={s.label}>Type obstructie</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
               {WORK_TYPES.map(({ key, label: lbl }) => (
-                <div key={key} style={{ ...s.filterChip(workType === key), borderRadius: 8, fontSize: 12 }}
+                <div key={key} style={{ ...s.filterChip(workType === key), fontSize: 12 }}
                   onClick={() => { setWorkType(key); setCustomWorkType(''); }}>
                   {lbl}
                 </div>
@@ -1031,7 +1031,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
             <label style={s.label}>Type melding</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
               {INCIDENT_TYPES.map(({ key, label: lbl }) => (
-                <div key={key} style={{ ...s.filterChip(incidentType === key), borderRadius: 8, fontSize: 12 }}
+                <div key={key} style={{ ...s.filterChip(incidentType === key), fontSize: 12 }}
                   onClick={() => { setIncidentType(key); setCustomIncidentType(''); setLicenseplate(''); }}>
                   {lbl}
                 </div>
@@ -1090,10 +1090,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user }) {
                 <option value="">Selecteer type...</option>
                 {GENERAL_TYPES.map(tp => <option key={tp} value={tp}>{tp}</option>)}
               </select>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
+              <Chevron size={14} color={COLORS.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
             </div>
             <label style={s.label}>{t('title')}</label>
             <input style={s.input} placeholder={t('title_placeholder')} value={title} onChange={e => setTitle(e.target.value)} />
@@ -1182,7 +1179,7 @@ function AdminView({ streetId, user, memberCount, households }) {
     <div style={s.feed}>
       <div style={{ display: 'flex', gap: 6, padding: '12px 12px 0' }}>
         {[[['queue', t('requests')], ['members', t('residents_tab')], ['manage', t('manage_tab')]]].flat().map(([id, label]) => (
-          <div key={id} style={{ ...s.filterChip(subTab === id), borderRadius: 8 }} onClick={() => setSubTab(id)}>{label}</div>
+          <div key={id} style={s.filterChip(subTab === id)} onClick={() => setSubTab(id)}>{label}</div>
         ))}
       </div>
 
