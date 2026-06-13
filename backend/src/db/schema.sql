@@ -147,5 +147,19 @@ ALTER TABLE streets ADD COLUMN IF NOT EXISTS city TEXT NOT NULL DEFAULT 'Amsterd
 -- Migratie: opgehaald/gevonden status voor bezorgingberichten
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS resolved BOOLEAN NOT NULL DEFAULT false;
 
+-- Migratie: hernoem categorieën naar nieuwe namen
+UPDATE posts SET category = 'bezorging'   WHERE category = 'package';
+UPDATE posts SET category = 'straatzaken' WHERE category IN ('works', 'blockage', 'container', 'waste');
+UPDATE posts SET category = 'melding'     WHERE category = 'incident';
+UPDATE posts SET category = 'evenement'   WHERE category = 'event';
+UPDATE posts SET category = 'melding'     WHERE category = 'general';
+
+-- Migratie: hernoem notification_prefs categorieën
+UPDATE notification_prefs SET category = 'bezorging'   WHERE category = 'package';
+UPDATE notification_prefs SET category = 'straatzaken' WHERE category IN ('works', 'blockage', 'container', 'waste');
+UPDATE notification_prefs SET category = 'melding'     WHERE category = 'incident';
+UPDATE notification_prefs SET category = 'evenement'   WHERE category = 'event';
+DELETE FROM notification_prefs                         WHERE category = 'general';
+
 -- Seed: super admin
 UPDATE users SET is_super_admin = true WHERE email = 'wendy@fred6.nl';

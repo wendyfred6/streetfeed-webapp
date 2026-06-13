@@ -96,7 +96,7 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
   const post = withPhotoUrl(rows[0]);
 
   // Push notification (fire and forget)
-  const isSearchPackage = category === 'package' && subType === 'search';
+  const isSearchPackage = (category === 'bezorging' || category === 'package') && (subType === 'gezocht' || subType === 'search');
   sendPushToStreet(streetId, category, isSearchPackage ? {
     title,
     body: carrier ? `Bezorgd door ${carrier} — weet jij waar het is?` : 'Weet jij waar dit pakket is?',

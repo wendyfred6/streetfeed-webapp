@@ -8,17 +8,22 @@ import { COLORS, RADIUS, ALPHA, GLASS } from './design/tokens.js';
 import HouseNumberPicker from './components/HouseNumberPicker.jsx';
 
 const CATEGORIES = {
-  package:  { label: 'Pakket',     labelEn: 'Package',     color: '#4488FF' },
-  works:    { label: 'Obstructie', labelEn: 'Obstruction', color: '#FF8833', pinnable: true },
-  incident: { label: 'Melding',    labelEn: 'Report',      color: '#FF4444' },
-  event:    { label: 'Evenement',  labelEn: 'Event',       color: '#AA77FF', pinnable: true, isEvent: true },
-  general:  { label: 'Algemeen',   labelEn: 'General',     color: '#888888' },
+  bezorging:   { label: 'Bezorging',   labelEn: 'Package',   color: '#4488FF' },
+  straatzaken: { label: 'Straatzaken', labelEn: 'Street',    color: '#FF8833', pinnable: true },
+  melding:     { label: 'Melding',     labelEn: 'Report',    color: '#FF4444' },
+  evenement:   { label: 'Evenement',   labelEn: 'Event',     color: '#AA77FF', pinnable: true, isEvent: true },
 };
 
+// Backward compat labels for posts stored before the category rename
 const LEGACY_LABELS = {
-  blockage:  { nl: 'Blokkade',  en: 'Blockage'  },
-  container: { nl: 'Container', en: 'Container' },
-  waste:     { nl: 'Grofvuil',  en: 'Bulk waste' },
+  package:   { nl: 'Bezorging',   en: 'Package'     },
+  works:     { nl: 'Straatzaken', en: 'Street'      },
+  incident:  { nl: 'Melding',     en: 'Report'      },
+  event:     { nl: 'Evenement',   en: 'Event'       },
+  general:   { nl: 'Algemeen',    en: 'General'     },
+  blockage:  { nl: 'Blokkade',    en: 'Blockage'    },
+  container: { nl: 'Container',   en: 'Container'   },
+  waste:     { nl: 'Grofvuil',    en: 'Bulk waste'  },
 };
 
 function catLabel(key) {
@@ -26,8 +31,6 @@ function catLabel(key) {
   if (!c) return LEGACY_LABELS[key]?.[getLang() === 'en' ? 'en' : 'nl'] || key;
   return getLang() === 'en' ? c.labelEn : c.label;
 }
-
-const FILTER_LABELS = { works: 'Werk', event: 'Event', general: 'Overig' };
 
 // ─── STYLES ────────────────────────────────────────────────────────────────────
 
@@ -317,10 +320,10 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
   };
 
   const commentCount = parseInt(post.comments) || 0;
-  const isEvent = post.category === 'event';
-  const isIncident = post.category === 'incident';
-  const isPackage = post.category === 'package';
-  const isWorks = post.category === 'works' || ['blockage', 'container'].includes(post.category); // backward compat
+  const isEvent    = post.category === 'evenement' || post.category === 'event';
+  const isIncident = post.category === 'melding'   || post.category === 'incident';
+  const isPackage  = post.category === 'bezorging' || post.category === 'package';
+  const isWorks    = post.category === 'straatzaken' || post.category === 'works' || ['blockage', 'container'].includes(post.category);
 
   // FRE-265: datum-badge logica
   const getDateLabel = () => {
@@ -362,7 +365,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
                 } else if (isWorks) {
                   second = WORKS_LBL[post.sub_type] || dateLabel;
                 } else {
-                  second = dateLabel || (post.sub_type && post.category === 'general' ? post.sub_type : null);
+                  second = dateLabel || null;
                 }
                 return [catLabel(post.category), second].filter(Boolean).join(' · ') + ' · ';
               })()}
@@ -447,7 +450,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               {post.attachment_name}
             </div>
           )}
-          {post.allow_join && post.category !== 'general' && (
+          {post.allow_join && (
             <button onClick={e => { e.stopPropagation(); onOpenJoin(post); }}
               style={{ marginTop: 10, width: '100%', background: post.my_join ? `${COLORS.green}22` : COLORS.bg, border: `1px solid ${post.my_join ? COLORS.green : COLORS.border}`, borderRadius: 8, padding: '8px 12px', color: post.my_join ? COLORS.green : COLORS.textMuted, fontSize: 13, fontWeight: post.my_join ? 700 : 400, cursor: 'pointer', textAlign: 'left' }}>
               {post.my_join ? t('join_card') : t('join_cta')} <span style={{ color: COLORS.textDim, fontWeight: 400 }}>· {(post.joiners||[]).length} {t('join_participants').toLowerCase()}</span>
@@ -528,11 +531,10 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
 // ─── CATEGORY PICKER SHEET ────────────────────────────────────────────────────
 
 const CAT_META = {
-  package:  { emoji: '📦', sub: 'Bezorging & vermist pakket' },
-  works:    { emoji: '🚧', sub: 'Werkzaamheden in de straat' },
-  incident: { emoji: '⚠️', sub: 'Iets melden aan de buurt' },
-  event:    { emoji: '🎉', sub: 'Buurtactiviteit organiseren' },
-  general:  { emoji: '💬', sub: 'Vraag, tip, te leen, …' },
+  bezorging:   { emoji: '📦', sub: 'Bezorging & vermist pakket' },
+  straatzaken: { emoji: '🚧', sub: 'Werkzaamheden in de straat' },
+  melding:     { emoji: '⚠️', sub: 'Iets melden aan de buurt' },
+  evenement:   { emoji: '🎉', sub: 'Buurtactiviteit organiseren' },
 };
 
 function CategoryPickerSheet({ onClose, onSelect }) {
@@ -594,7 +596,7 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
     <SheetOverlay closing={closing} onOverlayClick={close}>
         <div style={s.sheetHandle} />
         <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-          <CatBadge cat="event" />
+          <CatBadge cat={post.category} />
           {post.pinned && <span style={s.pinnedBadge}>Pinned</span>}
         </div>
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{post.title}</div>
@@ -763,13 +765,12 @@ function EditPostSheet({ post, onClose, onSave }) {
   const [closing, setClosing] = useState(false);
   const close = () => { setClosing(true); setTimeout(onClose, 270); };
 
-  const isEvent = post.category === 'event';
-  const isPackage = post.category === 'package';
-  const isGeneral = post.category === 'general';
-  const hasDateRange = ['works', 'blockage', 'container'].includes(post.category);
-  const hasTimeRange = post.category === 'works';
-  const hasLink = ['works', 'blockage', 'container', 'waste'].includes(post.category);
-  const hasLocation = ['works', 'incident', 'blockage', 'container'].includes(post.category);
+  const isEvent      = post.category === 'evenement' || post.category === 'event';
+  const isPackage    = post.category === 'bezorging' || post.category === 'package';
+  const hasDateRange = ['straatzaken', 'works', 'blockage', 'container'].includes(post.category);
+  const hasTimeRange = post.category === 'straatzaken' || post.category === 'works';
+  const hasLink      = ['straatzaken', 'works', 'blockage', 'container', 'waste'].includes(post.category);
+  const hasLocation  = ['straatzaken', 'melding', 'works', 'incident', 'blockage', 'container'].includes(post.category);
 
   return (
     <SheetOverlay closing={closing}>
@@ -960,23 +961,23 @@ function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, doc
 // ─── TYPE PICKER + NEW POST SHEET ─────────────────────────────────────────────
 
 const TYPE_META = {
-  package: [
-    { key: 'bezorgd', label: 'Bezorgd',           sub: 'Pakket ontvangen voor een buur', emoji: '📦' },
-    { key: 'gezocht', label: 'Gezocht',            sub: 'Op zoek naar een vermist pakket', emoji: '🔍' },
+  bezorging: [
+    { key: 'bezorgd', label: 'Bezorgd', sub: 'Pakket ontvangen voor een buur',   emoji: '📦' },
+    { key: 'gezocht', label: 'Gezocht', sub: 'Op zoek naar een vermist pakket',  emoji: '🔍' },
   ],
-  works: [
-    { key: 'steiger',            label: 'Steiger',            emoji: '🏗️' },
+  straatzaken: [
     { key: 'werkzaamheden',      label: 'Werkzaamheden',      emoji: '🔧' },
     { key: 'parkeerreservering', label: 'Parkeerreservering', emoji: '🚗' },
+    { key: 'steiger',            label: 'Steiger',            emoji: '🏗️' },
     { key: 'container',          label: 'Container',          emoji: '🗑️' },
     { key: 'kraan',              label: 'Kraan',              emoji: '🏗️' },
     { key: 'verhuizing',         label: 'Verhuizing',         emoji: '📦' },
   ],
-  incident: [
-    { key: 'lost_found', label: 'Lost & Found',        sub: 'Gevonden of verloren voorwerp', emoji: '🔑' },
-    { key: 'overlast',   label: 'Overlast',            sub: 'Geluids-, parkeer- of andere overlast', emoji: '🔊' },
-    { key: 'schade',     label: 'Schade',              sub: 'Schade aan eigendom of voertuig', emoji: '⚠️' },
-    { key: 'verdacht',   label: 'Verdachte situatie',  sub: 'Onraad of verdacht gedrag', emoji: '👁️' },
+  melding: [
+    { key: 'lost_found', label: 'Lost & Found',       sub: 'Gevonden of verloren voorwerp',          emoji: '🔑' },
+    { key: 'overlast',   label: 'Overlast',           sub: 'Geluids-, parkeer- of andere overlast',  emoji: '🔊' },
+    { key: 'schade',     label: 'Schade',             sub: 'Schade aan eigendom of voertuig',        emoji: '⚠️' },
+    { key: 'verdacht',   label: 'Verdachte situatie', sub: 'Onraad of verdacht gedrag',              emoji: '👁️' },
   ],
 };
 
@@ -1048,7 +1049,7 @@ function LocationPicker({ value, onChange }) {
   );
 }
 
-function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 'general', initialType = null }) {
+function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 'bezorging', initialType = null }) {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [forHouse, setForHouse] = useState('');
@@ -1066,11 +1067,10 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
   const [closing, setClosing] = useState(false);
   const close = () => { setClosing(true); setTimeout(onClose, 270); };
 
-  const isBezorging   = initialCat === 'package';
-  const isStraatzaken = initialCat === 'works';
-  const isMelding     = initialCat === 'incident';
-  const isEvenement   = initialCat === 'event';
-  const isAlgemeen    = initialCat === 'general';
+  const isBezorging   = initialCat === 'bezorging'   || initialCat === 'package';
+  const isStraatzaken = initialCat === 'straatzaken'  || initialCat === 'works';
+  const isMelding     = initialCat === 'melding'      || initialCat === 'incident';
+  const isEvenement   = initialCat === 'evenement'    || initialCat === 'event';
   const isBezorgd     = initialType === 'bezorgd';
   const isGezocht     = initialType === 'gezocht';
 
@@ -1098,7 +1098,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
       location: (isStraatzaken || isMelding) ? (location.trim() || undefined) : undefined,
       startDate: isStraatzaken ? (startDate || undefined) : undefined,
       endDate: (isStraatzaken || isEvenement) ? (endDate || undefined) : undefined,
-      link: (isStraatzaken || isAlgemeen) ? (link.trim() || undefined) : undefined,
+      link: isStraatzaken ? (link.trim() || undefined) : undefined,
       carrier: (isBezorging && isBezorgd) ? (carrier || undefined) : undefined,
       eventDate: isEvenement ? (eventDate || undefined) : undefined,
       eventTime: isEvenement ? (eventTime || undefined) : undefined,
@@ -1512,7 +1512,7 @@ export default function App() {
   const [showPost, setShowPost] = useState(false);
   const [showCatPicker, setShowCatPicker] = useState(false);
   const [showTypePicker, setShowTypePicker] = useState(false);
-  const [pendingCat, setPendingCat] = useState('general');
+  const [pendingCat, setPendingCat] = useState('bezorging');
   const [pendingType, setPendingType] = useState(null);
   const [eventDetail, setEventDetail] = useState(null);
   const [joinDetail, setJoinDetail] = useState(null);

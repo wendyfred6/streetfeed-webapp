@@ -15,13 +15,18 @@ const BUCKET = process.env.R2_BUCKET || 'streetfeed';
 
 // Lifecycle retention days by category
 const RETENTION = {
-  package: 7,
-  incident: 30,
-  waste: 14,
-  blockage: null,  // end_date + 3
-  container: null,
-  event: 30,
-  general: 30,
+  bezorging:   7,
+  straatzaken: null,  // end_date + 3
+  melding:     30,
+  evenement:   30,
+  // backward compat for posts stored before category rename
+  package:     7,
+  incident:    30,
+  waste:       14,
+  blockage:    null,
+  container:   null,
+  event:       30,
+  general:     30,
 };
 
 export async function createPresignedUpload(category, contentType) {
