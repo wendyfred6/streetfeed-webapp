@@ -7,7 +7,7 @@ export default {
   all: 'Alles',
   pinned: 'Belangrijk',
   recent: 'Berichten',
-  new_post: 'Nieuw bericht',
+  new_post: 'Bericht plaatsen',
   category: 'Categorie',
   title: 'Titel',
   message: 'Bericht',

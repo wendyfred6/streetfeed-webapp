@@ -795,7 +795,7 @@ function EditPostSheet({ post, onClose, onSave }) {
 
         {hasDateRange && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div>
                 <label style={s.label}>Startdatum (optioneel)</label>
                 <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
@@ -807,7 +807,7 @@ function EditPostSheet({ post, onClose, onSave }) {
                 </div>
               )}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div>
                 <label style={s.label}>Einddatum (optioneel)</label>
                 <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
@@ -824,7 +824,7 @@ function EditPostSheet({ post, onClose, onSave }) {
 
         {isEvent && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div>
                 <label style={s.label}>{t('event_date')}</label>
                 <input style={s.input} type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} />
@@ -873,7 +873,7 @@ function EditPostSheet({ post, onClose, onSave }) {
             carrier: carrier || undefined,
             link: link || undefined,
             location: hasLocation ? (location || undefined) : undefined,
-            allowJoin: isGeneral ? undefined : allowJoin,
+            allowJoin: allowJoin,
           });
           close();
         }}>
@@ -1191,7 +1191,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
         <>
           <label style={s.label}>Naam *</label>
           <input style={s.input} placeholder="Bijv. Straatborrel Kerst" value={title} onChange={e => setTitle(e.target.value)} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 14 }}>
             <div>
               <label style={s.label}>Datum *</label>
               <input type="date" style={{ ...s.input, marginBottom: 0 }} value={eventDate} onChange={e => setEventDate(e.target.value)} />
@@ -1201,7 +1201,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
               <input type="time" style={{ ...s.input, marginBottom: 0 }} value={eventTime} onChange={e => setEventTime(e.target.value)} />
             </div>
           </div>
-          <label style={{ ...s.label, marginTop: 10 }}>Beschrijving (optioneel)</label>
+          <label style={s.label}>Beschrijving (optioneel)</label>
           <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
           <label style={s.label}>Locatie (optioneel)</label>
           <input style={s.input} placeholder="Bijv. bij nr. 34 of Vondelpark" value={eventLocation} onChange={e => setEventLocation(e.target.value)} />
@@ -1216,17 +1216,6 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
         </>
       )}
 
-      {/* Algemeen */}
-      {isAlgemeen && (
-        <>
-          <label style={s.label}>Titel *</label>
-          <input style={s.input} placeholder="Waar gaat het over?" value={title} onChange={e => setTitle(e.target.value)} />
-          <label style={s.label}>Beschrijving (optioneel)</label>
-          <textarea style={s.textarea} value={body} onChange={e => setBody(e.target.value)} />
-          <label style={s.label}>Link (optioneel)</label>
-          <input type="url" style={s.input} placeholder="https://…" value={link} onChange={e => setLink(e.target.value)} />
-        </>
-      )}
 
       <button style={{ ...s.submitBtn, opacity: canSubmit ? 1 : 0.5 }} disabled={!canSubmit} onClick={handleSubmit}>
         {t('publish')}
@@ -1701,7 +1690,7 @@ export default function App() {
       {tab === 'settings' && <SettingsView user={user} onLogout={logout} />}
 
       {tab === 'feed' && (
-        <button style={s.fab} onClick={() => setShowCatPicker(true)}>Nieuw bericht</button>
+        <button style={s.fab} onClick={() => setShowCatPicker(true)}>Bericht plaatsen</button>
       )}
 
       <div style={s.tabBar}>

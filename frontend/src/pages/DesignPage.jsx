@@ -2,11 +2,10 @@ import { useState, useRef, useLayoutEffect } from 'react';
 import { COLORS, RADIUS, FONT, GLASS, BG_GRADIENT } from '../design/tokens.js';
 
 const CAT_OPTIONS = [
-  { key: 'package',  label: 'Pakket' },
-  { key: 'works',    label: 'Obstructie' },
-  { key: 'incident', label: 'Melding' },
-  { key: 'event',    label: 'Evenement' },
-  { key: 'general',  label: 'Algemeen' },
+  { key: 'bezorging',   label: 'Bezorging' },
+  { key: 'straatzaken', label: 'Straatzaken' },
+  { key: 'melding',     label: 'Melding' },
+  { key: 'evenement',   label: 'Evenement' },
 ];
 
 const s = {

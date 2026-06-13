@@ -146,5 +146,5 @@ export const DEMO_MEMBERS = [
 ];
 
 export const DEMO_PUSH_SETTINGS = Object.fromEntries(
-  ['package', 'blockage', 'waste', 'container', 'event', 'incident', 'general'].map(k => [k, true])
+  ['bezorging', 'straatzaken', 'melding', 'evenement'].map(k => [k, true])
 );
