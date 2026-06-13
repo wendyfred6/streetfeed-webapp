@@ -1474,12 +1474,13 @@ function SegmentedControl({ options, value, onChange, label, style }) {
         }} />
         {options.map(({ key, label: optLabel }) => (
           <div key={key} onClick={() => onChange(key)} style={{
-            flex: 1, padding: '11px 4px',
-            textAlign: 'center', fontSize: 13,
+            flex: 1, padding: '11px 2px',
+            textAlign: 'center', fontSize: 12,
             fontWeight: value === key ? 700 : 400,
             color: value === key ? COLORS.accent : COLORS.textMuted,
             cursor: 'pointer', userSelect: 'none',
             transition: 'color 0.2s',
+            lineHeight: 1.3,
           }}>
             {optLabel}
           </div>
