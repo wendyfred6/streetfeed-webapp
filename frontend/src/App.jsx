@@ -1457,34 +1457,57 @@ function PendingView() {
 
 // ─── SEGMENTED CONTROL ────────────────────────────────────────────────────────
 
+const TAB_W = 96; // px — elke tab gelijke breedte; past 5 tabs op 480px max-width
+
 function SegmentedControl({ options, value, onChange, label, style }) {
   const selectedIndex = Math.max(0, options.findIndex(o => o.key === value));
-  const pct = 100 / (options.length || 1);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const targetLeft = selectedIndex * TAB_W - (el.offsetWidth - TAB_W) / 2;
+    el.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+  }, [value]);
 
   return (
     <div style={style}>
       {label && <div style={s.sectionLabel}>{label}</div>}
-      <div style={{ position: 'relative', display: 'flex', borderBottom: '2px solid rgba(0,0,0,0.06)' }}>
-        <div style={{
-          position: 'absolute', bottom: -2,
-          left: `${selectedIndex * pct}%`, width: `${pct}%`,
-          height: 2, background: COLORS.accent, borderRadius: 1,
-          transition: 'left 0.3s cubic-bezier(0.4,0,0.2,1)',
-          pointerEvents: 'none',
-        }} />
-        {options.map(({ key, label: optLabel }) => (
-          <div key={key} onClick={() => onChange(key)} style={{
-            flex: 1, padding: '11px 2px',
-            textAlign: 'center', fontSize: 12,
-            fontWeight: value === key ? 700 : 400,
-            color: value === key ? COLORS.accent : COLORS.textMuted,
-            cursor: 'pointer', userSelect: 'none',
-            transition: 'color 0.2s',
-            lineHeight: 1.3,
-          }}>
-            {optLabel}
-          </div>
-        ))}
+      <div style={{ position: 'relative' }}>
+        {/* basislijn — altijd volledige viewport-breedte */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: 'rgba(0,0,0,0.06)', pointerEvents: 'none' }} />
+        {/* scrollbare tab-rij */}
+        <div ref={scrollRef} style={{
+          display: 'flex',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          position: 'relative',
+        }}>
+          {/* underline-indicator — scrollt mee met de tabs */}
+          <div style={{
+            position: 'absolute', bottom: 0,
+            left: selectedIndex * TAB_W,
+            width: TAB_W,
+            height: 2, background: COLORS.accent, borderRadius: 1,
+            transition: 'left 0.3s cubic-bezier(0.4,0,0.2,1)',
+            pointerEvents: 'none',
+          }} />
+          {options.map(({ key, label: optLabel }) => (
+            <div key={key} onClick={() => onChange(key)} style={{
+              flex: `0 0 ${TAB_W}px`,
+              padding: '11px 4px',
+              textAlign: 'center', fontSize: 13,
+              fontWeight: value === key ? 700 : 400,
+              color: value === key ? COLORS.accent : COLORS.textMuted,
+              cursor: 'pointer', userSelect: 'none',
+              whiteSpace: 'nowrap',
+              transition: 'color 0.2s',
+            }}>
+              {optLabel}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
