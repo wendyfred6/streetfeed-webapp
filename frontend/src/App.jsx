@@ -1473,36 +1473,38 @@ function SegmentedControl({ options, value, onChange, label, style }) {
   return (
     <div style={style}>
       {label && <div style={s.sectionLabel}>{label}</div>}
-      <div style={{ position: 'relative' }}>
-        {/* basislijn — altijd volledige viewport-breedte */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: 'rgba(0,0,0,0.06)', pointerEvents: 'none' }} />
-        {/* scrollbare tab-rij */}
+      <div style={{ padding: '0 12px 10px' }}>
         <div ref={scrollRef} style={{
           display: 'flex',
           overflowX: 'auto',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           position: 'relative',
+          background: 'rgba(0,0,0,0.07)',
+          borderRadius: RADIUS.pill,
+          padding: 3,
         }}>
-          {/* underline-indicator — scrollt mee met de tabs */}
+          {/* witte pill schuift achter het actieve item (Apple-stijl) */}
           <div style={{
-            position: 'absolute', bottom: 0,
-            left: selectedIndex * TAB_W,
-            width: TAB_W,
-            height: 2, background: COLORS.accent, borderRadius: 1,
-            transition: 'left 0.3s cubic-bezier(0.4,0,0.2,1)',
+            position: 'absolute',
+            top: 3, left: 3 + selectedIndex * TAB_W,
+            height: 'calc(100% - 6px)', width: TAB_W,
+            background: '#FFFFFF',
+            borderRadius: RADIUS.pill,
+            transition: 'left 0.35s cubic-bezier(0.34,1.56,0.64,1)',
             pointerEvents: 'none',
           }} />
           {options.map(({ key, label: optLabel }) => (
             <div key={key} onClick={() => onChange(key)} style={{
               flex: `0 0 ${TAB_W}px`,
-              padding: '11px 4px',
+              padding: '8px 4px',
               textAlign: 'center', fontSize: 13,
-              fontWeight: value === key ? 700 : 400,
-              color: value === key ? COLORS.accent : COLORS.textMuted,
+              fontWeight: value === key ? 700 : 500,
+              color: value === key ? COLORS.text : COLORS.textMuted,
               cursor: 'pointer', userSelect: 'none',
               whiteSpace: 'nowrap',
               transition: 'color 0.2s',
+              position: 'relative', zIndex: 1,
             }}>
               {optLabel}
             </div>
