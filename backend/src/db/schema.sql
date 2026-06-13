@@ -144,5 +144,8 @@ ALTER TABLE posts ADD COLUMN IF NOT EXISTS sub_type TEXT;
 -- Migratie: stad per straat (voor BAG API lookup)
 ALTER TABLE streets ADD COLUMN IF NOT EXISTS city TEXT NOT NULL DEFAULT 'Amsterdam';
 
+-- Migratie: opgehaald/gevonden status voor bezorgingberichten
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS resolved BOOLEAN NOT NULL DEFAULT false;
+
 -- Seed: super admin
 UPDATE users SET is_super_admin = true WHERE email = 'wendy@fred6.nl';

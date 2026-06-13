@@ -122,31 +122,24 @@ function RoleBadge({ role }) {
 
 // ─── RSVP BAR ──────────────────────────────────────────────────────────────────
 
-function RsvpBar({ post, onRsvp }) {
-  const yes = post.rsvp?.yes || [];
-  const maybe = post.rsvp?.maybe || [];
-  const my = post.my_rsvp;
-  const btn = (type, label, color) => (
-    <button onClick={e => { e.stopPropagation(); onRsvp(post.id, type); }}
-      style={{ flex: 1, background: my === type ? `${color}22` : COLORS.bg, border: `1px solid ${my === type ? color : COLORS.border}`, borderRadius: 8, padding: '7px 4px', color: my === type ? color : COLORS.textMuted, fontSize: 12, fontWeight: my === type ? 700 : 400, cursor: 'pointer' }}>
-      {label}
-    </button>
-  );
+function AttendanceToggle({ post, onRsvp }) {
+  const attending = post.my_rsvp === 'yes';
+  const count = (post.rsvp?.yes || []).length;
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ ...s.infoBox, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
-        <div style={{ fontSize: 12, color: COLORS.textMuted }}>{formatEventDate(post.event_date)} {post.event_time}</div>
-        <div style={{ fontSize: 12, color: COLORS.textMuted }}>{post.event_location}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0' }}
+        onClick={e => { e.stopPropagation(); onRsvp(post.id, 'yes'); }}>
+        <div style={{ width: 44, height: 26, borderRadius: 13, background: attending ? COLORS.green : 'rgba(0,0,0,0.15)', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
+          <div style={{ position: 'absolute', top: 3, left: attending ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'left 0.2s' }} />
+        </div>
+        <span style={{ fontSize: 14, fontWeight: attending ? 700 : 400, color: attending ? COLORS.text : COLORS.textMuted, cursor: 'pointer' }}>Ik ben erbij</span>
       </div>
-      <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>
-        <span style={{ color: COLORS.text, fontWeight: 700 }}>{yes.length}</span> komen
-        {maybe.length > 0 && <> · <span style={{ color: COLORS.text, fontWeight: 700 }}>{maybe.length}</span> misschien</>}
-      </div>
-      <div style={{ display: 'flex', gap: 6 }}>
-        {btn('yes', t('rsvp_yes'), COLORS.green)}
-        {btn('maybe', t('rsvp_maybe'), COLORS.orange)}
-        {btn('no', t('rsvp_no'), COLORS.red)}
-      </div>
+      {count > 0 && (
+        <div style={{ fontSize: 12, color: COLORS.textMuted, display: 'flex', alignItems: 'center', gap: 5, paddingLeft: 2 }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          {count} aanwezig
+        </div>
+      )}
     </div>
   );
 }
@@ -207,36 +200,40 @@ function RdwLookup({ kenteken }) {
   );
 }
 
-function IncidentExtra({ post }) {
-  const titleLower = (post.title || '').toLowerCase();
-  const isGrofvuil = titleLower.startsWith('grofvuil');
-  const isIncident = titleLower.startsWith('incident');
+const MELDING_LINKS = {
+  overlast: [{ label: 'Overlast melden bij Gemeente Amsterdam', url: 'https://meldingen.amsterdam.nl/', color: COLORS.blue }],
+  schade: [
+    { label: 'Aangifte doen bij politie', url: 'https://www.politie.nl/aangifte-of-melding-doen', color: COLORS.red },
+    { label: 'Schade melden Waarborgfonds', url: 'https://www.svn.nl/', color: COLORS.blue },
+  ],
+  verdacht: [
+    { label: 'Bel 0900-8844 (politie non-spoed)', url: 'tel:09008844', color: COLORS.red },
+    { label: 'Meld Misdaad Anoniem', url: 'https://www.meldmisdaadanoniem.nl', color: COLORS.blue },
+  ],
+};
 
+function MeldingLinks({ post }) {
+  const links = MELDING_LINKS[post.sub_type] || [];
+  if (!post.location && !post.license_plate && !links.length) return null;
   return (
-    <div style={{ marginTop: 10 }}>
+    <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
       {post.location && (
-        <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>
-          <span style={{ fontWeight: 700, color: COLORS.text }}>Lokatie: </span>{post.location}
+        <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted }}>
+          <span style={{ fontWeight: 700, color: COLORS.text }}>Locatie: </span>{post.location}
         </div>
       )}
       {post.license_plate && (
-        <div style={{ ...s.infoBox, display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <span style={{ fontSize: 11, color: COLORS.textDim, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Kenteken</span>
+        <div style={{ ...s.infoBox, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 11, color: COLORS.textDim, fontWeight: 700, textTransform: 'uppercase' }}>Kenteken</span>
           <span style={{ fontFamily: 'monospace', fontSize: 15, fontWeight: 800, background: '#FFD700', color: '#000', padding: '2px 10px', borderRadius: 4, letterSpacing: '2px' }}>{post.license_plate}</span>
         </div>
       )}
-      {isGrofvuil && (
-        <a href="https://meldingen.amsterdam.nl/" target="_blank" rel="noopener noreferrer"
-          style={{ display: 'block', background: 'none', border: `1px solid ${COLORS.blue}44`, borderRadius: 8, padding: '8px 12px', fontSize: 12, color: COLORS.blue, textDecoration: 'none', textAlign: 'center' }}>
-          Melden bij de Gemeente Amsterdam →
+      {links.map(({ label, url, color }) => (
+        <a key={url} href={url} target="_blank" rel="noopener noreferrer"
+          style={{ display: 'block', border: `1px solid ${color}44`, borderRadius: 8, padding: '8px 12px', fontSize: 12, color, textDecoration: 'none' }}>
+          {label} →
         </a>
-      )}
-      {isIncident && (
-        <a href="https://www.politie.nl/aangifte-of-melding-doen" target="_blank" rel="noopener noreferrer"
-          style={{ display: 'block', background: 'none', border: `1px solid ${COLORS.red}44`, borderRadius: 8, padding: '8px 12px', fontSize: 12, color: COLORS.red, textDecoration: 'none', textAlign: 'center' }}>
-          {t('police_report')}
-        </a>
-      )}
+      ))}
     </div>
   );
 }
@@ -292,12 +289,11 @@ function CarrierBadge({ carrier }) {
 
 // ─── POST CARD ─────────────────────────────────────────────────────────────────
 
-function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate, onEdit, canEdit }) {
+function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate, onEdit, canEdit, onResolve }) {
   const [expanded, setExpanded] = useState(false);
   const [threadComments, setThreadComments] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [sendingComment, setSendingComment] = useState(false);
-  const [claimSent, setClaimSent] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -316,22 +312,6 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
       const comment = await api.post(`/streets/1/posts/${post.id}/comments`, { body: commentText.trim() });
       setThreadComments(prev => [...(prev || []), { ...comment, author_name: user?.name, author_house: user?.house_number, author_role: user?.role }]);
       setCommentText('');
-    } catch {}
-    setSendingComment(false);
-  };
-
-  const handleClaim = async (e) => {
-    e.stopPropagation();
-    if (claimSent || sendingComment) return;
-    const claimText = user?.house_number
-      ? `Ik heb het pakket — kom maar ophalen bij nr. ${user.house_number}!`
-      : 'Ik heb het pakket — kom maar langs!';
-    setSendingComment(true);
-    try {
-      const comment = await api.post(`/streets/1/posts/${post.id}/comments`, { body: claimText });
-      setThreadComments(prev => [...(prev || []), { ...comment, author_name: user?.name, author_house: user?.house_number }]);
-      setClaimSent(true);
-      if (!expanded) setExpanded(true);
     } catch {}
     setSendingComment(false);
   };
@@ -370,7 +350,22 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
           <div style={{ flex: 1, fontSize: 16, fontWeight: 700, lineHeight: 1.35 }}>
             <span style={{ color: COLORS.textDim, fontWeight: 400 }}>
-              {[catLabel(post.category), isPackage && post.sub_type === 'search' ? 'Gezocht' : dateLabel || (post.sub_type && post.category === 'general' ? post.sub_type : null)].filter(Boolean).join(' · ')}{' · '}
+              {(() => {
+                const INCIDENT_LBL = { lost_found: 'Lost & Found', overlast: 'Overlast', schade: 'Schade', verdacht: 'Verdachte situatie' };
+                const WORKS_LBL   = { steiger: 'Steiger', werkzaamheden: 'Werkzaamheden', parkeerreservering: 'Parkeerreservering', container: 'Container', kraan: 'Kraan', verhuizing: 'Verhuizing' };
+                let second = null;
+                if (isPackage) {
+                  if (post.sub_type === 'gezocht' || post.sub_type === 'search') second = 'Gezocht';
+                  else if (post.sub_type === 'bezorgd' || post.sub_type === 'have') second = 'Bezorgd';
+                } else if (isIncident && post.sub_type) {
+                  second = INCIDENT_LBL[post.sub_type] || null;
+                } else if (isWorks) {
+                  second = WORKS_LBL[post.sub_type] || dateLabel;
+                } else {
+                  second = dateLabel || (post.sub_type && post.category === 'general' ? post.sub_type : null);
+                }
+                return [catLabel(post.category), second].filter(Boolean).join(' · ') + ' · ';
+              })()}
             </span>
             {post.title}
           </div>
@@ -411,8 +406,8 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               {post.event_location && <div style={{ fontSize: 13, color: COLORS.textMuted }}><strong style={{ color: COLORS.text }}>Waar: </strong>{post.event_location}</div>}
             </div>
           )}
-          {isEvent && post.rsvp && <RsvpBar post={post} onRsvp={onRsvp} />}
-          {isIncident && <IncidentExtra post={post} />}
+          {isEvent && <AttendanceToggle post={post} onRsvp={onRsvp} />}
+          {isIncident && <MeldingLinks post={post} />}
           {post.photo_url && (
             <img
               src={post.photo_url}
@@ -426,17 +421,19 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               <CarrierBadge carrier={post.carrier} />
             </div>
           )}
-          {isPackage && post.sub_type === 'search' && !claimSent && (
-            <button onClick={handleClaim}
-              style={{ marginTop: 10, width: '100%', background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 14px', color: COLORS.accent, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-              <PkgIcon color={COLORS.accent} />
-              Ik heb het — kom maar ophalen!
-            </button>
-          )}
-          {isPackage && post.sub_type === 'search' && claimSent && (
-            <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.accent, marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <PkgIcon color={COLORS.accent} />
-              <span>Reactie gepost — de eigenaar kan nu langskomen.</span>
+          {isPackage && canEdit && onResolve && (
+            <div style={{ marginTop: 10 }} onClick={e => e.stopPropagation()}>
+              {post.resolved ? (
+                <div style={{ textAlign: 'center', padding: '10px', fontSize: 13, color: COLORS.textDim, cursor: 'pointer' }}
+                  onClick={() => onResolve(post.id, false)}>
+                  {post.sub_type === 'gezocht' || post.sub_type === 'search' ? 'Toch niet gevonden' : 'Toch niet opgehaald'}
+                </div>
+              ) : (
+                <button onClick={() => onResolve(post.id, true)}
+                  style={{ width: '100%', background: COLORS.text, color: '#fff', border: 'none', borderRadius: RADIUS.pill, padding: '11px 14px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                  {post.sub_type === 'gezocht' || post.sub_type === 'search' ? 'Pakket gevonden' : 'Pakket opgehaald'}
+                </button>
+              )}
             </div>
           )}
           {post.link && (
@@ -960,23 +957,59 @@ function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, doc
   );
 }
 
-// ─── NEW POST SHEET ────────────────────────────────────────────────────────────
+// ─── TYPE PICKER + NEW POST SHEET ─────────────────────────────────────────────
 
-const WORK_TYPES = [
-  { key: 'container',     label: 'Container'     },
-  { key: 'steiger',       label: 'Steiger'        },
-  { key: 'kraan',         label: 'Kraan'          },
-  { key: 'wegafsluiting', label: 'Wegafsluiting'  },
-  { key: 'anders',        label: 'Anders'         },
-];
+const TYPE_META = {
+  package: [
+    { key: 'bezorgd', label: 'Bezorgd',           sub: 'Pakket ontvangen voor een buur', emoji: '📦' },
+    { key: 'gezocht', label: 'Gezocht',            sub: 'Op zoek naar een vermist pakket', emoji: '🔍' },
+  ],
+  works: [
+    { key: 'steiger',            label: 'Steiger',            emoji: '🏗️' },
+    { key: 'werkzaamheden',      label: 'Werkzaamheden',      emoji: '🔧' },
+    { key: 'parkeerreservering', label: 'Parkeerreservering', emoji: '🚗' },
+    { key: 'container',          label: 'Container',          emoji: '🗑️' },
+    { key: 'kraan',              label: 'Kraan',              emoji: '🏗️' },
+    { key: 'verhuizing',         label: 'Verhuizing',         emoji: '📦' },
+  ],
+  incident: [
+    { key: 'lost_found', label: 'Lost & Found',        sub: 'Gevonden of verloren voorwerp', emoji: '🔑' },
+    { key: 'overlast',   label: 'Overlast',            sub: 'Geluids-, parkeer- of andere overlast', emoji: '🔊' },
+    { key: 'schade',     label: 'Schade',              sub: 'Schade aan eigendom of voertuig', emoji: '⚠️' },
+    { key: 'verdacht',   label: 'Verdachte situatie',  sub: 'Onraad of verdacht gedrag', emoji: '👁️' },
+  ],
+};
 
-const INCIDENT_TYPES = [
-  { key: 'grofvuil', label: 'Grofvuil' },
-  { key: 'incident', label: 'Incident' },
-  { key: 'anders',   label: 'Anders'   },
-];
+function typeLabel(cat, type) {
+  return TYPE_META[cat]?.find(t => t.key === type)?.label || type;
+}
 
-const GENERAL_TYPES = ['Vraag', 'Tip', 'Aanbeveling', 'Te leen', 'Te koop', 'Gevonden', 'Verloren', 'Anders'];
+function TypePickerSheet({ cat, onClose, onSelect }) {
+  const [closing, setClosing] = useState(false);
+  const close = () => { setClosing(true); setTimeout(onClose, 270); };
+  const types = TYPE_META[cat] || [];
+  return (
+    <SheetOverlay closing={closing} onOverlayClick={close}>
+      <div style={s.sheetHandle} />
+      <div style={s.sheetTitle}>{catLabel(cat)} — welk type?</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+        {types.map(({ key, label: lbl, sub, emoji }) => (
+          <div key={key}
+            onClick={() => { setClosing(true); setTimeout(() => onSelect(key), 270); }}
+            style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.50)', borderRadius: RADIUS.lg, padding: '14px 16px', cursor: 'pointer' }}>
+            <span style={{ fontSize: 22, flexShrink: 0, lineHeight: 1 }}>{emoji}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{lbl}</div>
+              {sub && <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 2 }}>{sub}</div>}
+            </div>
+            <Chevron size={16} color={COLORS.textDim} />
+          </div>
+        ))}
+      </div>
+      <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
+    </SheetOverlay>
+  );
+}
 
 function LocationPicker({ value, onChange }) {
   const [mode, setMode] = useState('single');
@@ -1015,299 +1048,190 @@ function LocationPicker({ value, onChange }) {
   );
 }
 
-function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 'general' }) {
-  const [cat, setCat] = useState(initialCat);
+function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 'general', initialType = null }) {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const [subType, setSubType] = useState('');
-  const [incidentType, setIncidentType] = useState('');
-  const [workType, setWorkType] = useState('');
-  const [customWorkType, setCustomWorkType] = useState('');
-  const [customIncidentType, setCustomIncidentType] = useState('');
-  const [location, setLocation] = useState('');
   const [forHouse, setForHouse] = useState('');
-  const [pickupHouse, setPickupHouse] = useState(user?.house_number || '');
+  const [carrier, setCarrier] = useState('');
+  const [location, setLocation] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [link, setLink] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [eventTime, setEventTime] = useState('');
-  const [bringItems, setBringItems] = useState('');
-  const [licenseplate, setLicenseplate] = useState('');
+  const [eventLocation, setEventLocation] = useState('');
   const [photoKey, setPhotoKey] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [carrier, setCarrier] = useState('');
-  const [customCarrier, setCustomCarrier] = useState('');
-  const [attachmentName, setAttachmentName] = useState(null);
-  const [allowJoin, setAllowJoin] = useState(false);
-  const [pkgSubType, setPkgSubType] = useState('have');
-  const [deliveryDate, setDeliveryDate] = useState('');
-
-  const isEvent = cat === 'event';
-  const isIncident = cat === 'incident';
-  const isWorks = cat === 'works';
-  const isPackage = cat === 'package';
-  const isGeneral = cat === 'general';
-  const isPinnable = CATEGORIES[cat]?.pinnable;
-
-  const packageTitle = isPackage
-    ? pkgSubType === 'search'
-      ? `Pakket gezocht — nr. ${user?.house_number || '?'}`
-      : (forHouse.trim() || pickupHouse.trim())
-        ? `Pakket voor nr. ${forHouse.trim() || '—'} · Ophalen bij nr. ${pickupHouse.trim() || '—'}`
-        : ''
-    : '';
-
-  const finalWorkLabel = workType === 'anders' ? customWorkType.trim() : (WORK_TYPES.find(w => w.key === workType)?.label || '');
-  const finalIncidentLabel = incidentType === 'anders' ? customIncidentType.trim() : (INCIDENT_TYPES.find(i => i.key === incidentType)?.label || '');
-
-  const canSubmit = isPackage
-    ? pkgSubType === 'have' ? (forHouse.trim() && pickupHouse.trim()) : true
-    : isIncident
-      ? (incidentType && (incidentType !== 'anders' || customIncidentType.trim()) && location.trim())
-      : isWorks
-        ? (workType && (workType !== 'anders' || customWorkType.trim()) && location.trim() && startDate && endDate)
-        : isEvent
-          ? (title.trim() && eventDate && eventTime && location.trim())
-          : (subType && title.trim());
-
   const [closing, setClosing] = useState(false);
   const close = () => { setClosing(true); setTimeout(onClose, 270); };
 
+  const isBezorging   = initialCat === 'package';
+  const isStraatzaken = initialCat === 'works';
+  const isMelding     = initialCat === 'incident';
+  const isEvenement   = initialCat === 'event';
+  const isAlgemeen    = initialCat === 'general';
+  const isBezorgd     = initialType === 'bezorgd';
+  const isGezocht     = initialType === 'gezocht';
+
+  const autoTitle = forHouse.trim()
+    ? isGezocht
+      ? `Pakket gezocht voor nr. ${forHouse.trim()}`
+      : `Pakket voor nr. ${forHouse.trim()}`
+    : '';
+
+  const canSubmit = isBezorging
+    ? !!forHouse.trim()
+    : isMelding
+      ? !!(title.trim() && body.trim())
+      : isEvenement
+        ? !!(title.trim() && eventDate)
+        : !!title.trim();
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    onSubmit({
+      category: initialCat,
+      subType: initialType || undefined,
+      title: isBezorging ? autoTitle : title.trim(),
+      body: body.trim() || undefined,
+      location: (isStraatzaken || isMelding) ? (location.trim() || undefined) : undefined,
+      startDate: isStraatzaken ? (startDate || undefined) : undefined,
+      endDate: (isStraatzaken || isEvenement) ? (endDate || undefined) : undefined,
+      link: (isStraatzaken || isAlgemeen) ? (link.trim() || undefined) : undefined,
+      carrier: (isBezorging && isBezorgd) ? (carrier || undefined) : undefined,
+      eventDate: isEvenement ? (eventDate || undefined) : undefined,
+      eventTime: isEvenement ? (eventTime || undefined) : undefined,
+      eventLocation: isEvenement ? (eventLocation.trim() || undefined) : undefined,
+      photoKey: photoKey || undefined,
+      pinned: !!(canPin && isStraatzaken && startDate && endDate),
+    });
+    close();
+  };
+
+  const catTypeLine = `${catLabel(initialCat)}${initialType ? ' · ' + typeLabel(initialCat, initialType) : ''}`;
+
   return (
-    <SheetOverlay closing={closing}>
-        <div style={s.sheetHandle} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <div style={s.sheetTitle, { fontSize: 18, fontWeight: 800, letterSpacing: '-0.3px' }}>{t('new_post')}</div>
-          <CatBadge cat={cat} />
-        </div>
+    <SheetOverlay closing={closing} onOverlayClick={close}>
+      <div style={s.sheetHandle} />
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.3px', marginBottom: 2 }}>{t('new_post')}</div>
+        <div style={{ fontSize: 12, color: COLORS.textDim }}>{catTypeLine}</div>
+      </div>
 
-        {/* ── PAKKET ── */}
-        {isPackage && (
-          <>
-            {/* Sub-type keuze */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-              {[['have', 'Ik heb een pakket'], ['search', 'Ik zoek mijn pakket']].map(([key, label]) => (
-                <div key={key}
-                  style={{ ...s.filterChip(pkgSubType === key), flex: 1, textAlign: 'center', justifyContent: 'center' }}
-                  onClick={() => { setPkgSubType(key); setForHouse(''); setDeliveryDate(''); setCarrier(''); }}>
-                  {label}
-                </div>
-              ))}
-            </div>
-
-            {pkgSubType === 'have' ? (
-              <>
-                <div>
-                  <label style={s.label}>Pakket voor nr.</label>
-                  <HouseNumberPicker value={forHouse} onChange={setForHouse} style={{ marginBottom: 10 }} />
-                </div>
-                <div style={{ marginBottom: 10 }}>
-                  <label style={s.label}>Ophalen bij nr.</label>
-                  <HouseNumberPicker value={pickupHouse} onChange={setPickupHouse} />
-                </div>
-                {packageTitle && (
-                  <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginBottom: 10 }}>
-                    <strong style={{ color: COLORS.text }}>{packageTitle}</strong>
-                  </div>
-                )}
-                <label style={s.label}>Bezorger</label>
-                <div style={{ position: 'relative', marginBottom: 10 }}>
-                  <select value={carrier} onChange={e => setCarrier(e.target.value)}
-                    style={{ ...s.input, cursor: 'pointer', marginBottom: 0, paddingRight: 36, appearance: 'none', WebkitAppearance: 'none' }}>
-                    <option value="">Selecteer bezorger</option>
-                    {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <Chevron size={14} color={COLORS.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
-                </div>
-                {carrier === 'Anders' && (
-                  <input style={s.input} placeholder="Naam bezorger" value={customCarrier} onChange={e => setCustomCarrier(e.target.value)} />
-                )}
-              </>
-            ) : (
-              <>
-                <div style={{ ...s.infoBox, fontSize: 13, color: COLORS.textMuted, marginBottom: 12, lineHeight: 1.5 }}>
-                  De hele straat krijgt een notificatie. Wie jouw pakket heeft kan reageren via de comments.
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <div>
-                    <label style={s.label}>Bezorgd op</label>
-                    <input style={s.input} type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} />
-                  </div>
-                  <div>
-                    <label style={s.label}>Bezorger</label>
-                    <div style={{ position: 'relative' }}>
-                      <select value={carrier} onChange={e => setCarrier(e.target.value)}
-                        style={{ ...s.input, marginBottom: 0, cursor: 'pointer', paddingRight: 36, appearance: 'none', WebkitAppearance: 'none' }}>
-                        <option value="">Onbekend</option>
-                        {['PostNL','DHL','DPD','GLS','Bol.com','Coolblue','Amazon','Anders'].map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                      <Chevron size={14} color={COLORS.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
-                    </div>
-                  </div>
-                </div>
-                {carrier === 'Anders' && (
-                  <input style={s.input} placeholder="Naam bezorger" value={customCarrier} onChange={e => setCustomCarrier(e.target.value)} />
-                )}
-              </>
-            )}
-
-            <label style={s.label}>Extra details{pkgSubType === 'search' ? ' (optioneel)' : ''}</label>
-            <textarea style={{ ...s.textarea, height: 60 }} placeholder="Bijv. staat bij de voordeur..."
-              value={body} onChange={e => setBody(e.target.value)} />
-          </>
-        )}
-
-        {/* ── OBSTRUCTIE ── */}
-        {isWorks && (
-          <>
-            <label style={s.label}>Type obstructie</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-              {WORK_TYPES.map(({ key, label: lbl }) => (
-                <div key={key} style={{ ...s.filterChip(workType === key), fontSize: 12 }}
-                  onClick={() => { setWorkType(key); setCustomWorkType(''); }}>
-                  {lbl}
-                </div>
-              ))}
-            </div>
-            {workType === 'anders' && (
-              <input style={s.input} placeholder="Omschrijf de obstructie" value={customWorkType} onChange={e => setCustomWorkType(e.target.value)} />
-            )}
-            <label style={s.label}>Lokatie</label>
-            <LocationPicker value={location} onChange={setLocation} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                <label style={s.label}>Van datum</label>
-                <input style={s.input} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+      {/* Bezorging */}
+      {isBezorging && (
+        <>
+          <label style={s.label}>{isGezocht ? 'Van welk huisnummer?' : 'Pakket voor huisnummer'}</label>
+          <HouseNumberPicker value={forHouse} onChange={setForHouse} style={{ marginBottom: 10 }} />
+          {autoTitle && <div style={{ fontSize: 11, color: COLORS.textDim, marginBottom: 12 }}>Titel: <em>{autoTitle}</em></div>}
+          {isBezorgd && (
+            <>
+              <label style={s.label}>Bezorger (optioneel)</label>
+              <div style={{ position: 'relative', marginBottom: 10 }}>
+                <select value={carrier} onChange={e => setCarrier(e.target.value)}
+                  style={{ ...s.input, cursor: 'pointer', marginBottom: 0, paddingRight: 36, appearance: 'none', WebkitAppearance: 'none' }}>
+                  <option value="">Onbekend</option>
+                  {CARRIERS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <Chevron size={14} color={COLORS.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
               </div>
-              <div>
-                <label style={s.label}>Tot datum</label>
-                <input style={s.input} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-              </div>
+            </>
+          )}
+          <label style={s.label}>Beschrijving (optioneel)</label>
+          <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
+          {isBezorgd && (
+            <AttachmentUpload photoPreview={photoPreview} uploading={uploading}
+              onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); if (key) setPhotoKey(key); }} />
+          )}
+        </>
+      )}
+
+      {/* Straatzaken */}
+      {isStraatzaken && (
+        <>
+          <label style={s.label}>Titel *</label>
+          <input style={s.input} placeholder="Bijv. Vervanging gasleiding" value={title} onChange={e => setTitle(e.target.value)} />
+          <label style={s.label}>Locatie (optioneel)</label>
+          <input style={s.input} placeholder="Bijv. nr. 14–22" value={location} onChange={e => setLocation(e.target.value)} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <label style={s.label}>Van datum</label>
+              <input type="date" style={{ ...s.input, marginBottom: 0 }} value={startDate} onChange={e => setStartDate(e.target.value)} />
             </div>
-            {canPin && startDate && endDate && (
-              <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 8 }}>
-                Wordt automatisch vastgepind t/m de einddatum.
-              </div>
-            )}
-            <label style={s.label}>Extra info</label>
-            <textarea style={s.textarea} placeholder="Optionele extra details" value={body} onChange={e => setBody(e.target.value)} />
-          </>
-        )}
-
-        {/* ── MELDING ── */}
-        {isIncident && (
-          <>
-            <label style={s.label}>Type melding</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-              {INCIDENT_TYPES.map(({ key, label: lbl }) => (
-                <div key={key} style={{ ...s.filterChip(incidentType === key), fontSize: 12 }}
-                  onClick={() => { setIncidentType(key); setCustomIncidentType(''); setLicenseplate(''); }}>
-                  {lbl}
-                </div>
-              ))}
+            <div>
+              <label style={s.label}>Tot datum</label>
+              <input type="date" style={{ ...s.input, marginBottom: 0 }} value={endDate} onChange={e => setEndDate(e.target.value)} />
             </div>
-            {incidentType === 'anders' && (
-              <input style={s.input} placeholder="Omschrijf de melding" value={customIncidentType} onChange={e => setCustomIncidentType(e.target.value)} />
-            )}
-            <label style={s.label}>Lokatie</label>
-            <LocationPicker value={location} onChange={setLocation} />
-            {incidentType === 'incident' && (
-              <>
-                <label style={s.label}>{t('license_plate')} (optioneel)</label>
-                <input style={{ ...s.input, fontFamily: 'monospace', letterSpacing: '2px', textTransform: 'uppercase' }}
-                  placeholder={t('license_plate_placeholder')} value={licenseplate}
-                  onChange={e => setLicenseplate(e.target.value.toUpperCase())} />
-                <RdwLookup kenteken={licenseplate} />
-              </>
-            )}
-            <label style={s.label}>Extra info</label>
-            <textarea style={s.textarea} placeholder="Optionele extra details" value={body} onChange={e => setBody(e.target.value)} />
-          </>
-        )}
+          </div>
+          {canPin && startDate && endDate && (
+            <div style={{ fontSize: 11, color: COLORS.textDim, margin: '6px 0 10px' }}>Wordt automatisch vastgepind t/m einddatum.</div>
+          )}
+          <label style={{ ...s.label, marginTop: 10 }}>Link (optioneel)</label>
+          <input type="url" style={s.input} placeholder="https://…" value={link} onChange={e => setLink(e.target.value)} />
+          <label style={s.label}>Extra info (optioneel)</label>
+          <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
+        </>
+      )}
 
-        {/* ── EVENEMENT ── */}
-        {isEvent && (
-          <>
-            <label style={s.label}>{t('title')}</label>
-            <input style={s.input} placeholder={t('title_placeholder')} value={title} onChange={e => setTitle(e.target.value)} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                <label style={s.label}>{t('event_date')}</label>
-                <input style={s.input} type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} />
-              </div>
-              <div>
-                <label style={s.label}>{t('event_time')}</label>
-                <input style={s.input} type="time" value={eventTime} onChange={e => setEventTime(e.target.value)} />
-              </div>
+      {/* Melding */}
+      {isMelding && (
+        <>
+          <label style={s.label}>Onderwerp *</label>
+          <input style={s.input} placeholder="Kort en duidelijk" value={title} onChange={e => setTitle(e.target.value)} />
+          <label style={s.label}>Beschrijving *</label>
+          <textarea style={s.textarea} value={body} onChange={e => setBody(e.target.value)} />
+          <AttachmentUpload photoPreview={photoPreview} uploading={uploading}
+            onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); if (key) setPhotoKey(key); }} />
+        </>
+      )}
+
+      {/* Evenement */}
+      {isEvenement && (
+        <>
+          <label style={s.label}>Naam *</label>
+          <input style={s.input} placeholder="Bijv. Straatborrel Kerst" value={title} onChange={e => setTitle(e.target.value)} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <label style={s.label}>Datum *</label>
+              <input type="date" style={{ ...s.input, marginBottom: 0 }} value={eventDate} onChange={e => setEventDate(e.target.value)} />
             </div>
-            <label style={s.label}>{t('event_location')}</label>
-            <LocationPicker value={location} onChange={setLocation} />
-            <label style={s.label}>{t('bring_list')}</label>
-            <input style={s.input} placeholder={t('bring_list_placeholder')} value={bringItems} onChange={e => setBringItems(e.target.value)} />
-            <label style={s.label}>{t('message')}</label>
-            <textarea style={s.textarea} placeholder={t('message_placeholder')} value={body} onChange={e => setBody(e.target.value)} />
-          </>
-        )}
-
-        {/* ── ALGEMEEN ── */}
-        {isGeneral && (
-          <>
-            <label style={s.label}>Type</label>
-            <div style={{ position: 'relative', marginBottom: 10 }}>
-              <select value={subType} onChange={e => setSubType(e.target.value)}
-                style={{ ...s.input, cursor: 'pointer', marginBottom: 0, paddingRight: 36, appearance: 'none', WebkitAppearance: 'none' }}>
-                <option value="">Selecteer type...</option>
-                {GENERAL_TYPES.map(tp => <option key={tp} value={tp}>{tp}</option>)}
-              </select>
-              <Chevron size={14} color={COLORS.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
+            <div>
+              <label style={s.label}>Tijdstip</label>
+              <input type="time" style={{ ...s.input, marginBottom: 0 }} value={eventTime} onChange={e => setEventTime(e.target.value)} />
             </div>
-            <label style={s.label}>{t('title')}</label>
-            <input style={s.input} placeholder={t('title_placeholder')} value={title} onChange={e => setTitle(e.target.value)} />
-            <label style={s.label}>{t('message')}</label>
-            <textarea style={s.textarea} placeholder={t('message_placeholder')} value={body} onChange={e => setBody(e.target.value)} />
-          </>
-        )}
+          </div>
+          <label style={{ ...s.label, marginTop: 10 }}>Beschrijving (optioneel)</label>
+          <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
+          <label style={s.label}>Locatie (optioneel)</label>
+          <input style={s.input} placeholder="Bijv. bij nr. 34 of Vondelpark" value={eventLocation} onChange={e => setEventLocation(e.target.value)} />
+          <AttachmentUpload photoPreview={photoPreview} uploading={uploading}
+            onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); if (key) setPhotoKey(key); }} />
+          {canPin && (
+            <>
+              <label style={s.label}>Vastpinnen tot</label>
+              <input type="date" style={s.input} value={endDate} onChange={e => setEndDate(e.target.value)} />
+            </>
+          )}
+        </>
+      )}
 
-        {/* Bijlage */}
-        <div style={{ marginBottom: 10 }}>
-          <AttachmentUpload
-            photoPreview={photoPreview}
-            documentName={attachmentName}
-            uploading={uploading}
-            onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); if (key) setPhotoKey(key); }}
-            onDocumentChosen={setAttachmentName}
-          />
-        </div>
+      {/* Algemeen */}
+      {isAlgemeen && (
+        <>
+          <label style={s.label}>Titel *</label>
+          <input style={s.input} placeholder="Waar gaat het over?" value={title} onChange={e => setTitle(e.target.value)} />
+          <label style={s.label}>Beschrijving (optioneel)</label>
+          <textarea style={s.textarea} value={body} onChange={e => setBody(e.target.value)} />
+          <label style={s.label}>Link (optioneel)</label>
+          <input type="url" style={s.input} placeholder="https://…" value={link} onChange={e => setLink(e.target.value)} />
+        </>
+      )}
 
-        <button style={{ ...s.submitBtn, opacity: canSubmit ? 1 : 0.5 }} disabled={!canSubmit}
-          onClick={() => {
-            if (!canSubmit) return;
-            const finalTitle = isPackage ? packageTitle
-              : isWorks    ? finalWorkLabel
-              : isIncident ? finalIncidentLabel
-              : title;
-            const finalCarrier = carrier === 'Anders' ? customCarrier : carrier;
-            onSubmit({
-              category: cat, title: finalTitle, body,
-              startDate: startDate || undefined,
-              endDate: endDate || undefined,
-              eventDate: (isPackage && pkgSubType === 'search' ? deliveryDate : eventDate) || undefined,
-              eventTime: eventTime || undefined,
-              eventLocation: isEvent ? location : undefined,
-              location: (isWorks || isIncident) ? location : undefined,
-              bringList: bringItems ? bringItems.split(',').map(i => i.trim()) : [],
-              licensePlate: licenseplate || undefined,
-              photoKey: photoKey || undefined,
-              carrier: finalCarrier || undefined,
-              allowJoin,
-              attachmentName: attachmentName || undefined,
-              subType: isGeneral ? subType : (isPackage ? pkgSubType : undefined),
-              pinned: canPin && isPinnable && !!(isWorks ? (startDate && endDate) : false),
-            });
-            close();
-          }}>{t('publish')}</button>
-        <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
+      <button style={{ ...s.submitBtn, opacity: canSubmit ? 1 : 0.5 }} disabled={!canSubmit} onClick={handleSubmit}>
+        {t('publish')}
+      </button>
+      <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
     </SheetOverlay>
   );
 }
@@ -1624,7 +1548,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [showPost, setShowPost] = useState(false);
   const [showCatPicker, setShowCatPicker] = useState(false);
+  const [showTypePicker, setShowTypePicker] = useState(false);
   const [pendingCat, setPendingCat] = useState('general');
+  const [pendingType, setPendingType] = useState(null);
   const [eventDetail, setEventDetail] = useState(null);
   const [joinDetail, setJoinDetail] = useState(null);
   const [reportedToast, setReportedToast] = useState(false);
@@ -1701,6 +1627,11 @@ export default function App() {
     }
   };
 
+  const handleResolve = async (id, resolved) => {
+    await api.patch(`/streets/${STREET_ID}/posts/${id}/resolve`, { resolved });
+    setPosts(ps => ps.map(p => p.id === id ? { ...p, resolved } : p));
+  };
+
   const handleNewPost = async (data) => {
     try {
       const post = await api.post(`/streets/${STREET_ID}/posts`, data);
@@ -1761,7 +1692,7 @@ export default function App() {
       </div>
 
       {tab === 'feed' && (
-        <div style={{ ...s.feed, filter: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'blur(4px)' : 'none', transition: 'filter 0.2s', pointerEvents: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'none' : 'auto' }}>
+        <div style={{ ...s.feed, filter: (showPost || showCatPicker || showTypePicker || !!eventDetail || !!joinDetail || !!editPost) ? 'blur(4px)' : 'none', transition: 'filter 0.2s', pointerEvents: (showPost || showCatPicker || showTypePicker || !!eventDetail || !!joinDetail || !!editPost) ? 'none' : 'auto' }}>
           {notifSupported && !subscribed && permission !== 'denied' && (
             <div style={{ margin: '12px 12px 0', background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div>
@@ -1787,12 +1718,12 @@ export default function App() {
             : <>
               {pinnedPosts.length > 0 && (
                 <><div style={s.sectionLabel}>{t('pinned')}</div>
-                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} />)}</>
+                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} onResolve={handleResolve} />)}</>
               )}
               <div style={s.sectionLabel}>{t('recent')}</div>
               {regularPosts.length === 0
                 ? <div style={s.emptyState}>{t('no_posts')}</div>
-                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} />)}
+                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} onResolve={handleResolve} />)}
             </>
           }
         </div>
@@ -1829,12 +1760,28 @@ export default function App() {
       {showCatPicker && (
         <CategoryPickerSheet
           onClose={() => setShowCatPicker(false)}
-          onSelect={(cat) => { setPendingCat(cat); setShowCatPicker(false); setTimeout(() => setShowPost(true), 270); }}
+          onSelect={(cat) => {
+            setPendingCat(cat);
+            setPendingType(null);
+            setShowCatPicker(false);
+            if (TYPE_META[cat]?.length) {
+              setTimeout(() => setShowTypePicker(true), 270);
+            } else {
+              setTimeout(() => setShowPost(true), 270);
+            }
+          }}
+        />
+      )}
+      {showTypePicker && (
+        <TypePickerSheet
+          cat={pendingCat}
+          onClose={() => setShowTypePicker(false)}
+          onSelect={(type) => { setPendingType(type); setShowTypePicker(false); setTimeout(() => setShowPost(true), 270); }}
         />
       )}
       {showPost && (
         <NewPostSheet onClose={() => setShowPost(false)} onSubmit={(data) => { handleNewPost(data); setShowPost(false); }}
-          streetId={STREET_ID} canPin={canPin} user={user} initialCat={pendingCat} />
+          streetId={STREET_ID} canPin={canPin} user={user} initialCat={pendingCat} initialType={pendingType} />
       )}
       {eventDetail && (
         <EventDetailSheet post={eventDetail} onClose={() => setEventDetail(null)} onRsvp={handleRsvp} />

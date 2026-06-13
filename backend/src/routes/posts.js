@@ -182,6 +182,19 @@ router.delete('/:streetId/posts/:postId', requireAuth, requireMembership('modera
   res.json({ ok: true });
 });
 
+// PATCH /api/streets/:streetId/posts/:postId/resolve
+router.patch('/:streetId/posts/:postId/resolve', requireAuth, requireMembership('resident'), async (req, res) => {
+  const { postId, streetId } = req.params;
+  const { resolved } = req.body;
+  const { rows } = await query('SELECT user_id FROM posts WHERE id = $1 AND street_id = $2', [postId, streetId]);
+  if (!rows.length) return res.status(404).json({ error: 'Post not found' });
+  const isAuthor = rows[0].user_id === req.user.user_id;
+  const canMod = req.user.is_super_admin || ['admin', 'moderator'].includes(req.membership?.role);
+  if (!isAuthor && !canMod) return res.status(403).json({ error: 'Forbidden' });
+  await query('UPDATE posts SET resolved = $1 WHERE id = $2 AND street_id = $3', [Boolean(resolved), postId, streetId]);
+  res.json({ ok: true, resolved: Boolean(resolved) });
+});
+
 // PATCH /api/streets/:streetId/posts/:postId/pin
 router.patch('/:streetId/posts/:postId/pin', requireAuth, requireMembership('admin'), async (req, res) => {
   const { pinned, endDate } = req.body;
