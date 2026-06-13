@@ -1469,66 +1469,29 @@ function PendingView() {
 // ─── SEGMENTED CONTROL ────────────────────────────────────────────────────────
 
 function SegmentedControl({ options, value, onChange, label, style }) {
-  const containerRef = useRef(null);
-  const itemRefs = useRef({});
-  const [capsule, setCapsule] = useState({ left: 0, width: 60 });
-
-  useLayoutEffect(() => {
-    const item = itemRefs.current[value];
-    if (!item) return;
-    setCapsule({ left: item.offsetLeft, width: item.offsetWidth });
-  }, [value]);
+  const selectedIndex = Math.max(0, options.findIndex(o => o.key === value));
+  const pct = 100 / (options.length || 1);
 
   return (
-    <div style={{ padding: '10px 16px 6px', ...style }}>
-      {label && (
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textMuted, marginBottom: 6 }}>{label}</div>
-      )}
-      <div ref={containerRef} style={{
-        position: 'relative',
-        display: 'flex',
-        background: 'rgba(255,255,255,0.35)',
-        backdropFilter: 'blur(14px)',
-        WebkitBackdropFilter: 'blur(14px)',
-        borderRadius: RADIUS.pill,
-        padding: 4,
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-      }}>
+    <div style={style}>
+      {label && <div style={s.sectionLabel}>{label}</div>}
+      <div style={{ position: 'relative', display: 'flex', borderBottom: '2px solid rgba(0,0,0,0.06)' }}>
         <div style={{
-          position: 'absolute',
-          top: 4,
-          left: 4 + capsule.left,
-          height: 'calc(100% - 8px)',
-          width: capsule.width,
-          background: 'rgba(255,255,255,0.92)',
-          borderRadius: RADIUS.pill,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.10)',
-          transition: 'left 0.35s cubic-bezier(0.34,1.56,0.64,1), width 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+          position: 'absolute', bottom: -2,
+          left: `${selectedIndex * pct}%`, width: `${pct}%`,
+          height: 2, background: COLORS.accent, borderRadius: 1,
+          transition: 'left 0.3s cubic-bezier(0.4,0,0.2,1)',
           pointerEvents: 'none',
         }} />
         {options.map(({ key, label: optLabel }) => (
-          <div
-            key={key}
-            ref={el => { itemRefs.current[key] = el; }}
-            onClick={() => onChange(key)}
-            style={{
-              position: 'relative',
-              zIndex: 1,
-              padding: '7px 12px',
-              minHeight: 34,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 13,
-              fontWeight: value === key ? 700 : 500,
-              color: value === key ? COLORS.accent : COLORS.textMuted,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              userSelect: 'none',
-              flex: 1,
-              transition: 'color 0.25s',
-            }}
-          >
+          <div key={key} onClick={() => onChange(key)} style={{
+            flex: 1, padding: '11px 4px',
+            textAlign: 'center', fontSize: 13,
+            fontWeight: value === key ? 700 : 400,
+            color: value === key ? COLORS.accent : COLORS.textMuted,
+            cursor: 'pointer', userSelect: 'none',
+            transition: 'color 0.2s',
+          }}>
             {optLabel}
           </div>
         ))}
