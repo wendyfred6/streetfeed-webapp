@@ -1482,7 +1482,7 @@ function SegmentedControl({ options, value, onChange, label, style }) {
   return (
     <div style={style}>
       {label && <div style={s.sectionLabel}>{label}</div>}
-      <div style={{ padding: '0 16px 12px' }}>
+      <div style={{ padding: '0 19px 12px' }}>
         <div ref={scrollRef} style={{
           display: 'flex',
           overflowX: 'auto',
@@ -1491,13 +1491,13 @@ function SegmentedControl({ options, value, onChange, label, style }) {
           position: 'relative',
           background: 'rgba(255,255,255,0.32)',
           borderRadius: RADIUS.pill,
-          padding: 4,
+          padding: 8,
         }}>
           {/* witte pill — positie en breedte gemeten uit DOM */}
           <div style={{
             position: 'absolute',
-            top: 4, left: pillGeom.left,
-            height: 'calc(100% - 8px)', width: pillGeom.width,
+            top: 8, left: pillGeom.left,
+            height: 'calc(100% - 16px)', width: pillGeom.width,
             background: '#FFFFFF',
             borderRadius: RADIUS.pill,
             boxShadow: '0 4px 20px rgba(0,0,0,0.16)',
@@ -1511,7 +1511,9 @@ function SegmentedControl({ options, value, onChange, label, style }) {
               onClick={() => onChange(key)}
               style={{
                 flexShrink: 0,
-                padding: '4px 12px',
+                height: 32,
+                display: 'flex', alignItems: 'center',
+                padding: '0 12px',
                 fontSize: 13,
                 fontWeight: value === key ? 700 : 500,
                 color: value === key ? COLORS.accent : COLORS.textMuted,
