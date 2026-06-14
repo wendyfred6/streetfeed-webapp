@@ -1457,55 +1457,70 @@ function PendingView() {
 
 // ─── SEGMENTED CONTROL ────────────────────────────────────────────────────────
 
-const TAB_W = 96; // px — elke tab gelijke breedte; past 5 tabs op 480px max-width
-
 function SegmentedControl({ options, value, onChange, label, style }) {
   const selectedIndex = Math.max(0, options.findIndex(o => o.key === value));
   const scrollRef = useRef(null);
+  const [pillGeom, setPillGeom] = useState({ left: 0, width: 0 });
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const tab = el.querySelector(`[data-tab="${selectedIndex}"]`);
+    if (!tab) return;
+    setPillGeom({ left: tab.offsetLeft, width: tab.offsetWidth });
+  }, [selectedIndex]);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const targetLeft = selectedIndex * TAB_W - (el.offsetWidth - TAB_W) / 2;
-    el.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+    const tab = el.querySelector(`[data-tab="${selectedIndex}"]`);
+    if (!tab) return;
+    const center = tab.offsetLeft - (el.offsetWidth - tab.offsetWidth) / 2;
+    el.scrollTo({ left: Math.max(0, center), behavior: 'smooth' });
   }, [value]);
 
   return (
     <div style={style}>
       {label && <div style={s.sectionLabel}>{label}</div>}
-      <div style={{ padding: '0 12px 10px' }}>
+      <div style={{ padding: '0 16px 12px' }}>
         <div ref={scrollRef} style={{
           display: 'flex',
           overflowX: 'auto',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           position: 'relative',
-          background: 'rgba(0,0,0,0.07)',
+          background: 'rgba(255,255,255,0.32)',
           borderRadius: RADIUS.pill,
-          padding: 3,
+          padding: 4,
         }}>
-          {/* witte pill schuift achter het actieve item (Apple-stijl) */}
+          {/* witte pill — positie en breedte gemeten uit DOM */}
           <div style={{
             position: 'absolute',
-            top: 3, left: 3 + selectedIndex * TAB_W,
-            height: 'calc(100% - 6px)', width: TAB_W,
+            top: 4, left: pillGeom.left,
+            height: 'calc(100% - 8px)', width: pillGeom.width,
             background: '#FFFFFF',
             borderRadius: RADIUS.pill,
-            transition: 'left 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.16)',
+            transition: 'left 0.35s cubic-bezier(0.34,1.56,0.64,1), width 0.35s cubic-bezier(0.34,1.56,0.64,1)',
             pointerEvents: 'none',
           }} />
-          {options.map(({ key, label: optLabel }) => (
-            <div key={key} onClick={() => onChange(key)} style={{
-              flex: `0 0 ${TAB_W}px`,
-              padding: '8px 4px',
-              textAlign: 'center', fontSize: 13,
-              fontWeight: value === key ? 700 : 500,
-              color: value === key ? COLORS.text : COLORS.textMuted,
-              cursor: 'pointer', userSelect: 'none',
-              whiteSpace: 'nowrap',
-              transition: 'color 0.2s',
-              position: 'relative', zIndex: 1,
-            }}>
+          {options.map(({ key, label: optLabel }, idx) => (
+            <div
+              key={key}
+              data-tab={idx}
+              onClick={() => onChange(key)}
+              style={{
+                flexShrink: 0,
+                padding: '4px 12px',
+                fontSize: 13,
+                fontWeight: value === key ? 700 : 500,
+                color: value === key ? COLORS.accent : COLORS.textMuted,
+                cursor: 'pointer', userSelect: 'none',
+                whiteSpace: 'nowrap',
+                transition: 'color 0.2s',
+                position: 'relative', zIndex: 1,
+              }}
+            >
               {optLabel}
             </div>
           ))}
