@@ -243,6 +243,8 @@ function MeldingLinks({ post }) {
 
 // ─── CARRIER BADGE ─────────────────────────────────────────────────────────────
 
+const CARRIERS = ['PostNL', 'DHL', 'DPD', 'GLS', 'FedEx', 'UPS', 'Bol.com', 'Coolblue'];
+
 const CARRIER_COLORS = {
   'PostNL':   { bg: '#FF6600', color: '#fff' },
   'DHL':      { bg: '#FFCC00', color: '#CC0605' },
