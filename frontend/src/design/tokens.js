@@ -18,7 +18,7 @@ export const COLORS = {
 };
 
 // ─── Paginagradiënt ─────────────────────────────────────────────────────────────
-export const BG_GRADIENT = 'radial-gradient(ellipse at 60% 30%, #FEFCF9 0%, #F3EAE0 45%, #E7DDD2 100%)';
+export const BG_GRADIENT = 'radial-gradient(ellipse at 60% 8%, #FFF8F2 0%, #FFE4CA 30%, #F5D0B0 62%, #EAD4BC 100%)';
 
 // ─── Semitransparante varianten ──────────────────────────────────────────────────
 export const ALPHA = {
