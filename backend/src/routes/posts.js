@@ -103,12 +103,12 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
   sendPushToStreet(streetId, category, isSearchPackage ? {
     title,
     body: 'Weet jij waar dit pakket is?',
-    url: `/streets/${streetId}`,
+    url: `/?post=${post.id}`,
     category,
   } : {
     title,
     body: (body || '').substring(0, 100),
-    url: `/streets/${streetId}`,
+    url: `/?post=${post.id}`,
     category,
   }).catch(() => {});
 

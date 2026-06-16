@@ -283,12 +283,16 @@ function CarrierBadge({ carrier }) {
 
 // ─── POST CARD ─────────────────────────────────────────────────────────────────
 
-function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate, onEdit, canEdit }) {
+function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate, onEdit, canEdit, autoExpand }) {
   const [expanded, setExpanded] = useState(false);
   const [threadComments, setThreadComments] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [sendingComment, setSendingComment] = useState(false);
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (autoExpand) setExpanded(true);
+  }, [autoExpand]);
 
   useEffect(() => {
     if (expanded && threadComments === null) {
@@ -339,7 +343,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
   const firstName = (post.author_name || '').split(' ')[0] || 'Bewoner';
 
   return (
-    <div style={s.card(post.pinned)}>
+    <div id={`post-${post.id}`} style={s.card(post.pinned)}>
       {/* ── Klikbare header (altijd zichtbaar) ── */}
       <div className="tap-feedback" style={{ cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
@@ -1514,6 +1518,7 @@ export default function App() {
   const [streetInfo, setStreetInfo] = useState(null);
   const [editPost, setEditPost] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [deepLinkPostId, setDeepLinkPostId] = useState(null);
 
   const STREET_ID = 1; // Reyer Anslostraat (first street)
 
@@ -1560,6 +1565,44 @@ export default function App() {
       navigator.serviceWorker.register('/sw.js').catch(console.error);
     }
   }, []);
+
+  // Deep link vanuit een notificatie: ?post=<id> direct naar de juiste post
+  const handleDeepLink = useCallback((url) => {
+    let parsed;
+    try {
+      parsed = new URL(url, window.location.origin);
+    } catch {
+      return;
+    }
+    const postId = parsed.searchParams.get('post');
+    if (!postId) return;
+    parsed.searchParams.delete('post');
+    window.history.replaceState(null, '', parsed.pathname + (parsed.search || '') + parsed.hash);
+    setTab('feed');
+    setFilter('all');
+    setDeepLinkPostId(Number(postId));
+  }, []);
+
+  useEffect(() => {
+    handleDeepLink(window.location.href);
+  }, [handleDeepLink]);
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    const onMessage = (e) => {
+      if (e.data?.type === 'navigate' && e.data.url) handleDeepLink(e.data.url);
+    };
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage);
+  }, [handleDeepLink]);
+
+  useEffect(() => {
+    if (!deepLinkPostId || loading) return;
+    if (!posts.some(p => p.id === deepLinkPostId)) return;
+    const el = document.getElementById(`post-${deepLinkPostId}`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setDeepLinkPostId(null);
+  }, [deepLinkPostId, posts, loading]);
 
   const handleLike = async (id) => {
     const { liked } = await api.post(`/streets/${STREET_ID}/posts/${id}/like`);
@@ -1695,12 +1738,12 @@ export default function App() {
             : <>
               {pinnedPosts.length > 0 && (
                 <><div style={s.sectionLabel}>{t('pinned')}</div>
-                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} />)}</>
+                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} />)}</>
               )}
               <div style={s.sectionLabel}>{t('recent')}</div>
               {regularPosts.length === 0
                 ? <div style={s.emptyState}>{t('no_posts')}</div>
-                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} />)}
+                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} />)}
             </>
           }
         </div>

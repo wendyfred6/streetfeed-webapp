@@ -1,4 +1,4 @@
-const CACHE = 'streetfeed-v62';
+const CACHE = 'streetfeed-v63';
 const STATIC = ['/', '/index.html'];
 
 self.addEventListener('install', (e) => {
@@ -39,9 +39,12 @@ self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   const url = e.notification.data?.url || '/';
   e.waitUntil(
-    clients.matchAll({ type: 'window' }).then(ws => {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(ws => {
       const existing = ws.find(w => w.url.includes(self.location.origin));
-      if (existing) return existing.focus();
+      if (existing) {
+        existing.postMessage({ type: 'navigate', url });
+        return existing.focus();
+      }
       return clients.openWindow(url);
     })
   );
