@@ -35,7 +35,7 @@ function catLabel(key) {
 // ─── STYLES ────────────────────────────────────────────────────────────────────
 
 const s = {
-  app: { fontFamily: "'Inter','Helvetica Neue',sans-serif", background: 'transparent', color: COLORS.text, minHeight: '100vh', maxWidth: 480, margin: '0 auto' },
+  app: { fontFamily: "'Inter','Helvetica Neue',sans-serif", background: 'transparent', color: COLORS.text, minHeight: '100vh', maxWidth: 390, margin: '0 auto' },
   header: { ...GLASS.header, borderBottom: '1px solid rgba(255,255,255,0.3)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 },
   logo: { fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px' },
   accent: { color: COLORS.accent },
@@ -58,8 +58,8 @@ const s = {
   sheet: { ...GLASS.sheet, borderRadius: `${RADIUS.xl}px ${RADIUS.xl}px 0 0`, width: '100%', maxWidth: 480, padding: '20px 20px 40px', maxHeight: '90vh', overflowY: 'auto' },
   sheetHandle: { width: 36, height: 4, background: 'rgba(0,0,0,0.15)', borderRadius: 2, margin: '0 auto 20px' },
   sheetTitle: { fontSize: 18, fontWeight: 800, marginBottom: 20, letterSpacing: '-0.3px' },
-  input: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
-  textarea: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 15, outline: 'none', boxSizing: 'border-box', resize: 'none', height: 80, marginBottom: 10 },
+  input: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
+  textarea: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', resize: 'none', height: 80, marginBottom: 10 },
   label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.accent, display: 'block', marginBottom: 6 },
   catGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 },
   catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}18` : 'rgba(255,255,255,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: `1px solid ${selected ? CATEGORIES[cat]?.color : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
@@ -479,7 +479,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(e); } }}
                   placeholder="Reageer…"
                   rows={1}
-                  style={{ ...s.textarea, flex: 1, padding: '8px 10px', fontSize: 13, height: 'auto', marginBottom: 0 }}
+                  style={{ ...s.textarea, flex: 1, padding: '8px 10px', fontSize: 16, height: 'auto', marginBottom: 0 }}
                 />
                 <button onClick={submitComment} disabled={!commentText.trim() || sendingComment}
                   style={{ background: commentText.trim() ? COLORS.accent : COLORS.border, color: commentText.trim() ? '#000' : COLORS.textDim, border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: commentText.trim() ? 'pointer' : 'default', flexShrink: 0, transition: 'background 0.15s' }}>
@@ -913,7 +913,7 @@ function ActionMenu({ items, onClose }) {
 
 // ─── BIJLAGE UPLOAD ────────────────────────────────────────────────────────────
 
-function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, documentName, uploading }) {
+function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, documentName, uploading, onUploading }) {
   const [showMenu, setShowMenu] = useState(false);
   const cameraRef = useRef(null);
   const photoRef = useRef(null);
@@ -923,6 +923,7 @@ function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, doc
     const file = e.target.files[0];
     if (!file) return;
     onPhotoUploaded(URL.createObjectURL(file), null);
+    onUploading?.(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -930,7 +931,11 @@ function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, doc
       if (!res.ok) throw new Error('Upload mislukt');
       const { key } = await res.json();
       onPhotoUploaded(URL.createObjectURL(file), key);
-    } catch (e) { console.error('Upload failed', e); }
+    } catch (e) {
+      console.error('Upload failed', e);
+    } finally {
+      onUploading?.(false);
+    }
   };
 
   const hasAttachment = photoPreview || documentName;
@@ -1082,13 +1087,13 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
       : `Pakket voor nr. ${forHouse.trim()}`
     : '';
 
-  const canSubmit = isBezorging
+  const canSubmit = !uploading && (isBezorging
     ? !!forHouse.trim()
     : isMelding
       ? !!(title.trim() && body.trim())
       : isEvenement
         ? !!(title.trim() && eventDate)
-        : !!title.trim();
+        : !!title.trim());
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -1143,7 +1148,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
           <label style={s.label}>Beschrijving (optioneel)</label>
           <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
           {isBezorgd && (
-            <AttachmentUpload photoPreview={photoPreview} uploading={uploading}
+            <AttachmentUpload photoPreview={photoPreview} uploading={uploading} onUploading={setUploading}
               onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); if (key) setPhotoKey(key); }} />
           )}
         </>
@@ -1183,7 +1188,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
           <input style={s.input} placeholder="Kort en duidelijk" value={title} onChange={e => setTitle(e.target.value)} />
           <label style={s.label}>Beschrijving *</label>
           <textarea style={s.textarea} value={body} onChange={e => setBody(e.target.value)} />
-          <AttachmentUpload photoPreview={photoPreview} uploading={uploading}
+          <AttachmentUpload photoPreview={photoPreview} uploading={uploading} onUploading={setUploading}
             onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); if (key) setPhotoKey(key); }} />
         </>
       )}
@@ -1207,7 +1212,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
           <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
           <label style={s.label}>Locatie (optioneel)</label>
           <input style={s.input} placeholder="Bijv. bij nr. 34 of Vondelpark" value={eventLocation} onChange={e => setEventLocation(e.target.value)} />
-          <AttachmentUpload photoPreview={photoPreview} uploading={uploading}
+          <AttachmentUpload photoPreview={photoPreview} uploading={uploading} onUploading={setUploading}
             onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); if (key) setPhotoKey(key); }} />
           {canPin && (
             <>
@@ -1554,6 +1559,7 @@ export default function App() {
   const [postError, setPostError] = useState('');
   const [streetInfo, setStreetInfo] = useState(null);
   const [editPost, setEditPost] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const STREET_ID = 1; // Reyer Anslostraat (first street)
 
@@ -1574,8 +1580,21 @@ export default function App() {
   }, [filter]);
 
   useEffect(() => {
-    if (tab === 'feed') loadPosts();
+    if (tab === 'feed') {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      loadPosts();
+    }
   }, [tab, loadPosts]);
+
+  const wasDetailOpenRef = useRef(false);
+  useEffect(() => {
+    const isOpen = !!(eventDetail || joinDetail || editPost);
+    if (wasDetailOpenRef.current && !isOpen && tab === 'feed') {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      loadPosts();
+    }
+    wasDetailOpenRef.current = isOpen;
+  }, [eventDetail, joinDetail, editPost, loadPosts, tab]);
 
   useEffect(() => {
     api.get(`/streets/${STREET_ID}`).then(setStreetInfo).catch(() => {});
@@ -1612,16 +1631,22 @@ export default function App() {
     }
   };
 
-  const handleReport = async (id) => {
+  const handleReport = (id) => {
     if (canModerate) {
-      await api.delete(`/streets/${STREET_ID}/posts/${id}`);
-      setPosts(ps => ps.filter(p => p.id !== id));
+      setDeleteConfirm(id);
     } else {
       await api.post(`/streets/${STREET_ID}/posts/${id}/report`);
       setPosts(ps => ps.map(p => p.id === id ? { ...p, reported: true } : p));
       setReportedToast(true);
       setTimeout(() => setReportedToast(false), 2500);
     }
+  };
+
+  const handleDeleteConfirmed = async () => {
+    const id = deleteConfirm;
+    setDeleteConfirm(null);
+    await api.delete(`/streets/${STREET_ID}/posts/${id}`);
+    setPosts(ps => ps.filter(p => p.id !== id));
   };
 
   const handleResolve = async (id, resolved) => {
@@ -1777,7 +1802,7 @@ export default function App() {
         />
       )}
       {showPost && (
-        <NewPostSheet onClose={() => setShowPost(false)} onSubmit={(data) => { handleNewPost(data); setShowPost(false); }}
+        <NewPostSheet onClose={() => setShowPost(false)} onSubmit={(data) => { handleNewPost(data); setShowPost(false); window.scrollTo({ top: 0, behavior: 'instant' }); }}
           streetId={STREET_ID} canPin={canPin} user={user} initialCat={pendingCat} initialType={pendingType} />
       )}
       {eventDetail && (
@@ -1788,6 +1813,23 @@ export default function App() {
       )}
       {editPost && (
         <EditPostSheet post={editPost} onClose={() => setEditPost(null)} onSave={handleEdit} />
+      )}
+      {deleteConfirm && (
+        <div style={s.overlay} onClick={() => setDeleteConfirm(null)}>
+          <div style={{ ...s.sheet, width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+            <div style={s.sheetHandle} />
+            <div style={s.sheetTitle}>Bericht verwijderen?</div>
+            <p style={{ fontSize: 15, color: COLORS.textDim, lineHeight: 1.5, marginBottom: 20 }}>
+              Weet je zeker dat je dit bericht wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+            </p>
+            <button style={{ ...s.submitBtn, background: COLORS.red }} onClick={handleDeleteConfirmed}>
+              Bericht verwijderen
+            </button>
+            <button style={s.cancelBtn} onClick={() => setDeleteConfirm(null)}>
+              Annuleren
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
