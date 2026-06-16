@@ -12,6 +12,7 @@ const CATEGORIES = {
   straatzaken: { label: 'Straatzaken', labelEn: 'Street',    color: '#FF8833', pinnable: true },
   melding:     { label: 'Melding',     labelEn: 'Report',    color: '#FF4444' },
   evenement:   { label: 'Evenement',   labelEn: 'Event',     color: '#AA77FF', pinnable: true, isEvent: true },
+  algemeen:    { label: 'Algemeen',    labelEn: 'General',   color: '#44BB44' },
 };
 
 // Backward compat labels for posts stored before the category rename
@@ -319,6 +320,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
   const isIncident = post.category === 'melding'   || post.category === 'incident';
   const isPackage  = post.category === 'bezorging' || post.category === 'package';
   const isWorks    = post.category === 'straatzaken' || post.category === 'works' || ['blockage', 'container'].includes(post.category);
+  const isAlgemeen = post.category === 'algemeen';
 
   // FRE-265: datum-badge logica
   const getDateLabel = () => {
@@ -352,6 +354,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
               {(() => {
                 const INCIDENT_LBL = { lost_found: 'Lost & Found', overlast: 'Overlast', schade: 'Schade', verdacht: 'Verdachte situatie' };
                 const WORKS_LBL   = { steiger: 'Steiger', werkzaamheden: 'Werkzaamheden', parkeerverbod: 'Parkeerverbod', container: 'Container', kraan: 'Kraan', verhuizing: 'Verhuizing' };
+                const ALGEMEEN_LBL = { gezocht: 'Gezocht', te_leen: 'Te leen', te_koop: 'Te koop', gratis: 'Gratis af te halen', aanbeveling: 'Aanbeveling', vraag: 'Vraag' };
                 let second = null;
                 if (isPackage) {
                   if (post.sub_type === 'gezocht' || post.sub_type === 'search') second = 'Gezocht';
@@ -360,6 +363,8 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
                   second = INCIDENT_LBL[post.sub_type] || null;
                 } else if (isWorks) {
                   second = WORKS_LBL[post.sub_type] || dateLabel;
+                } else if (isAlgemeen && post.sub_type) {
+                  second = ALGEMEEN_LBL[post.sub_type] || null;
                 } else {
                   second = dateLabel || null;
                 }
@@ -519,6 +524,7 @@ const CAT_META = {
   straatzaken: { emoji: '🚧', sub: 'Werkzaamheden in de straat' },
   melding:     { emoji: '⚠️', sub: 'Iets melden aan de buurt' },
   evenement:   { emoji: '🎉', sub: 'Buurtactiviteit organiseren' },
+  algemeen:    { emoji: '💬', sub: 'Lenen, kopen, verkopen, vragen' },
 };
 
 function CategoryPickerSheet({ onClose, onSelect }) {
@@ -948,6 +954,14 @@ const TYPE_META = {
     { key: 'schade',     label: 'Schade',             sub: 'Schade aan eigendom of voertuig',        emoji: '⚠️' },
     { key: 'verdacht',   label: 'Verdachte situatie', sub: 'Onraad of verdacht gedrag',              emoji: '👁️' },
   ],
+  algemeen: [
+    { key: 'gezocht',     label: 'Gezocht',            sub: 'Je zoekt iets',                          emoji: '🔍' },
+    { key: 'te_leen',     label: 'Te leen',             sub: 'Iets uitlenen aan de buurt',             emoji: '🤝' },
+    { key: 'te_koop',     label: 'Te koop',             sub: 'Iets verkopen',                          emoji: '💰' },
+    { key: 'gratis',      label: 'Gratis af te halen',  sub: 'Iets weggeven',                          emoji: '🎁' },
+    { key: 'aanbeveling', label: 'Aanbeveling',         sub: 'Een vakman of dienst vragen of aanraden', emoji: '👍' },
+    { key: 'vraag',       label: 'Vraag',               sub: 'Een algemene vraag aan de buurt',        emoji: '❓' },
+  ],
 };
 
 function typeLabel(cat, type) {
@@ -1040,6 +1054,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
   const isStraatzaken = initialCat === 'straatzaken'  || initialCat === 'works';
   const isMelding     = initialCat === 'melding'      || initialCat === 'incident';
   const isEvenement   = initialCat === 'evenement'    || initialCat === 'event';
+  const isAlgemeen    = initialCat === 'algemeen';
   const isGezocht     = initialType === 'gezocht';
 
   const autoTitle = startHouse.trim()
@@ -1173,6 +1188,17 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
               <input type="time" style={{ ...s.input, marginBottom: 0 }} value={eventTime} onChange={e => setEventTime(e.target.value)} />
             </div>
           </div>
+          {houseRow}
+          <label style={s.label}>Omschrijving</label>
+          <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
+        </>
+      )}
+
+      {/* Algemeen */}
+      {isAlgemeen && (
+        <>
+          <label style={s.label}>Titel *</label>
+          <input style={s.input} placeholder="Bijv. Tweedehands bank te koop" value={title} onChange={e => setTitle(e.target.value)} />
           {houseRow}
           <label style={s.label}>Omschrijving</label>
           <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
