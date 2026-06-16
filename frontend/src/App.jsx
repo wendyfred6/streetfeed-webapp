@@ -1571,13 +1571,13 @@ export default function App() {
   const loadPosts = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.get(`/streets/${STREET_ID}/posts${filter !== 'all' ? `?category=${filter}` : ''}`);
+      const data = await api.get(`/streets/${STREET_ID}/posts`);
       setPosts(data);
     } catch (e) {
       console.error('Failed to load posts', e);
     }
     setLoading(false);
-  }, [filter]);
+  }, []);
 
   useEffect(() => {
     if (tab === 'feed') {
@@ -1692,8 +1692,9 @@ export default function App() {
     }
   };
 
-  const pinnedPosts = posts.filter(p => p.pinned);
-  const regularPosts = posts.filter(p => !p.pinned);
+  const visiblePosts = filter === 'all' ? posts : posts.filter(p => p.category === filter);
+  const pinnedPosts = visiblePosts.filter(p => p.pinned);
+  const regularPosts = visiblePosts.filter(p => !p.pinned);
 
   return (
     <div style={s.app}>
