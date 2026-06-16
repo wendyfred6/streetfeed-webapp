@@ -42,7 +42,7 @@ function groupAddresses(flat) {
   return map;
 }
 
-export default function HouseNumberPicker({ streetId, value, onChange, style = {} }) {
+export default function HouseNumberPicker({ streetId, value, onChange, showSuffix = true, style = {} }) {
   const [num, setNum] = useState('');
   const [suf, setSuf] = useState('');
   const [addresses, setAddresses] = useState([]);
@@ -70,6 +70,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, style = {
     setNum(n);
     setSuf('');
     if (!n) { onChange(''); return; }
+    if (!showSuffix) { onChange(n); return; }
     const subs = grouped[n] || [];
     if (subs.length <= 1) emit(n, subs[0] || '');
     else onChange('');
@@ -96,7 +97,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, style = {
           style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
       </div>
 
-      {suffixes.length > 1 && (
+      {showSuffix && suffixes.length > 1 && (
         <div style={{ flex: 1, position: 'relative' }}>
           <select
             value={suf}

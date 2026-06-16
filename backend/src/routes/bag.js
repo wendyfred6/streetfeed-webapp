@@ -49,7 +49,13 @@ async function fetchAddresses(streetName, city) {
     if (start > 500) break;
   }
 
+  // PDOK's vrije-tekst-zoekopdracht is relevance-based en geeft soms ook
+  // resultaten van andere straten/plaatsen terug — alleen exacte match gebruiken
   const addresses = all
+    .filter(a =>
+      (a.straatnaam || '').toLowerCase() === streetName.toLowerCase() &&
+      (a.woonplaatsnaam || '').toLowerCase() === city.toLowerCase()
+    )
     .map(a => {
       const suf = normalizeSuffix(a.huisletter, a.huisnummertoevoeging);
       return suf ? `${a.huisnummer}-${suf}` : String(a.huisnummer);

@@ -86,9 +86,9 @@ const s = {
   endDateBadge: { fontSize: 10, color: COLORS.accent, background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.xs, padding: '2px 6px' },
   filterBar: { display: 'flex', gap: 6, padding: '12px 20px', overflowX: 'auto', scrollbarWidth: 'none' },
   filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : 'rgba(255,255,255,0.55)', color: active ? '#FFFFFF' : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
-  bottomBar: { position: 'fixed', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 28px)', maxWidth: 374, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, zIndex: 50 },
-  tabBar: { ...GLASS.header, border: '1px solid rgba(255,255,255,0.55)', borderRadius: RADIUS.pill, padding: '5px', display: 'flex', flexShrink: 0 },
-  tab: (active) => ({ padding: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? ALPHA.accentSubtle : 'none', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', color: active ? COLORS.accent : COLORS.textMuted, transition: 'background 0.15s' }),
+  bottomBar: { position: 'fixed', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 28px)', maxWidth: 374, display: 'flex', alignItems: 'center', gap: 10, zIndex: 50 },
+  tabBar: (full) => ({ ...GLASS.header, border: '1px solid rgba(255,255,255,0.55)', borderRadius: RADIUS.pill, padding: '5px', display: 'flex', flex: full ? '1 1 auto' : '0 0 auto', transition: 'flex 0.2s' }),
+  tab: (active, full) => ({ flex: full ? 1 : '0 0 auto', padding: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? ALPHA.accentSubtle : 'none', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', color: active ? COLORS.accent : COLORS.textMuted, transition: 'background 0.15s' }),
   postCta: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '0 18px', height: 54, fontSize: 14, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: `0 4px 20px ${ALPHA.terraGlow}`, flexShrink: 0 },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(26,10,18,0.50)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' },
   sheet: { ...GLASS.sheet, borderRadius: `${RADIUS.xl}px ${RADIUS.xl}px 0 0`, width: '100%', maxWidth: 480, padding: '20px 20px 40px', maxHeight: '90vh', overflowY: 'auto' },
@@ -791,11 +791,11 @@ function EditPostSheet({ post, onClose, onSave, streetId }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
             <div>
               <label style={s.label}>Van nr.</label>
-              <HouseNumberPicker streetId={streetId} value={startHouse} onChange={setStartHouse} />
+              <HouseNumberPicker streetId={streetId} value={startHouse} onChange={setStartHouse} showSuffix={false} />
             </div>
             <div>
               <label style={s.label}>Tot nr.</label>
-              <HouseNumberPicker streetId={streetId} value={endHouse} onChange={setEndHouse} />
+              <HouseNumberPicker streetId={streetId} value={endHouse} onChange={setEndHouse} showSuffix={false} />
             </div>
           </div>
         )}
@@ -1038,9 +1038,10 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
   const isGezocht     = initialType === 'gezocht';
   const isBezorgd     = initialType === 'bezorgd';
 
-  // Gezocht: de poster zoekt z'n eigen pakket — huisnummer staat al in de postheader
+  // Gezocht: de poster zoekt z'n eigen pakket — geen invoerveld nodig, het
+  // huisnummer is al bekend uit het account
   const autoTitle = isGezocht
-    ? 'Pakket gezocht'
+    ? (user?.house_number ? `Pakket gezocht voor nr. ${user.house_number}` : 'Pakket gezocht')
     : startHouse.trim() ? `Pakket voor nr. ${startHouse.trim()}` : '';
 
   const canSubmit = !uploading && (isBezorging
@@ -1078,11 +1079,11 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
       <div>
         <label style={s.label}>Van nr. *</label>
-        <HouseNumberPicker streetId={streetId} value={startHouse} onChange={setStartHouse} />
+        <HouseNumberPicker streetId={streetId} value={startHouse} onChange={setStartHouse} showSuffix={false} />
       </div>
       <div>
         <label style={s.label}>Tot nr.</label>
-        <HouseNumberPicker streetId={streetId} value={endHouse} onChange={setEndHouse} />
+        <HouseNumberPicker streetId={streetId} value={endHouse} onChange={setEndHouse} showSuffix={false} />
       </div>
     </div>
   );
@@ -1527,6 +1528,7 @@ export default function App() {
   const [joinDetail, setJoinDetail] = useState(null);
   const [reportedToast, setReportedToast] = useState(false);
   const [postError, setPostError] = useState('');
+  const [notifToast, setNotifToast] = useState('');
   const [streetInfo, setStreetInfo] = useState(null);
   const [editPost, setEditPost] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -1717,6 +1719,11 @@ export default function App() {
           {postError}
         </div>
       )}
+      {notifToast && (
+        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: COLORS.surface, border: `1px solid ${COLORS.accent}`, borderRadius: 10, padding: '10px 20px', fontSize: 13, color: COLORS.text, zIndex: 200, whiteSpace: 'nowrap' }}>
+          {notifToast}
+        </div>
+      )}
 
       <div style={s.header}>
         <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
@@ -1725,9 +1732,18 @@ export default function App() {
             style={s.headerIconBtn(subscribed)}
             title={subscribed ? 'Notificaties staan aan' : 'Notificaties aanzetten'}
             aria-label="Notificaties"
-            onClick={() => { if (!subscribed && permission !== 'denied') subscribe(); else setTab('settings'); }}
+            onClick={async () => {
+              if (subscribed) { setTab('settings'); return; }
+              const result = await subscribe();
+              if (result.ok) {
+                setNotifToast('Notificaties staan nu aan');
+              } else if (result.error) {
+                setNotifToast(result.error);
+              }
+              if (result.ok || result.error) setTimeout(() => setNotifToast(''), 3000);
+            }}
           >
-            <BellIcon size={20} weight="regular" />
+            <BellIcon size={20} weight={subscribed ? 'fill' : 'regular'} />
           </button>
           <button
             style={s.headerIconBtn(tab === 'settings')}
@@ -1787,7 +1803,7 @@ export default function App() {
       {tab === 'settings' && <SettingsView user={user} onLogout={logout} />}
 
       <div style={s.bottomBar}>
-        <div style={s.tabBar}>
+        <div style={s.tabBar(tab !== 'feed')}>
           {[
             { id: 'feed', label: t('feed'), icon: HouseIcon },
             ...(canModerate ? [
@@ -1799,7 +1815,7 @@ export default function App() {
             const active = tab === tab_.id;
             const TabIcon = tab_.icon;
             return (
-              <button key={tab_.id} style={s.tab(active)} onClick={() => setTab(tab_.id)} aria-label={tab_.label} title={tab_.label}>
+              <button key={tab_.id} style={s.tab(active, tab !== 'feed')} onClick={() => setTab(tab_.id)} aria-label={tab_.label} title={tab_.label}>
                 <TabIcon size={20} weight={active ? 'bold' : 'regular'} />
               </button>
             );
