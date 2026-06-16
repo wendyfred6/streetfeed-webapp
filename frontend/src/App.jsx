@@ -179,61 +179,6 @@ function AttendanceToggle({ post, onRsvp }) {
   );
 }
 
-// ─── INCIDENT EXTRA ────────────────────────────────────────────────────────────
-
-function RdwLookup({ kenteken }) {
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [confirmed, setConfirmed] = useState(false);
-  const clean = kenteken.replace(/-/g, '').toUpperCase();
-
-  const lookup = async () => {
-    if (clean.length < 4) return;
-    setLoading(true); setError(null); setResult(null); setConfirmed(false);
-    try {
-      const data = await api.get(`/rdw/${clean}`);
-      setResult(data);
-    } catch (e) {
-      setError(e.status === 404 ? t('rdw_not_found') : t('rdw_error'));
-    }
-    setLoading(false);
-  };
-
-  if (!clean || clean.length < 4) return null;
-
-  return (
-    <div style={{ marginTop: 8 }}>
-      {!result && !loading && !error && (
-        <button onClick={lookup} style={{ width: '100%', background: COLORS.bg, border: `1px solid ${COLORS.blue}`, borderRadius: 8, padding: '9px 12px', color: COLORS.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-          {t('rdw_lookup')}
-        </button>
-      )}
-      {loading && <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, textAlign: 'center' }}>{t('rdw_loading')}</div>}
-      {error && <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.red }}>{error}</div>}
-      {result && !confirmed && (
-        <div style={{ background: `${COLORS.blue}18`, border: `1px solid ${COLORS.blue}44`, borderRadius: RADIUS.lg, padding: '12px 14px', marginTop: 4 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.blue, marginBottom: 8 }}>{t('rdw_only_you')}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 12 }}>
-            {[['Merk', result.merk], ['Type', result.type], ['Kleur', result.kleur], ['Bouwjaar', result.bouwjaar]].map(([label, val]) => (
-              <div key={label} style={{ background: COLORS.bg, borderRadius: 6, padding: '6px 10px' }}>
-                <div style={{ fontSize: 10, color: COLORS.textDim, textTransform: 'uppercase' }}>{label}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginTop: 2 }}>{val}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 10, lineHeight: 1.5 }}>{t('rdw_warning')}</div>
-          <button onClick={() => setConfirmed(true)} style={{ width: '100%', background: COLORS.blue, color: '#fff', border: 'none', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{t('rdw_confirm')}</button>
-        </div>
-      )}
-      {confirmed && result && (
-        <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.green }}>
-          ✓ {result.merk} {result.type} · {result.kleur} · {result.bouwjaar} — opgeslagen voor jouw aangifte
-        </div>
-      )}
-    </div>
-  );
-}
 
 const MELDING_LINKS = {
   overlast: [{ label: 'Overlast melden bij Gemeente Amsterdam', url: 'https://meldingen.amsterdam.nl/', color: COLORS.blue }],

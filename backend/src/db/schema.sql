@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS posts (
   body           TEXT NOT NULL,
   pinned         BOOLEAN NOT NULL DEFAULT FALSE,
   end_date       DATE,
-  license_plate  TEXT,
+  license_plate  TEXT, -- niet meer actief gebruikt (kentekens post-MVP) — kolom blijft staan voor bestaande data
   event_date     TEXT,
   event_time     TEXT,
   event_location TEXT,

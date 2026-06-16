@@ -7,7 +7,6 @@ import postsRoutes from './routes/posts.js';
 import streetsRoutes from './routes/streets.js';
 import uploadRoutes from './routes/upload.js';
 import pushRoutes from './routes/push.js';
-import rdwRoutes from './routes/rdw.js';
 import bagRoutes from './routes/bag.js';
 import { runMigrations } from './db/index.js';
 
@@ -29,7 +28,6 @@ app.use('/api/streets', streetsRoutes);
 app.use('/api/streets', postsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/push', pushRoutes);
-app.use('/api/rdw', rdwRoutes);
 app.use('/api/bag', bagRoutes);
 
 app.get('/api/health', (_, res) => res.json({ ok: true, ts: new Date() }));

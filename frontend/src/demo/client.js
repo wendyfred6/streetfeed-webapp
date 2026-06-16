@@ -164,13 +164,6 @@ export async function demoRequest(method, path, body) {
     return result;
   }
 
-  // ── RDW lookup ─────────────────────────────────────────────────────────────
-  const rdwM = path.match(/^\/rdw\/(.+)$/);
-  if (method === 'GET' && rdwM) {
-    // Return plausible dummy vehicle data
-    return { kenteken: rdwM[1], merk: 'VOLKSWAGEN', type: 'Golf', kleur: 'GRIJS', bouwjaar: '2019' };
-  }
-
   // ── Upload presign (no-op in demo) ─────────────────────────────────────────
   if (method === 'POST' && path === '/upload/presign') {
     return { url: 'https://example.com/demo-upload', key: 'demo/placeholder.jpg' };
