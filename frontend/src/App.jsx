@@ -7,6 +7,39 @@ import { t, getLang, setLang } from './i18n/index.js';
 import { COLORS, RADIUS, ALPHA, GLASS } from './design/tokens.js';
 import HouseNumberPicker from './components/HouseNumberPicker.jsx';
 
+// Phosphor Icons — subpath imports per icoon i.p.v. de barrel, voor kleinere bundle
+import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
+import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
+import { MapPinIcon } from '@phosphor-icons/react/dist/csr/MapPin';
+import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
+import { UserGearIcon } from '@phosphor-icons/react/dist/csr/UserGear';
+import { GearIcon } from '@phosphor-icons/react/dist/csr/Gear';
+import { BellIcon } from '@phosphor-icons/react/dist/csr/Bell';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
+import { HeartIcon } from '@phosphor-icons/react/dist/csr/Heart';
+import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
+import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
+import { ChatCircleIcon } from '@phosphor-icons/react/dist/csr/ChatCircle';
+import { ChatsCircleIcon } from '@phosphor-icons/react/dist/csr/ChatsCircle';
+import { UsersThreeIcon } from '@phosphor-icons/react/dist/csr/UsersThree';
+import { PackageIcon } from '@phosphor-icons/react/dist/csr/Package';
+import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
+import { WrenchIcon } from '@phosphor-icons/react/dist/csr/Wrench';
+import { CarIcon } from '@phosphor-icons/react/dist/csr/Car';
+import { StairsIcon } from '@phosphor-icons/react/dist/csr/Stairs';
+import { CraneTowerIcon } from '@phosphor-icons/react/dist/csr/CraneTower';
+import { KeyIcon } from '@phosphor-icons/react/dist/csr/Key';
+import { SpeakerHighIcon } from '@phosphor-icons/react/dist/csr/SpeakerHigh';
+import { WarningIcon } from '@phosphor-icons/react/dist/csr/Warning';
+import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
+import { HandshakeIcon } from '@phosphor-icons/react/dist/csr/Handshake';
+import { MoneyIcon } from '@phosphor-icons/react/dist/csr/Money';
+import { GiftIcon } from '@phosphor-icons/react/dist/csr/Gift';
+import { ThumbsUpIcon } from '@phosphor-icons/react/dist/csr/ThumbsUp';
+import { QuestionIcon } from '@phosphor-icons/react/dist/csr/Question';
+import { ConfettiIcon } from '@phosphor-icons/react/dist/csr/Confetti';
+import { TrafficConeIcon } from '@phosphor-icons/react/dist/csr/TrafficCone';
+
 const CATEGORIES = {
   bezorging:   { label: 'Bezorging',   labelEn: 'Package',   color: '#4488FF' },
   straatzaken: { label: 'Straatzaken', labelEn: 'Street',    color: '#FF8833', pinnable: true },
@@ -94,12 +127,8 @@ function timeAgo(ts) {
 
 function Chevron({ size = 14, color, rotate = 0, style }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke={color || COLORS.textMuted} strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round"
-      style={{ flexShrink: 0, pointerEvents: 'none', transition: 'transform 0.2s', transform: `rotate(${rotate}deg)`, ...style }}>
-      <polyline points="6 9 12 15 18 9"/>
-    </svg>
+    <CaretDownIcon size={size} color={color || COLORS.textMuted} weight="regular"
+      style={{ flexShrink: 0, pointerEvents: 'none', transition: 'transform 0.2s', transform: `rotate(${rotate}deg)`, ...style }} />
   );
 }
 
@@ -142,7 +171,7 @@ function AttendanceToggle({ post, onRsvp }) {
       </div>
       {count > 0 && (
         <div style={{ fontSize: 12, color: COLORS.textMuted, display: 'flex', alignItems: 'center', gap: 5, paddingLeft: 2 }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          <UsersThreeIcon size={12} weight="regular" />
           {count} aanwezig
         </div>
       )}
@@ -234,8 +263,7 @@ function MeldingLinks({ post }) {
 }
 
 // ─── CARRIER BADGE ─────────────────────────────────────────────────────────────
-
-const CARRIERS = ['PostNL', 'DHL', 'DPD', 'GLS', 'FedEx', 'UPS', 'Bol.com', 'Coolblue'];
+// (legacy weergave voor oudere posts die nog een carrier-waarde hebben)
 
 const CARRIER_COLORS = {
   'PostNL':   { bg: '#FF6600', color: '#fff' },
@@ -249,26 +277,12 @@ const CARRIER_COLORS = {
   'Amazon':   { bg: '#FF9900', color: '#000' },
 };
 
-// Klein SVG-pakket icoon — geen copyright, eigen vorm
-function PkgIcon({ color }) {
-  return (
-    <svg width="11" height="11" viewBox="0 0 14 14" fill="none"
-      stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
-      style={{ flexShrink: 0 }}>
-      <path d="M7 1L13 4.5V9.5L7 13L1 9.5V4.5L7 1Z"/>
-      <path d="M1 4.5L7 8L13 4.5"/>
-      <line x1="7" y1="8" x2="7" y2="13"/>
-      <path d="M4 2.75L10 6.25"/>
-    </svg>
-  );
-}
-
 function CarrierBadge({ carrier }) {
   const style = CARRIER_COLORS[carrier];
   if (!style) {
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, ...s.badge(COLORS.blue), fontSize: 11, padding: '3px 8px' }}>
-        <PkgIcon color={COLORS.blue} />{carrier}
+        <PackageIcon size={11} color={COLORS.blue} weight="regular" />{carrier}
       </span>
     );
   }
@@ -279,7 +293,7 @@ function CarrierBadge({ carrier }) {
       borderRadius: 4, fontSize: 10, fontWeight: 800,
       padding: '3px 8px', letterSpacing: '0.3px',
     }}>
-      <PkgIcon color={style.color} />{carrier}
+      <PackageIcon size={11} color={style.color} weight="regular" />{carrier}
     </span>
   );
 }
@@ -387,9 +401,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
             <>
               <span>·</span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                </svg>
+                <ChatCircleIcon size={11} weight="regular" />
                 {commentCount}
               </span>
             </>
@@ -482,29 +494,19 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
           <div style={{ ...s.cardMeta, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
             <div style={s.cardMetaLeft}>
               <button style={{ ...s.actionBtn, gap: 5, color: post.liked ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill={post.liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', flexShrink: 0 }}>
-                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-                </svg>
+                <HeartIcon size={14} weight={post.liked ? 'fill' : 'regular'} style={{ display: 'block', flexShrink: 0 }} />
                 <span>{Number(post.likes)}</span>
               </button>
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
               {canEdit && (
                 <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onEdit(post); }} title="Bewerken">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
+                  <PencilSimpleIcon size={13} weight="regular" />
                 </button>
               )}
               {canModerate ? (
                 <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('delete')}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                    <path d="M10 11v6M14 11v6"/>
-                    <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                  </svg>
+                  <TrashIcon size={13} weight="regular" />
                 </button>
               ) : (
                 <button style={{ ...s.actionBtn, color: post.reported ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('report')}>
@@ -522,11 +524,11 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
 // ─── CATEGORY PICKER SHEET ────────────────────────────────────────────────────
 
 const CAT_META = {
-  bezorging:   { emoji: '📦', sub: 'Bezorging & vermist pakket' },
-  straatzaken: { emoji: '🚧', sub: 'Werkzaamheden in de straat' },
-  melding:     { emoji: '⚠️', sub: 'Iets melden aan de buurt' },
-  evenement:   { emoji: '🎉', sub: 'Buurtactiviteit organiseren' },
-  algemeen:    { emoji: '💬', sub: 'Lenen, kopen, verkopen, vragen' },
+  bezorging:   { icon: PackageIcon,     sub: 'Bezorging & vermist pakket' },
+  straatzaken: { icon: TrafficConeIcon, sub: 'Werkzaamheden in de straat' },
+  melding:     { icon: WarningIcon,     sub: 'Iets melden aan de buurt' },
+  evenement:   { icon: ConfettiIcon,    sub: 'Buurtactiviteit organiseren' },
+  algemeen:    { icon: ChatsCircleIcon, sub: 'Lenen, kopen, verkopen, vragen' },
 };
 
 function CategoryPickerSheet({ onClose, onSelect }) {
@@ -540,11 +542,12 @@ function CategoryPickerSheet({ onClose, onSelect }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
         {Object.entries(CATEGORIES).map(([key]) => {
           const meta = CAT_META[key] || {};
+          const MetaIcon = meta.icon;
           return (
             <div key={key}
               onClick={() => { setClosing(true); setTimeout(() => onSelect(key), 270); }}
               style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.50)', borderRadius: RADIUS.lg, padding: '14px 16px', cursor: 'pointer' }}>
-              <span style={{ fontSize: 22, flexShrink: 0, lineHeight: 1 }}>{meta.emoji}</span>
+              {MetaIcon && <MetaIcon size={22} weight="regular" color={COLORS.text} style={{ flexShrink: 0 }} />}
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{catLabel(key)}</div>
                 <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 2 }}>{meta.sub}</div>
@@ -951,30 +954,30 @@ function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, doc
 
 const TYPE_META = {
   bezorging: [
-    { key: 'bezorgd', label: 'Bezorgd', sub: 'Pakket ontvangen voor een buur',   emoji: '📦' },
-    { key: 'gezocht', label: 'Gezocht', sub: 'Op zoek naar een vermist pakket',  emoji: '🔍' },
+    { key: 'bezorgd', label: 'Bezorgd', sub: 'Pakket ontvangen voor een buur',   icon: PackageIcon },
+    { key: 'gezocht', label: 'Gezocht', sub: 'Op zoek naar een vermist pakket',  icon: MagnifyingGlassIcon },
   ],
   straatzaken: [
-    { key: 'werkzaamheden',      label: 'Werkzaamheden',      emoji: '🔧' },
-    { key: 'parkeerverbod',      label: 'Parkeerverbod',      emoji: '🚗' },
-    { key: 'steiger',            label: 'Steiger',            emoji: '🏗️' },
-    { key: 'container',          label: 'Container',          emoji: '🗑️' },
-    { key: 'kraan',              label: 'Kraan',              emoji: '🏗️' },
-    { key: 'verhuizing',         label: 'Verhuizing',         emoji: '📦' },
+    { key: 'werkzaamheden',      label: 'Werkzaamheden',      icon: WrenchIcon },
+    { key: 'parkeerverbod',      label: 'Parkeerverbod',      icon: CarIcon },
+    { key: 'steiger',            label: 'Steiger',            icon: StairsIcon },
+    { key: 'container',          label: 'Container',          icon: TrashIcon },
+    { key: 'kraan',              label: 'Kraan',              icon: CraneTowerIcon },
+    { key: 'verhuizing',         label: 'Verhuizing',         icon: PackageIcon },
   ],
   melding: [
-    { key: 'lost_found', label: 'Lost & Found',       sub: 'Gevonden of verloren voorwerp',          emoji: '🔑' },
-    { key: 'overlast',   label: 'Overlast',           sub: 'Geluids-, parkeer- of andere overlast',  emoji: '🔊' },
-    { key: 'schade',     label: 'Schade',             sub: 'Schade aan eigendom of voertuig',        emoji: '⚠️' },
-    { key: 'verdacht',   label: 'Verdachte situatie', sub: 'Onraad of verdacht gedrag',              emoji: '👁️' },
+    { key: 'lost_found', label: 'Lost & Found',       sub: 'Gevonden of verloren voorwerp',          icon: KeyIcon },
+    { key: 'overlast',   label: 'Overlast',           sub: 'Geluids-, parkeer- of andere overlast',  icon: SpeakerHighIcon },
+    { key: 'schade',     label: 'Schade',             sub: 'Schade aan eigendom of voertuig',        icon: WarningIcon },
+    { key: 'verdacht',   label: 'Verdachte situatie', sub: 'Onraad of verdacht gedrag',              icon: EyeIcon },
   ],
   algemeen: [
-    { key: 'gezocht',     label: 'Gezocht',            sub: 'Je zoekt iets',                          emoji: '🔍' },
-    { key: 'te_leen',     label: 'Te leen',             sub: 'Iets uitlenen aan de buurt',             emoji: '🤝' },
-    { key: 'te_koop',     label: 'Te koop',             sub: 'Iets verkopen',                          emoji: '💰' },
-    { key: 'gratis',      label: 'Gratis af te halen',  sub: 'Iets weggeven',                          emoji: '🎁' },
-    { key: 'aanbeveling', label: 'Aanbeveling',         sub: 'Een vakman of dienst vragen of aanraden', emoji: '👍' },
-    { key: 'vraag',       label: 'Vraag',               sub: 'Een algemene vraag aan de buurt',        emoji: '❓' },
+    { key: 'gezocht',     label: 'Gezocht',            sub: 'Je zoekt iets',                          icon: MagnifyingGlassIcon },
+    { key: 'te_leen',     label: 'Te leen',             sub: 'Iets uitlenen aan de buurt',             icon: HandshakeIcon },
+    { key: 'te_koop',     label: 'Te koop',             sub: 'Iets verkopen',                          icon: MoneyIcon },
+    { key: 'gratis',      label: 'Gratis af te halen',  sub: 'Iets weggeven',                          icon: GiftIcon },
+    { key: 'aanbeveling', label: 'Aanbeveling',         sub: 'Een vakman of dienst vragen of aanraden', icon: ThumbsUpIcon },
+    { key: 'vraag',       label: 'Vraag',               sub: 'Een algemene vraag aan de buurt',        icon: QuestionIcon },
   ],
 };
 
@@ -991,11 +994,11 @@ function TypePickerSheet({ cat, onClose, onSelect }) {
       <div style={s.sheetHandle} />
       <div style={s.sheetTitle}>{catLabel(cat)} — welk type?</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-        {types.map(({ key, label: lbl, sub, emoji }) => (
+        {types.map(({ key, label: lbl, sub, icon: TypeIcon }) => (
           <div key={key}
             onClick={() => { setClosing(true); setTimeout(() => onSelect(key), 270); }}
             style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.50)', borderRadius: RADIUS.lg, padding: '14px 16px', cursor: 'pointer' }}>
-            <span style={{ fontSize: 22, flexShrink: 0, lineHeight: 1 }}>{emoji}</span>
+            {TypeIcon && <TypeIcon size={22} weight="regular" color={COLORS.text} style={{ flexShrink: 0 }} />}
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{lbl}</div>
               {sub && <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 2 }}>{sub}</div>}
@@ -1724,10 +1727,7 @@ export default function App() {
             aria-label="Notificaties"
             onClick={() => { if (!subscribed && permission !== 'denied') subscribe(); else setTab('settings'); }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 01-3.46 0"/>
-            </svg>
+            <BellIcon size={20} weight="regular" />
           </button>
           <button
             style={s.headerIconBtn(tab === 'settings')}
@@ -1735,10 +1735,7 @@ export default function App() {
             aria-label="Profiel"
             onClick={() => setTab('settings')}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="8" r="4"/>
-              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-            </svg>
+            <UserIcon size={20} weight="regular" />
           </button>
         </div>
       </div>
@@ -1792,24 +1789,26 @@ export default function App() {
       <div style={s.bottomBar}>
         <div style={s.tabBar}>
           {[
-            { id: 'feed', label: t('feed'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg> },
+            { id: 'feed', label: t('feed'), icon: HouseIcon },
             ...(canModerate ? [
-              { id: 'streets', label: t('streets'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> },
-              { id: 'admin', label: t('admin'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> },
+              { id: 'streets', label: t('streets'), icon: MapPinIcon },
+              { id: 'admin', label: t('admin'), icon: UserGearIcon },
             ] : []),
-            { id: 'settings', label: t('settings'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg> },
-          ].map(tab_ => (
-            <button key={tab_.id} style={s.tab(tab === tab_.id)} onClick={() => setTab(tab_.id)} aria-label={tab_.label} title={tab_.label}>
-              {tab_.svg(tab === tab_.id)}
-            </button>
-          ))}
+            { id: 'settings', label: t('settings'), icon: GearIcon },
+          ].map(tab_ => {
+            const active = tab === tab_.id;
+            const TabIcon = tab_.icon;
+            return (
+              <button key={tab_.id} style={s.tab(active)} onClick={() => setTab(tab_.id)} aria-label={tab_.label} title={tab_.label}>
+                <TabIcon size={20} weight={active ? 'bold' : 'regular'} />
+              </button>
+            );
+          })}
         </div>
 
         {tab === 'feed' && (
           <button style={s.postCta} onClick={() => setShowCatPicker(true)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
+            <PlusIcon size={16} weight="bold" />
             <span>Bericht plaatsen</span>
           </button>
         )}

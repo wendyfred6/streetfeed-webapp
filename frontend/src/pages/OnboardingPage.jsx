@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api/client.js';
 import { COLORS, RADIUS, ALPHA, GLASS } from '../design/tokens.js';
+import { EnvelopeSimpleIcon } from '@phosphor-icons/react/dist/csr/EnvelopeSimple';
 
 const s = {
   page: {
@@ -30,7 +31,7 @@ const s = {
   previewName: { fontSize: 17, fontWeight: 800, color: COLORS.text },
   heroTitle: { fontSize: 32, fontWeight: 800, letterSpacing: '-0.8px', color: COLORS.text, lineHeight: 1.2, marginBottom: 12 },
   heroCta: { ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.pill, padding: '6px 12px', fontSize: 12, color: COLORS.textMuted, background: 'none', cursor: 'pointer', marginTop: 20 },
-  successIcon: { fontSize: 48, textAlign: 'center', marginBottom: 16 },
+  successIcon: { display: 'flex', justifyContent: 'center', color: COLORS.accent, marginBottom: 16 },
   backBtn: { background: 'none', border: 'none', color: COLORS.textMuted, fontSize: 13, cursor: 'pointer', padding: 0, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 4 },
   streetConfirm: { ...GLASS.subtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '16px', marginBottom: 20 },
   streetName: { fontSize: 18, fontWeight: 800, color: COLORS.text, marginBottom: 4 },
@@ -344,7 +345,7 @@ export default function OnboardingPage() {
     return (
       <div style={s.page}>
         <div style={{ width: '100%', ...GLASS.card, borderRadius: RADIUS.xl, padding: '36px 24px', textAlign: 'center' }}>
-          <div style={s.successIcon}>📬</div>
+          <div style={s.successIcon}><EnvelopeSimpleIcon size={48} weight="regular" /></div>
           <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.text, marginBottom: 8 }}>Check je e-mail</div>
           <p style={{ fontSize: 14, color: COLORS.textMuted, lineHeight: 1.6, marginBottom: 24 }}>
             We hebben een link gestuurd naar <strong style={{ color: COLORS.text }}>{email}</strong>. Klik op de link om in te loggen.

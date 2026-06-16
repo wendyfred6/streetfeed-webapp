@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 import { COLORS } from '../design/tokens.js';
 import { api } from '../api/client.js';
+import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 
 const inputStyle = {
   background: COLORS.bg,
@@ -91,11 +92,8 @@ export default function HouseNumberPicker({ streetId, value, onChange, style = {
           <option value="">{loading ? 'Laden…' : 'Huisnr.'}</option>
           {numbers.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={COLORS.textMuted}
-          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
+        <CaretDownIcon size={12} color={COLORS.textMuted} weight="regular"
+          style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
       </div>
 
       {suffixes.length > 1 && (
@@ -110,11 +108,8 @@ export default function HouseNumberPicker({ streetId, value, onChange, style = {
               <option key={s} value={s}>{s === 'hs' ? 'hs (begane grond)' : s}</option>
             ))}
           </select>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={COLORS.textMuted}
-            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-            style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
+          <CaretDownIcon size={12} color={COLORS.textMuted} weight="regular"
+            style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
         </div>
       )}
     </div>

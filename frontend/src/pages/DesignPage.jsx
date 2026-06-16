@@ -1,5 +1,6 @@
 import { useState, useRef, useLayoutEffect } from 'react';
 import { COLORS, RADIUS, FONT, GLASS, BG_GRADIENT } from '../design/tokens.js';
+import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 
 const CAT_OPTIONS = [
   { key: 'bezorging',   label: 'Bezorging' },
@@ -162,12 +163,8 @@ function Toggle({ on, onClick }) {
 
 function Chevron({ rotate = 0, color }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-      stroke={color || COLORS.textMuted} strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round"
-      style={{ transition: 'transform 0.2s', transform: `rotate(${rotate}deg)` }}>
-      <polyline points="6 9 12 15 18 9"/>
-    </svg>
+    <CaretDownIcon size={18} color={color || COLORS.textMuted} weight="regular"
+      style={{ transition: 'transform 0.2s', transform: `rotate(${rotate}deg)` }} />
   );
 }
 
@@ -336,9 +333,7 @@ export default function DesignPage() {
             <option>PostNL</option>
             <option>DHL</option>
           </select>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
+          <CaretDownIcon size={14} color={COLORS.textDim} weight="regular" style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
         </div>
       </Section>
 
