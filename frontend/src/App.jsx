@@ -41,7 +41,7 @@ const s = {
   logo: { fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px' },
   accent: { color: COLORS.accent },
   streetBadge: { fontSize: 11, color: COLORS.textMuted, ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.sm, padding: '3px 8px' },
-  feed: { padding: '0 0 calc(156px + env(safe-area-inset-bottom)) 0' },
+  feed: { padding: '0 0 calc(98px + env(safe-area-inset-bottom)) 0' },
   sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textMuted, padding: '16px 20px 8px' },
   card: (pinned) => ({ margin: '0 12px 8px', ...GLASS.card, background: pinned ? COLORS.pinned : 'rgba(255,255,255,0.70)', border: `1px solid ${pinned ? COLORS.pinnedBorder : 'rgba(255,255,255,0.50)'}`, borderRadius: RADIUS.lg, padding: '12px 14px' }),
   cardTitle: { fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 },
@@ -52,9 +52,10 @@ const s = {
   endDateBadge: { fontSize: 10, color: COLORS.accent, background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.xs, padding: '2px 6px' },
   filterBar: { display: 'flex', gap: 6, padding: '12px 20px', overflowX: 'auto', scrollbarWidth: 'none' },
   filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : 'rgba(255,255,255,0.55)', color: active ? '#FFFFFF' : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
-  fab: { position: 'fixed', bottom: 'calc(98px + env(safe-area-inset-bottom))', left: 20, right: 20, maxWidth: 350, margin: '0 auto', borderRadius: RADIUS.pill, background: COLORS.accent, color: '#FFFFFF', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer', padding: '13px 0', textAlign: 'center', boxShadow: `0 4px 20px ${ALPHA.terraGlow}`, zIndex: 40 },
-  tabBar: { position: 'fixed', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 40px)', maxWidth: 350, ...GLASS.header, border: '1px solid rgba(255,255,255,0.55)', borderRadius: RADIUS.pill, padding: '5px 6px', display: 'flex', zIndex: 50 },
-  tab: (active) => ({ flex: 1, padding: '10px 0 11px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: active ? ALPHA.accentSubtle : 'none', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', fontSize: 10, fontWeight: active ? 700 : 400, color: active ? COLORS.accent : COLORS.textMuted, transition: 'background 0.15s' }),
+  bottomBar: { position: 'fixed', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 28px)', maxWidth: 374, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, zIndex: 50 },
+  tabBar: { ...GLASS.header, border: '1px solid rgba(255,255,255,0.55)', borderRadius: RADIUS.pill, padding: '5px', display: 'flex', flexShrink: 0 },
+  tab: (active) => ({ padding: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? ALPHA.accentSubtle : 'none', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', color: active ? COLORS.accent : COLORS.textMuted, transition: 'background 0.15s' }),
+  postCta: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '0 18px', height: 54, fontSize: 14, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: `0 4px 20px ${ALPHA.terraGlow}`, flexShrink: 0 },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(26,10,18,0.50)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' },
   sheet: { ...GLASS.sheet, borderRadius: `${RADIUS.xl}px ${RADIUS.xl}px 0 0`, width: '100%', maxWidth: 480, padding: '20px 20px 40px', maxHeight: '90vh', overflowY: 'auto' },
   sheetHandle: { width: 36, height: 4, background: 'rgba(0,0,0,0.15)', borderRadius: 2, margin: '0 auto 20px' },
@@ -1764,24 +1765,30 @@ export default function App() {
       )}
       {tab === 'settings' && <SettingsView user={user} onLogout={logout} />}
 
-      {tab === 'feed' && (
-        <button style={s.fab} onClick={() => setShowCatPicker(true)}>Bericht plaatsen</button>
-      )}
+      <div style={s.bottomBar}>
+        <div style={s.tabBar}>
+          {[
+            { id: 'feed', label: t('feed'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg> },
+            ...(canModerate ? [
+              { id: 'streets', label: t('streets'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> },
+              { id: 'admin', label: t('admin'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> },
+            ] : []),
+            { id: 'settings', label: t('settings'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg> },
+          ].map(tab_ => (
+            <button key={tab_.id} style={s.tab(tab === tab_.id)} onClick={() => setTab(tab_.id)} aria-label={tab_.label} title={tab_.label}>
+              {tab_.svg(tab === tab_.id)}
+            </button>
+          ))}
+        </div>
 
-      <div style={s.tabBar}>
-        {[
-          { id: 'feed', label: t('feed'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg> },
-          ...(canModerate ? [
-            { id: 'streets', label: t('streets'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> },
-            { id: 'admin', label: t('admin'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> },
-          ] : []),
-          { id: 'settings', label: t('settings'), svg: (a) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={a ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg> },
-        ].map(tab_ => (
-          <button key={tab_.id} style={s.tab(tab === tab_.id)} onClick={() => setTab(tab_.id)}>
-            {tab_.svg(tab === tab_.id)}
-            <span>{tab_.label}</span>
+        {tab === 'feed' && (
+          <button style={s.postCta} onClick={() => setShowCatPicker(true)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>Bericht plaatsen</span>
           </button>
-        ))}
+        )}
       </div>
 
       {showCatPicker && (
