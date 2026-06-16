@@ -283,7 +283,7 @@ function CarrierBadge({ carrier }) {
 
 // ─── POST CARD ─────────────────────────────────────────────────────────────────
 
-function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate, onEdit, canEdit, onResolve }) {
+function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate, onEdit, canEdit }) {
   const [expanded, setExpanded] = useState(false);
   const [threadComments, setThreadComments] = useState(null);
   const [commentText, setCommentText] = useState('');
@@ -417,21 +417,6 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
           {post.carrier && (
             <div style={{ marginTop: 8 }}>
               <CarrierBadge carrier={post.carrier} />
-            </div>
-          )}
-          {isPackage && canEdit && onResolve && (
-            <div style={{ marginTop: 10 }} onClick={e => e.stopPropagation()}>
-              {post.resolved ? (
-                <div style={{ textAlign: 'center', padding: '10px', fontSize: 13, color: COLORS.textDim, cursor: 'pointer' }}
-                  onClick={() => onResolve(post.id, false)}>
-                  {post.sub_type === 'gezocht' || post.sub_type === 'search' ? 'Toch niet gevonden' : 'Toch niet opgehaald'}
-                </div>
-              ) : (
-                <button onClick={() => onResolve(post.id, true)}
-                  style={{ width: '100%', background: COLORS.text, color: '#fff', border: 'none', borderRadius: RADIUS.pill, padding: '11px 14px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-                  {post.sub_type === 'gezocht' || post.sub_type === 'search' ? 'Pakket gevonden' : 'Pakket opgehaald'}
-                </button>
-              )}
             </div>
           )}
           {post.link && (
@@ -1710,12 +1695,12 @@ export default function App() {
             : <>
               {pinnedPosts.length > 0 && (
                 <><div style={s.sectionLabel}>{t('pinned')}</div>
-                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} onResolve={handleResolve} />)}</>
+                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} />)}</>
               )}
               <div style={s.sectionLabel}>{t('recent')}</div>
               {regularPosts.length === 0
                 ? <div style={s.emptyState}>{t('no_posts')}</div>
-                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} onResolve={handleResolve} />)}
+                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} />)}
             </>
           }
         </div>
