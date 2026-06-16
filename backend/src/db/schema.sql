@@ -161,5 +161,8 @@ UPDATE notification_prefs SET category = 'melding'     WHERE category = 'inciden
 UPDATE notification_prefs SET category = 'evenement'   WHERE category = 'event';
 DELETE FROM notification_prefs                         WHERE category = 'general';
 
+-- Migratie: geen admin-goedkeuring in MVP — alle pending memberships activeren
+UPDATE memberships SET status = 'approved' WHERE status = 'pending';
+
 -- Seed: super admin
 UPDATE users SET is_super_admin = true WHERE email = 'wendy@fred6.nl';

@@ -68,6 +68,67 @@ async function fetchAddresses(streetName, city) {
   return addresses;
 }
 
+// GET /api/bag/validate — adres valideren voor onboarding (geen auth vereist)
+router.get('/validate', async (req, res) => {
+  const { postcode, huisnummer, toevoeging } = req.query;
+
+  if (!postcode || !huisnummer) {
+    return res.status(400).json({ error: 'postcode en huisnummer zijn verplicht' });
+  }
+
+  const pc = postcode.replace(/\s/g, '').toUpperCase();
+  const hn = parseInt(huisnummer, 10);
+
+  if (!/^\d{4}[A-Z]{2}$/.test(pc) || isNaN(hn)) {
+    return res.status(400).json({ error: 'Ongeldige postcode of huisnummer' });
+  }
+
+  try {
+    const params = new URLSearchParams({ q: `${pc} ${hn}`, fq: 'type:adres', rows: '25', start: '0' });
+    const resp = await fetch(`${PDOK_BASE}?${params}`);
+    if (!resp.ok) throw new Error(`PDOK ${resp.status}`);
+    const data = await resp.json();
+    const docs = data.response?.docs || [];
+
+    const match = docs.find(d => {
+      if (d.huisnummer !== hn) return false;
+      if (toevoeging) {
+        const suf = normalizeSuffix(d.huisletter, d.huisnummertoevoeging);
+        return suf === normalizeSuffix(null, toevoeging);
+      }
+      return true;
+    });
+
+    if (!match) return res.status(404).json({ error: 'Adres niet gevonden' });
+
+    const { straatnaam, woonplaatsnaam, huisnummertoevoeging, huisletter } = match;
+
+    const { rows } = await query(
+      'SELECT id, name, city FROM streets WHERE LOWER(name) = LOWER($1) AND LOWER(city) = LOWER($2)',
+      [straatnaam, woonplaatsnaam]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        error: 'Deze straat is nog niet beschikbaar in Streetfeed',
+        streetName: straatnaam,
+        city: woonplaatsnaam,
+      });
+    }
+
+    const suf = normalizeSuffix(huisletter, huisnummertoevoeging);
+    res.json({
+      streetId: rows[0].id,
+      streetName: rows[0].name,
+      city: rows[0].city,
+      houseNumber: suf ? `${hn}-${suf}` : String(hn),
+    });
+  } catch (err) {
+    console.error('[bag] validate error:', err.message);
+    res.status(502).json({ error: 'BAG service tijdelijk niet beschikbaar' });
+  }
+});
+
 // GET /api/bag/addresses/:streetId
 router.get('/addresses/:streetId', requireAuth, async (req, res) => {
   const { rows } = await query(

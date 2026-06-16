@@ -16,23 +16,24 @@ router.post('/request', async (req, res) => {
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
   // Find or create user
+  const firstName = req.body.firstName || name;
   let user;
   const existing = await query('SELECT * FROM users WHERE email = $1', [normalizedEmail]);
   if (existing.rows.length) {
     user = existing.rows[0];
   } else {
-    if (!name) return res.status(400).json({ error: 'Name required for new accounts', newUser: true });
+    if (!firstName) return res.status(400).json({ error: 'Name required for new accounts', newUser: true });
     const { rows } = await query(
       'INSERT INTO users (email, name, house_number) VALUES ($1, $2, $3) RETURNING *',
-      [normalizedEmail, name.trim(), houseNumber?.trim() || null]
+      [normalizedEmail, firstName.trim(), houseNumber?.trim() || null]
     );
     user = rows[0];
 
-    // Create pending membership for requested street
+    // Membership direct goedgekeurd — BAG-validatie is de poortwachter
     if (streetId) {
       await query(
         `INSERT INTO memberships (user_id, street_id, role, status)
-         VALUES ($1, $2, 'resident', 'pending')
+         VALUES ($1, $2, 'resident', 'approved')
          ON CONFLICT (user_id, street_id) DO NOTHING`,
         [user.id, streetId]
       );

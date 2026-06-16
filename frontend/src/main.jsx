@@ -1,12 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './design/global.css';
-import { COLORS, GLASS } from './design/tokens.js';
+import { COLORS } from './design/tokens.js';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
 import { isDemoMode } from './api/client.js';
 import App from './App.jsx';
 import AuthPage from './pages/AuthPage.jsx';
+import OnboardingPage from './pages/OnboardingPage.jsx';
 import DesignPage from './pages/DesignPage.jsx';
 
 function AppRouter() {
@@ -20,31 +21,32 @@ function AppRouter() {
     );
   }
 
-  const membership = user?.memberships?.find(m => m.status === 'approved');
-  const isPending = user && !membership && !user.is_super_admin;
+  const hasAccess = user?.is_super_admin || user?.memberships?.some(m => m.status === 'approved');
 
   return (
     <Routes>
-      <Route path="/auth" element={user && !isPending ? <Navigate to="/" replace /> : <AuthPage />} />
+      {/* Magic link token verificatie */}
+      <Route path="/auth" element={
+        hasAccess ? <Navigate to="/" replace /> : <AuthPage />
+      } />
+
+      {/* Onboarding voor nieuwe gebruikers */}
+      <Route path="/onboarding" element={
+        hasAccess ? <Navigate to="/" replace /> : <OnboardingPage />
+      } />
+
+      {/* Design systeem — alleen super admin */}
       <Route path="/design" element={
-        !user ? <Navigate to="/auth" replace /> :
+        !user ? <Navigate to="/onboarding" replace /> :
         user?.is_super_admin ? <DesignPage /> :
         <Navigate to="/" replace />
       } />
+
+      {/* Hoofdapp */}
       <Route path="/*" element={
-        !user ? <Navigate to="/auth" replace /> :
-        isPending ? (
-          <div style={{ minHeight: '100vh', background: COLORS.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'DM Sans', sans-serif" }}>
-            <div style={{ width: '100%', maxWidth: 400, ...GLASS.card, borderRadius: 28, padding: '32px 28px', textAlign: 'center', color: COLORS.text }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>⏳</div>
-              <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Aanvraag ingediend</div>
-              <div style={{ fontSize: 14, color: COLORS.textMuted, lineHeight: 1.6 }}>
-                De straat admin wordt op de hoogte gesteld en beoordeelt jouw aanvraag zo snel mogelijk.
-                Je ontvangt een e-mail zodra je toegang hebt.
-              </div>
-            </div>
-          </div>
-        ) : <App />
+        !user ? <Navigate to="/onboarding" replace /> :
+        !hasAccess ? <Navigate to="/onboarding" replace /> :
+        <App />
       } />
     </Routes>
   );
