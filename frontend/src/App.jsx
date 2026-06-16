@@ -736,7 +736,7 @@ function JoinDetailSheet({ post, onClose, onJoin }) {
 
 // ─── EDIT POST SHEET ───────────────────────────────────────────────────────────
 
-function EditPostSheet({ post, onClose, onSave }) {
+function EditPostSheet({ post, onClose, onSave, streetId }) {
   const toDateInput = (d) => d ? d.substring(0, 10) : '';
 
   const [title, setTitle] = useState(post.title);
@@ -754,6 +754,9 @@ function EditPostSheet({ post, onClose, onSave }) {
   const close = () => { setClosing(true); setTimeout(onClose, 270); };
 
   const isEvent      = post.category === 'evenement' || post.category === 'event';
+  const isBezorging  = post.category === 'bezorging' || post.category === 'package';
+  const isGezocht    = isBezorging && (post.sub_type === 'gezocht' || post.sub_type === 'search');
+  const isBezorgd    = isBezorging && (post.sub_type === 'bezorgd' || post.sub_type === 'have');
   const hasDateRange = ['straatzaken', 'works', 'blockage', 'container'].includes(post.category);
   const hasTimeRange = post.category === 'straatzaken' || post.category === 'works';
   const hasLink      = ['straatzaken', 'works', 'blockage', 'container', 'waste'].includes(post.category);
@@ -772,16 +775,25 @@ function EditPostSheet({ post, onClose, onSave }) {
         <label style={s.label}>Omschrijving</label>
         <textarea style={s.textarea} value={body} onChange={e => setBody(e.target.value)} />
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-          <div>
-            <label style={s.label}>Van nr.</label>
-            <input style={{ ...s.input, marginBottom: 0 }} placeholder="bijv. 14" value={startHouse} onChange={e => setStartHouse(e.target.value)} />
+        {isBezorgd && (
+          <>
+            <label style={s.label}>Huisnummer geadresseerde</label>
+            <HouseNumberPicker streetId={streetId} value={startHouse} onChange={setStartHouse} style={{ marginBottom: 14 }} />
+          </>
+        )}
+
+        {!isBezorging && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+            <div>
+              <label style={s.label}>Van nr.</label>
+              <HouseNumberPicker streetId={streetId} value={startHouse} onChange={setStartHouse} />
+            </div>
+            <div>
+              <label style={s.label}>Tot nr.</label>
+              <HouseNumberPicker streetId={streetId} value={endHouse} onChange={setEndHouse} />
+            </div>
           </div>
-          <div>
-            <label style={s.label}>Tot nr.</label>
-            <input style={{ ...s.input, marginBottom: 0 }} placeholder="bijv. 22" value={endHouse} onChange={e => setEndHouse(e.target.value)} />
-          </div>
-        </div>
+        )}
 
         {hasDateRange && (
           <>
@@ -995,43 +1007,6 @@ function TypePickerSheet({ cat, onClose, onSelect }) {
   );
 }
 
-function LocationPicker({ value, onChange }) {
-  const [mode, setMode] = useState('single');
-  const [single, setSingle] = useState('');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-
-  const update = (m, s, f, t_) => {
-    if (m === 'single') onChange(s ? `nr. ${s}` : '');
-    else onChange(f && t_ ? `nr. ${f}–${t_}` : '');
-  };
-
-  return (
-    <div style={{ marginBottom: 10 }}>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-        {[['single', 'Enkel nummer'], ['range', 'Reeks']].map(([m, lbl]) => (
-          <div key={m} style={{ ...s.filterChip(mode === m), fontSize: 12 }}
-            onClick={() => { setMode(m); update(m, single, from, to); }}>
-            {lbl}
-          </div>
-        ))}
-      </div>
-      {mode === 'single' ? (
-        <input style={s.input} placeholder="Bijv. 27" value={single}
-          onChange={e => { setSingle(e.target.value); update('single', e.target.value, from, to); }} />
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 6, alignItems: 'center' }}>
-          <input style={{ ...s.input, marginBottom: 0 }} placeholder="Van nr." value={from}
-            onChange={e => { setFrom(e.target.value); update('range', single, e.target.value, to); }} />
-          <span style={{ color: COLORS.textDim, fontSize: 13, textAlign: 'center' }}>t/m</span>
-          <input style={{ ...s.input, marginBottom: 0 }} placeholder="Tot nr." value={to}
-            onChange={e => { setTo(e.target.value); update('range', single, from, e.target.value); }} />
-        </div>
-      )}
-    </div>
-  );
-}
-
 function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 'bezorging', initialType = null }) {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -1056,15 +1031,15 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
   const isEvenement   = initialCat === 'evenement'    || initialCat === 'event';
   const isAlgemeen    = initialCat === 'algemeen';
   const isGezocht     = initialType === 'gezocht';
+  const isBezorgd     = initialType === 'bezorgd';
 
-  const autoTitle = startHouse.trim()
-    ? isGezocht
-      ? `Pakket gezocht voor nr. ${startHouse.trim()}${endHouse.trim() ? ` t/m ${endHouse.trim()}` : ''}`
-      : `Pakket voor nr. ${startHouse.trim()}${endHouse.trim() ? ` t/m ${endHouse.trim()}` : ''}`
-    : '';
+  // Gezocht: de poster zoekt z'n eigen pakket — huisnummer staat al in de postheader
+  const autoTitle = isGezocht
+    ? 'Pakket gezocht'
+    : startHouse.trim() ? `Pakket voor nr. ${startHouse.trim()}` : '';
 
   const canSubmit = !uploading && (isBezorging
-    ? !!startHouse.trim()
+    ? (isGezocht || !!startHouse.trim())
     : isMelding
       ? !!(title.trim() && body.trim())
       : isEvenement
@@ -1097,12 +1072,12 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
   const houseRow = (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
       <div>
-        <label style={s.label}>Van nr.</label>
-        <input style={{ ...s.input, marginBottom: 0 }} placeholder="bijv. 14" value={startHouse} onChange={e => setStartHouse(e.target.value)} />
+        <label style={s.label}>Van nr. *</label>
+        <HouseNumberPicker streetId={streetId} value={startHouse} onChange={setStartHouse} />
       </div>
       <div>
         <label style={s.label}>Tot nr.</label>
-        <input style={{ ...s.input, marginBottom: 0 }} placeholder="bijv. 22" value={endHouse} onChange={e => setEndHouse(e.target.value)} />
+        <HouseNumberPicker streetId={streetId} value={endHouse} onChange={setEndHouse} />
       </div>
     </div>
   );
@@ -1118,12 +1093,18 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
       {/* Bezorging */}
       {isBezorging && (
         <>
-          <label style={s.label}>{isGezocht ? 'Huisnummer *' : 'Pakket voor huisnummer *'}</label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <input style={{ ...s.input, marginBottom: 0 }} placeholder="Van nr." value={startHouse} onChange={e => setStartHouse(e.target.value)} />
-            <input style={{ ...s.input, marginBottom: 0 }} placeholder="Tot nr." value={endHouse} onChange={e => setEndHouse(e.target.value)} />
-          </div>
-          {autoTitle && <div style={{ fontSize: 11, color: COLORS.textDim, marginBottom: 12 }}>Titel: <em>{autoTitle}</em></div>}
+          {isBezorgd && (
+            <>
+              <label style={s.label}>Huisnummer geadresseerde *</label>
+              <HouseNumberPicker streetId={streetId} value={startHouse} onChange={setStartHouse} style={{ marginBottom: 10 }} />
+              {autoTitle && <div style={{ fontSize: 11, color: COLORS.textDim, marginBottom: 12 }}>Titel: <em>{autoTitle}</em></div>}
+            </>
+          )}
+          {isGezocht && (
+            <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 12 }}>
+              Je eigen huisnummer staat al bij je bericht — daar hoef je niets voor in te vullen.
+            </div>
+          )}
           <label style={s.label}>Omschrijving</label>
           <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
         </>
@@ -1836,7 +1817,7 @@ export default function App() {
         <JoinDetailSheet post={joinDetail} onClose={() => setJoinDetail(null)} onJoin={handleJoin} />
       )}
       {editPost && (
-        <EditPostSheet post={editPost} onClose={() => setEditPost(null)} onSave={handleEdit} />
+        <EditPostSheet post={editPost} onClose={() => setEditPost(null)} onSave={handleEdit} streetId={STREET_ID} />
       )}
       {deleteConfirm && (
         <div style={s.overlay} onClick={() => setDeleteConfirm(null)}>

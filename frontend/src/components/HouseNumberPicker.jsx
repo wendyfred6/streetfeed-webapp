@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
 import { COLORS } from '../design/tokens.js';
+import { api } from '../api/client.js';
 
 const inputStyle = {
   background: COLORS.bg,
@@ -17,25 +18,20 @@ const inputStyle = {
   WebkitAppearance: 'none',
 };
 
-// Reyer Anslostraat: oneven 1–29 (1054 KT) en even 2–30 (1054 KV)
-// Toevoegingen H/1/2/3/4 per nummer
-function buildStreetAddresses() {
-  const result = [];
-  const suffixes = ['hs', '1', '2', '3', '4'];
-  for (let n = 1; n <= 29; n += 2) {
-    for (const s of suffixes) result.push(`${n}-${s}`);
-  }
-  for (let n = 2; n <= 30; n += 2) {
-    for (const s of suffixes) result.push(`${n}-${s}`);
-  }
-  return result;
-}
+// Cache per streetId zodat meerdere pickers op één formulier (Van/Tot) niet
+// allebei een eigen BAG-call doen
+const addressCache = new Map();
 
-const STREET_ADDRESSES = buildStreetAddresses();
+function fetchAddresses(streetId) {
+  if (!addressCache.has(streetId)) {
+    addressCache.set(streetId, api.get(`/bag/addresses/${streetId}`).catch(() => []));
+  }
+  return addressCache.get(streetId);
+}
 
 function groupAddresses(flat) {
   const map = {};
-  for (const addr of flat) {
+  for (const addr of flat || []) {
     const dash = addr.indexOf('-');
     const num = dash === -1 ? addr : addr.slice(0, dash);
     const suf = dash === -1 ? '' : addr.slice(dash + 1);
@@ -45,9 +41,16 @@ function groupAddresses(flat) {
   return map;
 }
 
-export default function HouseNumberPicker({ value, onChange, style = {} }) {
+export default function HouseNumberPicker({ streetId, value, onChange, style = {} }) {
   const [num, setNum] = useState('');
   const [suf, setSuf] = useState('');
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchAddresses(streetId).then(data => { setAddresses(data); setLoading(false); });
+  }, [streetId]);
 
   useEffect(() => {
     if (!value) { setNum(''); setSuf(''); return; }
@@ -56,7 +59,7 @@ export default function HouseNumberPicker({ value, onChange, style = {} }) {
     setSuf(dash === -1 ? '' : value.slice(dash + 1));
   }, [value]);
 
-  const grouped = groupAddresses(STREET_ADDRESSES);
+  const grouped = groupAddresses(addresses);
   const numbers = Object.keys(grouped).sort((a, b) => +a - +b);
   const suffixes = num ? (grouped[num] || []) : [];
 
@@ -82,9 +85,10 @@ export default function HouseNumberPicker({ value, onChange, style = {} }) {
         <select
           value={num}
           onChange={e => handleNum(e.target.value)}
-          style={{ ...inputStyle, paddingRight: 32, marginBottom: 0 }}
+          disabled={loading}
+          style={{ ...inputStyle, paddingRight: 32, marginBottom: 0, opacity: loading ? 0.6 : 1 }}
         >
-          <option value="">Huisnr.</option>
+          <option value="">{loading ? 'Laden…' : 'Huisnr.'}</option>
           {numbers.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={COLORS.textMuted}
@@ -101,7 +105,7 @@ export default function HouseNumberPicker({ value, onChange, style = {} }) {
             onChange={e => handleSuf(e.target.value)}
             style={{ ...inputStyle, paddingRight: 32, marginBottom: 0 }}
           >
-            <option value="">Etage</option>
+            <option value="">Toevoeging</option>
             {suffixes.map(s => (
               <option key={s} value={s}>{s === 'hs' ? 'hs (begane grond)' : s}</option>
             ))}

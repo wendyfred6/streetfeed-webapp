@@ -154,6 +154,16 @@ export async function demoRequest(method, path, body) {
   if (method === 'GET'   && path === '/push/settings') return { ...push };
   if (method === 'PATCH' && path === '/push/settings') { push = { ...push, ...body.settings }; return null; }
 
+  // ── BAG huisnummers (Reyer Anslostraat: oneven 1-29, even 2-30) ─────────────
+  const bagM = path.match(/^\/bag\/addresses\/(\d+)$/);
+  if (method === 'GET' && bagM) {
+    const suffixes = ['hs', '1', '2', '3', '4'];
+    const result = [];
+    for (let n = 1; n <= 29; n += 2) for (const sf of suffixes) result.push(`${n}-${sf}`);
+    for (let n = 2; n <= 30; n += 2) for (const sf of suffixes) result.push(`${n}-${sf}`);
+    return result;
+  }
+
   // ── RDW lookup ─────────────────────────────────────────────────────────────
   const rdwM = path.match(/^\/rdw\/(.+)$/);
   if (method === 'GET' && rdwM) {
