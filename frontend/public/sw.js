@@ -1,25 +1,17 @@
-const CACHE = 'streetfeed-v70';
-const STATIC = ['/', '/index.html'];
-
-self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)));
+// Geen caching van de HTML-shell of assets: Vite geeft elke build nieuwe
+// bestandsnamen en oude bundels worden bij elke deploy overschreven. Een
+// gecachete oude index.html verwijst dan naar een JS-bestand dat niet meer
+// bestaat -> 404 -> de app start nooit op. nginx regelt browsercaching van
+// hashed assets al correct, dus deze SW doet alleen nog push-notificaties.
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))))
   );
   self.clients.claim();
-});
-
-self.addEventListener('fetch', (e) => {
-  if (e.request.url.includes('/api/')) return; // never cache API
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
-  );
 });
 
 self.addEventListener('push', (e) => {
