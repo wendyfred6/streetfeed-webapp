@@ -61,35 +61,38 @@ router.get('/:streetId/posts', requireAuth, requireMembership('resident'), async
 // POST /api/streets/:streetId/posts
 router.post('/:streetId/posts', requireAuth, requireMembership('resident'), async (req, res) => {
   const { streetId } = req.params;
-  const { category, title, body, pinned, endDate, startDate, licensePlate,
-          eventDate, eventTime, eventLocation, bringList, photoKey,
-          link, carrier, allowJoin, startTime, endTime, location, subType } = req.body;
+  const { category, title, body, endDate, startDate,
+          eventDate, eventTime, bringList, photoKey,
+          link, allowJoin, startTime, endTime, subType,
+          startHouse, endHouse } = req.body;
 
   if (!category || !title) {
     return res.status(400).json({ error: 'category and title are required' });
   }
 
-  // Only admin/moderator can pin
-  const canPin = req.user.is_super_admin ||
-    ['admin', 'moderator'].includes(req.membership?.role);
+  // Auto-pin for straatzaken/evenement with dates
+  const autoPin = ['straatzaken', 'evenement'].includes(category) &&
+    !!(eventDate || startDate || endDate);
 
   const { rows } = await query(
     `INSERT INTO posts
-       (street_id, user_id, category, title, body, pinned, end_date, start_date, license_plate,
-        event_date, event_time, event_location, bring_list, photo_key,
-        link, carrier, allow_join, start_time, end_time, location, sub_type)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+       (street_id, user_id, category, title, body, pinned, end_date, start_date,
+        event_date, event_time, bring_list, photo_key,
+        link, allow_join, start_time, end_time, sub_type,
+        start_house, end_house)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
      RETURNING *`,
     [
       streetId, req.user.user_id, category, title.trim(), body?.trim() || '',
-      canPin && pinned ? true : false,
-      endDate || null, startDate || null, licensePlate || null,
-      eventDate || null, eventTime || null, eventLocation || null,
+      autoPin,
+      endDate || null, startDate || null,
+      eventDate || null, eventTime || null,
       bringList?.length ? bringList : null,
       photoKey || null,
-      link || null, carrier || null, allowJoin || false,
+      link || null, allowJoin || false,
       startTime || null, endTime || null,
-      location || null, subType || null,
+      subType || null,
+      startHouse || null, endHouse || null,
     ]
   );
 
@@ -99,7 +102,7 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
   const isSearchPackage = (category === 'bezorging' || category === 'package') && (subType === 'gezocht' || subType === 'search');
   sendPushToStreet(streetId, category, isSearchPackage ? {
     title,
-    body: carrier ? `Bezorgd door ${carrier} — weet jij waar het is?` : 'Weet jij waar dit pakket is?',
+    body: 'Weet jij waar dit pakket is?',
     url: `/streets/${streetId}`,
     category,
   } : {
@@ -128,26 +131,24 @@ router.patch('/:streetId/posts/:postId', requireAuth, requireMembership('residen
   const canMod = req.user.is_super_admin || ['admin', 'moderator'].includes(req.membership?.role);
   if (!isAuthor && !canMod) return res.status(403).json({ error: 'Forbidden' });
 
-  const { title, body, endDate, startDate, eventDate, eventTime, eventLocation, bringList, link, carrier, startTime, endTime, location, subType, allowJoin } = req.body;
+  const { title, body, endDate, startDate, eventDate, eventTime, bringList, link, startTime, endTime, subType, startHouse, endHouse } = req.body;
 
   const { rows } = await query(
     `UPDATE posts SET
-       title          = $1,
-       body           = $2,
-       end_date       = $3,
-       start_date     = $4,
-       event_date     = $5,
-       event_time     = $6,
-       event_location = $7,
-       bring_list     = $8,
-       link           = $9,
-       carrier        = $10,
-       start_time     = $11,
-       end_time       = $12,
-       location       = $13,
-       sub_type       = $14,
-       allow_join     = $15
-     WHERE id = $16 AND street_id = $17
+       title       = $1,
+       body        = $2,
+       end_date    = $3,
+       start_date  = $4,
+       event_date  = $5,
+       event_time  = $6,
+       bring_list  = $7,
+       link        = $8,
+       start_time  = $9,
+       end_time    = $10,
+       sub_type    = $11,
+       start_house = $12,
+       end_house   = $13
+     WHERE id = $14 AND street_id = $15
      RETURNING *`,
     [
       title?.trim() || post.title,
@@ -156,15 +157,13 @@ router.patch('/:streetId/posts/:postId', requireAuth, requireMembership('residen
       startDate !== undefined ? (startDate || null) : post.start_date,
       eventDate !== undefined ? (eventDate || null) : post.event_date,
       eventTime !== undefined ? (eventTime || null) : post.event_time,
-      eventLocation !== undefined ? (eventLocation || null) : post.event_location,
       bringList !== undefined ? (bringList?.length ? bringList : null) : post.bring_list,
       link !== undefined ? (link || null) : post.link,
-      carrier !== undefined ? (carrier || null) : post.carrier,
       startTime !== undefined ? (startTime || null) : post.start_time,
       endTime !== undefined ? (endTime || null) : post.end_time,
-      location !== undefined ? (location || null) : post.location,
       subType !== undefined ? (subType || null) : post.sub_type,
-      allowJoin !== undefined ? Boolean(allowJoin) : post.allow_join,
+      startHouse !== undefined ? (startHouse || null) : post.start_house,
+      endHouse !== undefined ? (endHouse || null) : post.end_house,
       postId, streetId,
     ]
   );

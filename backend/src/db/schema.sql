@@ -164,5 +164,9 @@ DELETE FROM notification_prefs                         WHERE category = 'general
 -- Migratie: geen admin-goedkeuring in MVP — alle pending memberships activeren
 UPDATE memberships SET status = 'approved' WHERE status = 'pending';
 
+-- Migratie: Van/Tot huisnummers (vervangt location voor adresbereik)
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS start_house TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS end_house TEXT;
+
 -- Seed: super admin
 UPDATE users SET is_super_admin = true WHERE email = 'wendy@fred6.nl';
