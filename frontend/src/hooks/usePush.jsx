@@ -10,6 +10,16 @@ function urlBase64ToUint8Array(base64String) {
 
 export const notifSupported = typeof Notification !== 'undefined';
 
+function unsupportedMessage() {
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+  if (!isIOS) return 'Push-notificaties worden niet ondersteund in deze browser';
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  if (!isStandalone) {
+    return 'Werkt alleen via Safari: open deze site in Safari, tik op Delen → "Voeg toe aan beginscherm", en open de app vanaf dat icoon.';
+  }
+  return 'Pushnotificaties vereisen iOS 16.4 of hoger';
+}
+
 export function usePush() {
   const [permission, setPermission] = useState(notifSupported ? Notification.permission : 'default');
   const [subscribed, setSubscribed] = useState(false);
@@ -30,7 +40,7 @@ export function usePush() {
 
   const subscribe = async () => {
     if (!notifSupported || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-      return { ok: false, error: 'Push-notificaties worden niet ondersteund in deze browser' };
+      return { ok: false, error: unsupportedMessage() };
     }
     try {
       const perm = await Notification.requestPermission();

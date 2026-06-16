@@ -1665,7 +1665,7 @@ export default function App() {
         </div>
       )}
       {notifToast && (
-        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: COLORS.surface, border: `1px solid ${COLORS.accent}`, borderRadius: 10, padding: '10px 20px', fontSize: 13, color: COLORS.text, zIndex: 200, whiteSpace: 'nowrap' }}>
+        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 40px)', maxWidth: 320, background: COLORS.surface, border: `1px solid ${COLORS.accent}`, borderRadius: 10, padding: '10px 16px', fontSize: 13, color: COLORS.text, zIndex: 200, textAlign: 'center', lineHeight: 1.5 }}>
           {notifToast}
         </div>
       )}
@@ -1682,10 +1682,11 @@ export default function App() {
               const result = await subscribe();
               if (result.ok) {
                 setNotifToast('Notificaties staan nu aan');
+                setTimeout(() => setNotifToast(''), 3000);
               } else if (result.error) {
                 setNotifToast(result.error);
+                setTimeout(() => setNotifToast(''), 6000);
               }
-              if (result.ok || result.error) setTimeout(() => setNotifToast(''), 3000);
             }}
           >
             <BellIcon size={20} weight={subscribed ? 'fill' : 'regular'} />
