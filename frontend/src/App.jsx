@@ -39,6 +39,7 @@ import { ThumbsUpIcon } from '@phosphor-icons/react/dist/csr/ThumbsUp';
 import { QuestionIcon } from '@phosphor-icons/react/dist/csr/Question';
 import { ConfettiIcon } from '@phosphor-icons/react/dist/csr/Confetti';
 import { TrafficConeIcon } from '@phosphor-icons/react/dist/csr/TrafficCone';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 
 const CATEGORIES = {
   bezorging:   { label: 'Bezorging',   labelEn: 'Package',   color: '#4488FF' },
@@ -1665,8 +1666,15 @@ export default function App() {
         </div>
       )}
       {notifToast && (
-        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 40px)', maxWidth: 320, background: COLORS.surface, border: `1px solid ${COLORS.accent}`, borderRadius: 10, padding: '10px 16px', fontSize: 13, color: COLORS.text, zIndex: 200, textAlign: 'center', lineHeight: 1.5 }}>
+        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 40px)', maxWidth: 320, background: COLORS.surface, border: `1px solid ${COLORS.accent}`, borderRadius: 10, padding: '14px 36px 14px 16px', fontSize: 13, color: COLORS.text, zIndex: 200, textAlign: 'left', lineHeight: 1.5 }}>
           {notifToast}
+          <button
+            onClick={() => setNotifToast('')}
+            aria-label="Sluiten"
+            style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', padding: 6, cursor: 'pointer', color: COLORS.textMuted, display: 'flex' }}
+          >
+            <XIcon size={16} weight="bold" />
+          </button>
         </div>
       )}
 
@@ -1682,10 +1690,8 @@ export default function App() {
               const result = await subscribe();
               if (result.ok) {
                 setNotifToast('Notificaties staan nu aan');
-                setTimeout(() => setNotifToast(''), 3000);
               } else if (result.error) {
                 setNotifToast(result.error);
-                setTimeout(() => setNotifToast(''), 6000);
               }
             }}
           >
