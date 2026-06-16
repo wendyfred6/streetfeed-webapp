@@ -40,7 +40,8 @@ const s = {
   header: { ...GLASS.header, borderBottom: '1px solid rgba(255,255,255,0.3)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 },
   logo: { fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px' },
   accent: { color: COLORS.accent },
-  streetBadge: { fontSize: 11, color: COLORS.textMuted, ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.sm, padding: '3px 8px' },
+  headerActions: { display: 'flex', alignItems: 'center', gap: 4 },
+  headerIconBtn: (active) => ({ background: 'none', border: 'none', padding: 8, borderRadius: RADIUS.pill, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? COLORS.accent : COLORS.textMuted }),
   feed: { padding: '0 0 calc(98px + env(safe-area-inset-bottom)) 0' },
   sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textMuted, padding: '16px 20px 8px' },
   card: (pinned) => ({ margin: '0 12px 8px', ...GLASS.card, background: pinned ? COLORS.pinned : 'rgba(255,255,255,0.70)', border: `1px solid ${pinned ? COLORS.pinnedBorder : 'rgba(255,255,255,0.50)'}`, borderRadius: RADIUS.lg, padding: '12px 14px' }),
@@ -1716,7 +1717,30 @@ export default function App() {
 
       <div style={s.header}>
         <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
-        <div style={s.streetBadge}>{streetInfo?.name || 'Reyer Anslostraat'}</div>
+        <div style={s.headerActions}>
+          <button
+            style={s.headerIconBtn(subscribed)}
+            title={subscribed ? 'Notificaties staan aan' : 'Notificaties aanzetten'}
+            aria-label="Notificaties"
+            onClick={() => { if (!subscribed && permission !== 'denied') subscribe(); else setTab('settings'); }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 01-3.46 0"/>
+            </svg>
+          </button>
+          <button
+            style={s.headerIconBtn(tab === 'settings')}
+            title="Profiel"
+            aria-label="Profiel"
+            onClick={() => setTab('settings')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       {tab === 'feed' && (
