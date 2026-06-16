@@ -1631,7 +1631,7 @@ export default function App() {
     }
   };
 
-  const handleReport = (id) => {
+  const handleReport = async (id) => {
     if (canModerate) {
       setDeleteConfirm(id);
     } else {
