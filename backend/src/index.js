@@ -23,7 +23,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/api/uploads', express.static(UPLOAD_DIR));
+app.use('/api/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', immutable: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/streets', streetsRoutes);
 app.use('/api/streets', postsRoutes);
