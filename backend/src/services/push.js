@@ -105,3 +105,45 @@ export async function findUserIdsAtHouse(streetId, startHouse, endHouse) {
   );
   return rows.filter(u => isHouseInRange(u.house_number, startHouse, endHouse)).map(u => u.id);
 }
+
+// ─── NOTIFICATIE-INBOX ─────────────────────────────────────────────────────
+// De database is de bron van waarheid. Push is een extra afleverkanaal en
+// mag stilletjes falen (geen subscriptie, browserbeperking zoals Chrome op
+// iOS) — de notificatie blijft altijd terug te vinden in de inbox.
+
+async function saveNotification(userId, streetId, payload) {
+  await query(
+    `INSERT INTO notifications (user_id, street_id, category, title, body, url, post_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [userId, streetId, payload.category || null, payload.title, payload.body || null, payload.url || null, payload.postId || null]
+  );
+}
+
+// Eén gerichte notificatie: opslaan + proberen te pushen.
+export async function notifyUser(userId, streetId, payload) {
+  await saveNotification(userId, streetId, payload);
+  await sendPushToUser(userId, payload).catch(() => {});
+}
+
+// Straat-brede notificatie: iedereen die deze categorie niet heeft
+// uitgezet krijgt een opgeslagen notificatie, los van of ze ook
+// daadwerkelijk een actieve pushsubscriptie hebben.
+export async function notifyStreet(streetId, category, payload, excludeUserIds = []) {
+  let sql = `
+    SELECT u.id AS user_id
+    FROM users u
+    JOIN memberships m ON m.user_id = u.id
+    LEFT JOIN notification_prefs np ON np.user_id = u.id AND np.category = $2
+    WHERE m.street_id = $1 AND m.status = 'approved'
+      AND (np.enabled IS NULL OR np.enabled = TRUE)
+  `;
+  const params = [streetId, category];
+  if (excludeUserIds.length) {
+    sql += ` AND u.id NOT IN (${excludeUserIds.map((_, i) => `$${params.length + i + 1}`).join(',')})`;
+    params.push(...excludeUserIds);
+  }
+  const { rows } = await query(sql, params);
+
+  await Promise.allSettled(rows.map(r => saveNotification(r.user_id, streetId, { ...payload, category })));
+  await sendPushToStreet(streetId, category, payload, excludeUserIds).catch(() => {});
+}

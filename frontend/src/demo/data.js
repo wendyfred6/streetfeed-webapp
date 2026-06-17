@@ -149,6 +149,12 @@ export const DEMO_PUSH_SETTINGS = Object.fromEntries(
   ['bezorging', 'straatzaken', 'melding', 'evenement'].map(k => [k, true])
 );
 
+export const DEMO_NOTIFICATIONS = [
+  { id: 1, category: 'mandatory', title: 'Pakket voor jou!', body: 'Er is een pakket aangenomen voor jouw huisnummer.', url: '/?post=4', post_id: 4, read_at: null, created_at: ago(20) },
+  { id: 2, category: 'mandatory', title: 'Nieuwe reactie', body: 'Mark reageerde op "Aanrijding geparkeerde auto voor nr. 38"', url: '/?post=3', post_id: 3, read_at: null, created_at: ago(95) },
+  { id: 3, category: 'evenement', title: 'Buurtbarbecue – zaterdag 7 juni! 🎉', body: 'Gezellige barbecue voor alle bewoners.', url: '/?post=2', post_id: 2, read_at: ago(200), created_at: ago(300) },
+];
+
 export const DEMO_HALL_OF_FAME = {
   titles: [
     { key: 'pakketkoning', label: 'Pakketkoning(in)', winner: { name: 'Sophie', houseNumber: '29', count: 14 } },

@@ -1259,11 +1259,50 @@ function AdminView({ streetId, user, memberCount, households }) {
   );
 }
 
+// ─── NOTIFICATIE-INBOX ─────────────────────────────────────────────────────────
+
+function NotificationInboxSheet({ onClose, onOpenPost }) {
+  const [closing, setClosing] = useState(false);
+  const [items, setItems] = useState(null);
+  const close = () => { setClosing(true); setTimeout(onClose, 270); };
+
+  useEffect(() => {
+    api.get('/notifications').then(setItems).catch(() => setItems([]));
+    api.post('/notifications/read-all').catch(() => {});
+  }, []);
+
+  return (
+    <SheetOverlay closing={closing} onOverlayClick={close}>
+      <div style={s.sheetHandle} />
+      <div style={s.sheetTitle}>Notificaties</div>
+      {items === null ? (
+        <div style={s.emptyState}>{t('loading')}</div>
+      ) : items.length === 0 ? (
+        <div style={s.emptyState}>Nog geen notificaties</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16, maxHeight: '60vh', overflowY: 'auto' }}>
+          {items.map(item => (
+            <div key={item.id}
+              onClick={() => { if (item.post_id) { onOpenPost(item.post_id); close(); } }}
+              style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.50)', borderRadius: RADIUS.lg, padding: '12px 14px', cursor: item.post_id ? 'pointer' : 'default' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.text }}>{item.title}</div>
+              {item.body && <div style={{ fontSize: 13, color: COLORS.textMuted, marginTop: 2 }}>{item.body}</div>}
+              <div style={{ fontSize: 11, color: COLORS.textDim, marginTop: 4 }}>{timeAgo(item.created_at)}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
+    </SheetOverlay>
+  );
+}
+
 // ─── SETTINGS VIEW ─────────────────────────────────────────────────────────────
 
 function SettingsView({ user, onLogout }) {
   const [lang, setLangState] = useState(getLang());
   const [notifs, setNotifs] = useState({});
+  const [subscribeMsg, setSubscribeMsg] = useState('');
   const { permission, subscribed, subscribe } = usePush();
   const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
 
@@ -1310,7 +1349,20 @@ function SettingsView({ user, onLogout }) {
           <div style={{ ...s.adminCard, fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>{t('pwa_ios_hint')}</div>
         )}
         {notifSupported && !subscribed && permission !== 'denied' && (
-          <button style={{ ...s.submitBtn, marginBottom: 12 }} onClick={subscribe}>{t('enable_notifications')}</button>
+          <>
+            <button style={{ ...s.submitBtn, marginBottom: 12 }} onClick={async () => {
+              const result = await subscribe();
+              setSubscribeMsg(result.ok ? 'Notificaties staan nu aan' : (result.error || ''));
+            }}>{t('enable_notifications')}</button>
+            {subscribeMsg && (
+              <div style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, fontSize: 12, color: COLORS.textMuted, marginBottom: 8, lineHeight: 1.5 }}>
+                <span>{subscribeMsg}</span>
+                <button onClick={() => setSubscribeMsg('')} style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', color: COLORS.textDim, flexShrink: 0 }}>
+                  <XIcon size={14} weight="bold" />
+                </button>
+              </div>
+            )}
+          </>
         )}
         {Object.entries(CATEGORIES).map(([key, c]) => (
           <div key={key} style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1542,6 +1594,8 @@ export default function App() {
   const [editPost, setEditPost] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deepLinkPostId, setDeepLinkPostId] = useState(null);
+  const [showNotifInbox, setShowNotifInbox] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const STREET_ID = 1; // Reyer Anslostraat (first street)
 
@@ -1587,6 +1641,11 @@ export default function App() {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(console.error);
     }
+  }, []);
+
+  // Notificatie-inbox is de bron van waarheid — onafhankelijk van push
+  useEffect(() => {
+    api.get('/notifications/unread-count').then(d => setUnreadCount(d.count)).catch(() => {});
   }, []);
 
   // Deep link vanuit een notificatie: ?post=<id> direct naar de juiste post
@@ -1761,20 +1820,15 @@ export default function App() {
         <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
         <div style={s.headerActions}>
           <button
-            style={s.headerIconBtn(subscribed)}
-            title={subscribed ? 'Notificaties staan aan' : 'Notificaties aanzetten'}
+            style={{ ...s.headerIconBtn(showNotifInbox), position: 'relative' }}
+            title="Notificaties"
             aria-label="Notificaties"
-            onClick={async () => {
-              if (subscribed) { setTab('settings'); return; }
-              const result = await subscribe();
-              if (result.ok) {
-                setNotifToast('Notificaties staan nu aan');
-              } else if (result.error) {
-                setNotifToast(result.error);
-              }
-            }}
+            onClick={() => setShowNotifInbox(true)}
           >
-            <BellIcon size={20} weight={subscribed ? 'fill' : 'regular'} />
+            <BellIcon size={20} weight={unreadCount > 0 ? 'fill' : 'regular'} />
+            {unreadCount > 0 && (
+              <span style={{ position: 'absolute', top: 2, right: 2, width: 9, height: 9, borderRadius: '50%', background: COLORS.red, border: `1.5px solid ${COLORS.surface}` }} />
+            )}
           </button>
           <button
             style={s.headerIconBtn(tab === 'settings')}
@@ -1795,7 +1849,11 @@ export default function App() {
                 <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 2 }}>Blijf op de hoogte</div>
                 <div style={{ fontSize: 12, color: COLORS.textMuted, lineHeight: 1.4 }}>Ontvang een melding bij nieuwe berichten in de straat</div>
               </div>
-              <button onClick={subscribe} style={{ background: COLORS.terracotta, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <button onClick={async () => {
+                const result = await subscribe();
+                if (result.ok) setNotifToast('Notificaties staan nu aan');
+                else if (result.error) setNotifToast(result.error);
+              }} style={{ background: COLORS.terracotta, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 Aanzetten
               </button>
             </div>
@@ -1887,6 +1945,12 @@ export default function App() {
       {showPost && (
         <NewPostSheet onClose={() => setShowPost(false)} onSubmit={(data) => { handleNewPost(data); setShowPost(false); window.scrollTo({ top: 0, behavior: 'instant' }); }}
           streetId={STREET_ID} canPin={canPin} user={user} initialCat={pendingCat} initialType={pendingType} />
+      )}
+      {showNotifInbox && (
+        <NotificationInboxSheet
+          onClose={() => { setShowNotifInbox(false); setUnreadCount(0); }}
+          onOpenPost={(postId) => handleDeepLink(`/?post=${postId}`)}
+        />
       )}
       {eventDetail && (
         <EventDetailSheet post={eventDetail} onClose={() => setEventDetail(null)} onRsvp={handleRsvp} />

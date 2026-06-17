@@ -168,5 +168,22 @@ UPDATE memberships SET status = 'approved' WHERE status = 'pending';
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS start_house TEXT;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS end_house TEXT;
 
+-- Migratie: notificatie-inbox — de bron van waarheid, los van push.
+-- Push is een extra afleverkanaal en kan stilletjes falen (geen
+-- subscriptie, browserbeperking); deze tabel blijft altijd compleet.
+CREATE TABLE IF NOT EXISTS notifications (
+  id         SERIAL PRIMARY KEY,
+  user_id    INT REFERENCES users(id) ON DELETE CASCADE,
+  street_id  INT REFERENCES streets(id) ON DELETE CASCADE,
+  category   TEXT,
+  title      TEXT NOT NULL,
+  body       TEXT,
+  url        TEXT,
+  post_id    INT REFERENCES posts(id) ON DELETE SET NULL,
+  read_at    TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications(user_id, created_at DESC);
+
 -- Seed: super admin
 UPDATE users SET is_super_admin = true WHERE email = 'wendy@fred6.nl';

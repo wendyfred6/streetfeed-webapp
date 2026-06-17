@@ -8,6 +8,7 @@ import streetsRoutes from './routes/streets.js';
 import uploadRoutes from './routes/upload.js';
 import pushRoutes from './routes/push.js';
 import bagRoutes from './routes/bag.js';
+import notificationsRoutes from './routes/notifications.js';
 import { runMigrations } from './db/index.js';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || '/data/photos';
@@ -29,6 +30,7 @@ app.use('/api/streets', postsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/bag', bagRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 app.get('/api/health', (_, res) => res.json({ ok: true, ts: new Date() }));
 

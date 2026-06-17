@@ -5,13 +5,15 @@
 import {
   DEMO_USER, DEMO_STREET,
   DEMO_POSTS, DEMO_PENDING, DEMO_MEMBERS, DEMO_PUSH_SETTINGS, DEMO_HALL_OF_FAME,
+  DEMO_NOTIFICATIONS,
 } from './data.js';
 
 // Deep-clone initial state so mutations don't affect the originals
-let posts   = JSON.parse(JSON.stringify(DEMO_POSTS));
-let pending = JSON.parse(JSON.stringify(DEMO_PENDING));
-let members = JSON.parse(JSON.stringify(DEMO_MEMBERS));
-let push    = { ...DEMO_PUSH_SETTINGS };
+let posts         = JSON.parse(JSON.stringify(DEMO_POSTS));
+let pending       = JSON.parse(JSON.stringify(DEMO_PENDING));
+let members       = JSON.parse(JSON.stringify(DEMO_MEMBERS));
+let push          = { ...DEMO_PUSH_SETTINGS };
+let notifications = JSON.parse(JSON.stringify(DEMO_NOTIFICATIONS));
 
 const delay = () => new Promise(r => setTimeout(r, 150 + Math.random() * 200));
 
@@ -154,6 +156,18 @@ export async function demoRequest(method, path, body) {
   // ── Push settings ──────────────────────────────────────────────────────────
   if (method === 'GET'   && path === '/push/settings') return { ...push };
   if (method === 'PATCH' && path === '/push/settings') { push = { ...push, ...body.settings }; return null; }
+
+  // ── Notificatie-inbox ────────────────────────────────────────────────────
+  if (method === 'GET' && path === '/notifications') {
+    return JSON.parse(JSON.stringify(notifications));
+  }
+  if (method === 'GET' && path === '/notifications/unread-count') {
+    return { count: notifications.filter(n => !n.read_at).length };
+  }
+  if (method === 'POST' && path === '/notifications/read-all') {
+    notifications = notifications.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() }));
+    return { ok: true };
+  }
 
   // ── BAG huisnummers (Reyer Anslostraat: oneven 1-29, even 2-30) ─────────────
   const bagM = path.match(/^\/bag\/addresses\/(\d+)$/);

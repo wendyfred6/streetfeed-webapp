@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { query } from '../db/index.js';
 import { requireAuth, requireMembership } from '../middleware/auth.js';
-import { sendPushToStreet, sendPushToUser, findUserIdsAtHouse } from '../services/push.js';
+import { notifyStreet, notifyUser, findUserIdsAtHouse } from '../services/push.js';
 import { getPublicUrl } from '../services/storage.js';
 
 function withPhotoUrl(post) {
@@ -109,26 +109,27 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
     if (isDelivered && startHouse) {
       targetUserIds = (await findUserIdsAtHouse(streetId, startHouse, null))
         .filter(id => id !== req.user.user_id);
-      targetUserIds.forEach(uid => sendPushToUser(uid, {
+      targetUserIds.forEach(uid => notifyUser(uid, streetId, {
         title: 'Pakket voor jou!',
         body: `Er is een pakket aangenomen voor jouw huisnummer.`,
         url: `/?post=${post.id}`,
+        postId: post.id,
         category: 'mandatory',
       }).catch(() => {}));
     }
 
     // Normale straat-brede broadcast — doelgebruikers hierboven al apart
     // bediend, dus uitgesloten om dubbele notificaties te voorkomen
-    sendPushToStreet(streetId, category, isSearchPackage ? {
+    notifyStreet(streetId, category, isSearchPackage ? {
       title,
       body: 'Weet jij waar dit pakket is?',
       url: `/?post=${post.id}`,
-      category,
+      postId: post.id,
     } : {
       title,
       body: (body || '').substring(0, 100),
       url: `/?post=${post.id}`,
-      category,
+      postId: post.id,
     }, targetUserIds).catch(() => {});
   })();
 
@@ -341,10 +342,11 @@ router.post('/:streetId/posts/:postId/comments', requireAuth, requireMembership(
     targetIds.delete(req.user.user_id);
 
     const firstName = (req.user.name || '').split(' ')[0] || 'Iemand';
-    targetIds.forEach(uid => sendPushToUser(uid, {
+    targetIds.forEach(uid => notifyUser(uid, req.params.streetId, {
       title: 'Nieuwe reactie',
       body: `${firstName} reageerde op "${post.title}"`,
       url: `/?post=${req.params.postId}`,
+      postId: req.params.postId,
       category: 'mandatory',
     }).catch(() => {}));
   })();
