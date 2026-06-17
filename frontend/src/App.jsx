@@ -75,7 +75,7 @@ const s = {
   logo: { fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px' },
   accent: { color: COLORS.accent },
   headerActions: { display: 'flex', alignItems: 'center', gap: 4 },
-  headerIconBtn: (active) => ({ background: 'none', border: 'none', padding: 8, borderRadius: RADIUS.pill, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? COLORS.accent : COLORS.textMuted }),
+  headerIconBtn: (active) => ({ width: 36, height: 36, background: active ? ALPHA.accentSubtle : 'rgba(0,0,0,0.05)', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? COLORS.accent : COLORS.textMuted }),
   feed: { padding: '0 0 calc(98px + env(safe-area-inset-bottom)) 0' },
   sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textMuted, padding: '16px 20px 8px' },
   card: (pinned) => ({ margin: '0 12px 8px', ...GLASS.card, background: pinned ? COLORS.pinned : 'rgba(255,255,255,0.70)', border: `1px solid ${pinned ? COLORS.pinnedBorder : 'rgba(255,255,255,0.50)'}`, borderRadius: RADIUS.lg, padding: '12px 14px' }),
@@ -88,15 +88,15 @@ const s = {
   filterBar: { display: 'flex', gap: 6, padding: '12px 20px', overflowX: 'auto', scrollbarWidth: 'none' },
   filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : 'rgba(255,255,255,0.55)', color: active ? '#FFFFFF' : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
   bottomBar: { position: 'fixed', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 28px)', maxWidth: 374, display: 'flex', alignItems: 'center', gap: 10, zIndex: 50 },
-  tabBar: (full) => ({ ...GLASS.header, border: '1px solid rgba(255,255,255,0.55)', borderRadius: RADIUS.pill, padding: '5px', display: 'flex', flex: full ? '1 1 auto' : '0 0 auto', transition: 'flex 0.2s' }),
-  tab: (active, full) => ({ flex: full ? 1 : '0 0 auto', padding: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? ALPHA.accentSubtle : 'none', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', color: active ? COLORS.accent : COLORS.textMuted, transition: 'background 0.15s' }),
-  postCta: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '0 18px', height: 54, fontSize: 14, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: `0 4px 20px ${ALPHA.terraGlow}`, flexShrink: 0 },
+  tabBar: { ...GLASS.header, border: '1px solid rgba(255,255,255,0.55)', borderRadius: RADIUS.pill, padding: '5px', display: 'flex', flex: '1 1 auto' },
+  tab: (active) => ({ flex: 1, padding: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? ALPHA.accentSubtle : 'none', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', color: active ? COLORS.accent : COLORS.textMuted, transition: 'background 0.15s' }),
+  postCta: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: 54, height: 54, background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', boxShadow: `0 4px 20px ${ALPHA.terraGlow}`, flexShrink: 0 },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(26,10,18,0.50)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' },
   sheet: { ...GLASS.sheet, borderRadius: `${RADIUS.xl}px ${RADIUS.xl}px 0 0`, width: '100%', maxWidth: 480, padding: '20px 20px 40px', maxHeight: '90vh', overflowY: 'auto' },
   sheetHandle: { width: 36, height: 4, background: 'rgba(0,0,0,0.15)', borderRadius: 2, margin: '0 auto 20px' },
   sheetTitle: { fontSize: 18, fontWeight: 800, marginBottom: 20, letterSpacing: '-0.3px' },
   input: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
-  textarea: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', resize: 'none', height: 80, marginBottom: 10 },
+  textarea: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', resize: 'none', minHeight: 80, marginBottom: 10 },
   label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.accent, display: 'block', marginBottom: 6 },
   catGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 },
   catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}18` : 'rgba(255,255,255,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: `1px solid ${selected ? CATEGORIES[cat]?.color : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
@@ -131,6 +131,17 @@ function Chevron({ size = 14, color, rotate = 0, style }) {
     <CaretDownIcon size={size} color={color || COLORS.textMuted} weight="regular"
       style={{ flexShrink: 0, pointerEvents: 'none', transition: 'transform 0.2s', transform: `rotate(${rotate}deg)`, ...style }} />
   );
+}
+
+function AutoTextarea({ style, value, ...props }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+  return <textarea ref={ref} value={value} style={{ ...style, resize: 'none', overflow: 'hidden' }} {...props} />;
 }
 
 function CatBadge({ cat }) {
@@ -420,13 +431,13 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
             ))}
             {threadComments !== null && (
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', marginTop: 4 }} onClick={e => e.stopPropagation()}>
-                <textarea
+                <AutoTextarea
                   value={commentText}
                   onChange={e => setCommentText(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(e); } }}
                   placeholder="Reageer…"
                   rows={1}
-                  style={{ ...s.textarea, flex: 1, padding: '8px 10px', fontSize: 16, height: 'auto', marginBottom: 0 }}
+                  style={{ ...s.textarea, flex: 1, padding: '8px 10px', fontSize: 16, minHeight: 'auto', marginBottom: 0 }}
                 />
                 <button onClick={submitComment} disabled={!commentText.trim() || sendingComment}
                   style={{ background: commentText.trim() ? COLORS.accent : COLORS.border, color: commentText.trim() ? '#000' : COLORS.textDim, border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: commentText.trim() ? 'pointer' : 'default', flexShrink: 0, transition: 'background 0.15s' }}>
@@ -724,7 +735,7 @@ function EditPostSheet({ post, onClose, onSave, streetId }) {
         <input style={s.input} value={title} onChange={e => setTitle(e.target.value)} />
 
         <label style={s.label}>Omschrijving</label>
-        <textarea style={s.textarea} value={body} onChange={e => setBody(e.target.value)} />
+        <AutoTextarea style={s.textarea} value={body} onChange={e => setBody(e.target.value)} />
 
         {isBezorgd && (
           <>
@@ -1058,7 +1069,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
             </div>
           )}
           <label style={s.label}>Omschrijving</label>
-          <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
+          <AutoTextarea style={{ ...s.textarea, minHeight: 60 }} value={body} onChange={e => setBody(e.target.value)} />
         </>
       )}
 
@@ -1091,7 +1102,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
           <label style={s.label}>Link</label>
           <input type="url" style={s.input} placeholder="https://…" value={link} onChange={e => setLink(e.target.value)} />
           <label style={s.label}>Omschrijving</label>
-          <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
+          <AutoTextarea style={{ ...s.textarea, minHeight: 60 }} value={body} onChange={e => setBody(e.target.value)} />
         </>
       )}
 
@@ -1102,7 +1113,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
           <input style={s.input} placeholder="Kort en duidelijk" value={title} onChange={e => setTitle(e.target.value)} />
           {houseRow}
           <label style={s.label}>Omschrijving *</label>
-          <textarea style={s.textarea} value={body} onChange={e => setBody(e.target.value)} />
+          <AutoTextarea style={s.textarea} value={body} onChange={e => setBody(e.target.value)} />
         </>
       )}
 
@@ -1123,7 +1134,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
           </div>
           {houseRow}
           <label style={s.label}>Omschrijving</label>
-          <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
+          <AutoTextarea style={{ ...s.textarea, minHeight: 60 }} value={body} onChange={e => setBody(e.target.value)} />
         </>
       )}
 
@@ -1134,7 +1145,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
           <input style={s.input} placeholder="Bijv. Tweedehands bank te koop" value={title} onChange={e => setTitle(e.target.value)} />
           {houseRow}
           <label style={s.label}>Omschrijving</label>
-          <textarea style={{ ...s.textarea, height: 60 }} value={body} onChange={e => setBody(e.target.value)} />
+          <AutoTextarea style={{ ...s.textarea, minHeight: 60 }} value={body} onChange={e => setBody(e.target.value)} />
         </>
       )}
 
@@ -1614,7 +1625,23 @@ export default function App() {
   const handleNewPost = async (data) => {
     try {
       const post = await api.post(`/streets/${STREET_ID}/posts`, data);
-      setPosts(ps => [post, ...ps]);
+      // POST geeft alleen de ruwe rij terug — auteur/likes/comments komen
+      // pas uit de GET-query (met JOINs). Zonder dit flitst "Bewoner" en
+      // NaN even op tot de volgende reload.
+      setPosts(ps => [{
+        ...post,
+        author_name: user?.name,
+        author_house: user?.house_number,
+        author_role: membership?.role,
+        likes: 0,
+        comments: 0,
+        reports: 0,
+        liked: false,
+        my_rsvp: null,
+        my_join: false,
+        joiners: [],
+        rsvp: { yes: [], maybe: [], no: [] },
+      }, ...ps]);
     } catch (e) {
       setPostError(e.message || 'Bericht plaatsen mislukt');
       setTimeout(() => setPostError(''), 4000);
@@ -1755,7 +1782,7 @@ export default function App() {
       {tab === 'settings' && <SettingsView user={user} onLogout={logout} />}
 
       <div style={s.bottomBar}>
-        <div style={s.tabBar(tab !== 'feed')}>
+        <div style={s.tabBar}>
           {[
             { id: 'feed', label: t('feed'), icon: HouseIcon },
             ...(canModerate ? [
@@ -1767,7 +1794,7 @@ export default function App() {
             const active = tab === tab_.id;
             const TabIcon = tab_.icon;
             return (
-              <button key={tab_.id} style={s.tab(active, tab !== 'feed')} onClick={() => setTab(tab_.id)} aria-label={tab_.label} title={tab_.label}>
+              <button key={tab_.id} style={s.tab(active)} onClick={() => setTab(tab_.id)} aria-label={tab_.label} title={tab_.label}>
                 <TabIcon size={20} weight={active ? 'bold' : 'regular'} />
               </button>
             );
@@ -1775,9 +1802,8 @@ export default function App() {
         </div>
 
         {tab === 'feed' && (
-          <button style={s.postCta} onClick={() => setShowCatPicker(true)}>
-            <PlusIcon size={16} weight="bold" />
-            <span>Bericht plaatsen</span>
+          <button style={s.postCta} onClick={() => setShowCatPicker(true)} aria-label="Bericht plaatsen" title="Bericht plaatsen">
+            <PlusIcon size={22} weight="bold" />
           </button>
         )}
       </div>

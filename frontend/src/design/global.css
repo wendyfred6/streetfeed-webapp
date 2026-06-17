@@ -1,3 +1,10 @@
+/* Alleen verticaal scrollen — voorkomt dat schuine swipes de content
+   ook horizontaal laten bewegen */
+html, body {
+  touch-action: pan-y;
+  overscroll-behavior-x: none;
+}
+
 /* Focus states */
 input:focus-visible,
 select:focus-visible,
