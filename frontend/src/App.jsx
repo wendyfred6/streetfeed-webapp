@@ -10,10 +10,7 @@ import HouseNumberPicker from './components/HouseNumberPicker.jsx';
 // Phosphor Icons — subpath imports per icoon i.p.v. de barrel, voor kleinere bundle
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
-import { MapPinIcon } from '@phosphor-icons/react/dist/csr/MapPin';
 import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
-import { UserGearIcon } from '@phosphor-icons/react/dist/csr/UserGear';
-import { GearIcon } from '@phosphor-icons/react/dist/csr/Gear';
 import { BellIcon } from '@phosphor-icons/react/dist/csr/Bell';
 import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import { HeartIcon } from '@phosphor-icons/react/dist/csr/Heart';
@@ -1217,7 +1214,7 @@ function AdminView({ streetId, user, memberCount, households }) {
   };
 
   return (
-    <div style={s.feed}>
+    <>
       <div style={{ display: 'flex', gap: 6, padding: '12px 12px 0' }}>
         {[[['queue', t('requests')], ['members', t('residents_tab')], ['manage', t('manage_tab')]]].flat().map(([id, label]) => (
           <div key={id} style={s.filterChip(subTab === id)} onClick={() => setSubTab(id)}>{label}</div>
@@ -1279,7 +1276,7 @@ function AdminView({ streetId, user, memberCount, households }) {
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -1321,9 +1318,11 @@ function NotificationInboxSheet({ onClose, onOpenPost }) {
   );
 }
 
-// ─── SETTINGS VIEW ─────────────────────────────────────────────────────────────
+// ─── PROFIEL VIEW ──────────────────────────────────────────────────────────────
+// Consolideert wat eerder losse tabs waren (Mijn straten, Beheer,
+// Instellingen) — de bottom nav houdt alleen Feed + Hall of Fame over.
 
-function SettingsView({ user, onLogout }) {
+function ProfileView({ user, onLogout, canModerate, streetId, memberCount, households }) {
   const [lang, setLangState] = useState(getLang());
   const [notifs, setNotifs] = useState({});
   const [subscribeMsg, setSubscribeMsg] = useState('');
@@ -1364,8 +1363,19 @@ function SettingsView({ user, onLogout }) {
             <span style={{ fontSize: 13, fontWeight: 600 }}>{item.value}</span>
           </div>
         ))}
-        <button style={{ ...s.cancelBtn, marginTop: 4 }} onClick={onLogout}>{t('logout')}</button>
       </div>
+
+      <div style={s.sectionLabel}>{t('your_streets')}</div>
+      <div style={{ padding: '0 12px' }}>
+        <StreetsView user={user} />
+      </div>
+
+      {canModerate && (
+        <>
+          <div style={s.sectionLabel}>{t('admin')}</div>
+          <AdminView streetId={streetId} user={user} memberCount={memberCount} households={households} />
+        </>
+      )}
 
       <div style={s.sectionLabel}>{t('notifications')}</div>
       <div style={{ padding: '0 12px' }}>
@@ -1415,6 +1425,10 @@ function SettingsView({ user, onLogout }) {
           <div style={{ fontWeight: 700, color: COLORS.text, marginBottom: 8 }}>{t('privacy_intro')}</div>
           {t('privacy_body').map(item => <div key={item} style={{ padding: '3px 0' }}>{item}</div>)}
         </div>
+      </div>
+
+      <div style={{ padding: '0 12px' }}>
+        <button style={{ ...s.cancelBtn, marginTop: 4 }} onClick={onLogout}>{t('logout')}</button>
       </div>
     </div>
   );
@@ -1481,8 +1495,7 @@ function StreetsView({ user }) {
   }, []);
 
   return (
-    <div style={s.feed}>
-      <div style={s.sectionLabel}>{t('your_streets')}</div>
+    <>
       {streets.filter(s => s.status === 'approved').map(st => (
         <div key={st.id} style={s.streetCard}>
           <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{st.name}</div>
@@ -1496,11 +1509,10 @@ function StreetsView({ user }) {
           </div>
         </div>
       ))}
-      <div style={s.sectionLabel}>{t('other_streets')}</div>
       <div style={{ ...s.streetCard, opacity: 0.5 }}>
         <div style={{ fontSize: 13, color: COLORS.textMuted }}>{t('request_street')}</div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -1853,10 +1865,10 @@ export default function App() {
             )}
           </button>
           <button
-            style={s.headerIconBtn(tab === 'settings')}
+            style={s.headerIconBtn(tab === 'profile')}
             title="Profiel"
             aria-label="Profiel"
-            onClick={() => setTab('settings')}
+            onClick={() => setTab('profile')}
           >
             <UserIcon size={20} weight="regular" />
           </button>
@@ -1906,24 +1918,16 @@ export default function App() {
       )}
 
       {tab === 'hof' && <HallOfFameView streetId={STREET_ID} />}
-      {tab === 'streets' && <StreetsView user={user} />}
-      {tab === 'admin' && (
-        <AdminView streetId={STREET_ID} user={user}
-          memberCount={streetInfo?.members || 0}
-          households={streetInfo?.households || 0} />
+      {tab === 'profile' && (
+        <ProfileView user={user} onLogout={logout} canModerate={canModerate} streetId={STREET_ID}
+          memberCount={streetInfo?.members || 0} households={streetInfo?.households || 0} />
       )}
-      {tab === 'settings' && <SettingsView user={user} onLogout={logout} />}
 
       <div style={s.bottomBar}>
         <div style={s.tabBar}>
           {[
             { id: 'feed', label: t('feed'), icon: HouseIcon },
             { id: 'hof', label: 'Hall of Fame', icon: TrophyIcon },
-            ...(canModerate ? [
-              { id: 'streets', label: t('streets'), icon: MapPinIcon },
-              { id: 'admin', label: t('admin'), icon: UserGearIcon },
-            ] : []),
-            { id: 'settings', label: t('settings'), icon: GearIcon },
           ].map(tab_ => {
             const active = tab === tab_.id;
             const TabIcon = tab_.icon;
