@@ -70,7 +70,7 @@ function catLabel(key) {
 
 const s = {
   app: { fontFamily: "'Inter','Helvetica Neue',sans-serif", background: 'transparent', color: COLORS.text, minHeight: '100vh', maxWidth: 390, margin: '0 auto' },
-  header: { ...GLASS.header, borderBottom: '1px solid rgba(255,255,255,0.3)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 },
+  header: { ...GLASS.header, borderBottom: '1px solid rgba(255,255,255,0.3)', padding: 'calc(16px + env(safe-area-inset-top)) 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 },
   logo: { fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px' },
   accent: { color: COLORS.accent },
   headerActions: { display: 'flex', alignItems: 'center', gap: 4 },

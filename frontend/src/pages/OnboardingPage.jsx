@@ -50,8 +50,9 @@ function isStandaloneDisplay() {
 }
 
 // "Alleen tonen waar relevant": niet op desktop, niet als de app al
-// als standalone PWA draait. Op iOS buiten Safari kun je niet (goed)
-// toevoegen aan het beginscherm, dus daar wijzen we naar Safari toe.
+// als standalone PWA draait. Op iOS gebruikt elke browser (Safari,
+// Chrome, etc.) hetzelfde systeem-deelvenster voor "Voeg toe aan
+// beginscherm", dus daar is geen browser-specifieke tekst nodig.
 function HomeScreenPrompt() {
   if (isStandaloneDisplay()) return null;
 
@@ -60,29 +61,22 @@ function HomeScreenPrompt() {
   const isAndroid = /Android/.test(ua);
   if (!isIOS && !isAndroid) return null;
 
-  const isIOSSafari = isIOS && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
-
   return (
     <div style={s.homeScreenBox}>
       <div style={s.homeScreenTitle}>
         <DeviceMobileIcon size={18} weight="regular" color={COLORS.accent} />
         Tip: zet Streetfeed op je beginscherm
       </div>
-      {isIOS && !isIOSSafari && (
-        <div style={{ fontSize: 12, color: COLORS.textMuted, lineHeight: 1.5 }}>
-          Open deze pagina in <strong>Safari</strong> — alleen daar kun je 'm aan je beginscherm toevoegen.
-        </div>
-      )}
-      {isIOSSafari && (
+      {isIOS && (
         <>
-          <div style={s.homeScreenStep}><ShareIcon size={14} style={{ flexShrink: 0, marginTop: 1 }} />Tik op het Deel-icoon onderin Safari</div>
+          <div style={s.homeScreenStep}><ShareIcon size={14} style={{ flexShrink: 0, marginTop: 1 }} />Tik op het Deel-icoon in je browser</div>
           <div style={s.homeScreenStep}>Kies &quot;Voeg toe aan beginscherm&quot;</div>
           <div style={s.homeScreenStep}>Tik op &quot;Voeg toe&quot;</div>
         </>
       )}
       {isAndroid && (
         <>
-          <div style={s.homeScreenStep}><DotsThreeVerticalIcon size={14} style={{ flexShrink: 0, marginTop: 1 }} />Tik op het menu rechtsboven in Chrome</div>
+          <div style={s.homeScreenStep}><DotsThreeVerticalIcon size={14} style={{ flexShrink: 0, marginTop: 1 }} />Tik op het menu rechtsboven in je browser</div>
           <div style={s.homeScreenStep}>Kies &quot;App installeren&quot;</div>
           <div style={s.homeScreenStep}>Bevestig met &quot;Installeren&quot;</div>
         </>
