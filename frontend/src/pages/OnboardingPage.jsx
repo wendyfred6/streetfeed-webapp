@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { api } from '../api/client.js';
 import { COLORS, RADIUS, ALPHA, GLASS } from '../design/tokens.js';
 import { EnvelopeSimpleIcon } from '@phosphor-icons/react/dist/csr/EnvelopeSimple';
+import { DeviceMobileIcon } from '@phosphor-icons/react/dist/csr/DeviceMobile';
+import { ShareIcon } from '@phosphor-icons/react/dist/csr/Share';
+import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
 
 const s = {
   page: {
@@ -36,7 +39,56 @@ const s = {
   streetConfirm: { ...GLASS.subtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '16px', marginBottom: 20 },
   streetName: { fontSize: 18, fontWeight: 800, color: COLORS.text, marginBottom: 4 },
   streetCity: { fontSize: 13, color: COLORS.textMuted },
+  homeScreenBox: { ...GLASS.subtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '14px 16px', marginTop: 16, textAlign: 'left' },
+  homeScreenTitle: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 8 },
+  homeScreenStep: { display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: COLORS.textMuted, lineHeight: 1.5, marginBottom: 6 },
 };
+
+function isStandaloneDisplay() {
+  return window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+}
+
+// "Alleen tonen waar relevant": niet op desktop, niet als de app al
+// als standalone PWA draait. Op iOS buiten Safari kun je niet (goed)
+// toevoegen aan het beginscherm, dus daar wijzen we naar Safari toe.
+function HomeScreenPrompt() {
+  if (isStandaloneDisplay()) return null;
+
+  const ua = navigator.userAgent;
+  const isIOS = /iP(hone|ad|od)/.test(ua);
+  const isAndroid = /Android/.test(ua);
+  if (!isIOS && !isAndroid) return null;
+
+  const isIOSSafari = isIOS && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+
+  return (
+    <div style={s.homeScreenBox}>
+      <div style={s.homeScreenTitle}>
+        <DeviceMobileIcon size={18} weight="regular" color={COLORS.accent} />
+        Tip: zet Streetfeed op je beginscherm
+      </div>
+      {isIOS && !isIOSSafari && (
+        <div style={{ fontSize: 12, color: COLORS.textMuted, lineHeight: 1.5 }}>
+          Open deze pagina in <strong>Safari</strong> — alleen daar kun je 'm aan je beginscherm toevoegen.
+        </div>
+      )}
+      {isIOSSafari && (
+        <>
+          <div style={s.homeScreenStep}><ShareIcon size={14} style={{ flexShrink: 0, marginTop: 1 }} />Tik op het Deel-icoon onderin Safari</div>
+          <div style={s.homeScreenStep}>Kies &quot;Voeg toe aan beginscherm&quot;</div>
+          <div style={s.homeScreenStep}>Tik op &quot;Voeg toe&quot;</div>
+        </>
+      )}
+      {isAndroid && (
+        <>
+          <div style={s.homeScreenStep}><DotsThreeVerticalIcon size={14} style={{ flexShrink: 0, marginTop: 1 }} />Tik op het menu rechtsboven in Chrome</div>
+          <div style={s.homeScreenStep}>Kies &quot;App installeren&quot;</div>
+          <div style={s.homeScreenStep}>Bevestig met &quot;Installeren&quot;</div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function OnboardingPage() {
   const [step, setStep] = useState('landing');
@@ -360,6 +412,7 @@ export default function OnboardingPage() {
             </button>
             .
           </div>
+          <HomeScreenPrompt />
         </div>
       </div>
     );
