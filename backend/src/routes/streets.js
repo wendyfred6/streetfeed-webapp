@@ -101,4 +101,57 @@ router.patch('/:streetId/members/:userId/role', requireAuth, requireMembership('
   res.json({ ok: true });
 });
 
+// Definities van Hall of Fame-titels — uitbreidbaar zonder structuurwijziging:
+// gewoon een entry toevoegen met de juiste category/subType-combinatie.
+const HALL_OF_FAME_TITLES = [
+  { key: 'pakketkoning',   label: 'Pakketkoning(in)',      category: 'bezorging', subType: 'bezorgd' },
+  { key: 'uitleningen',    label: 'Meeste Uitleningen',    category: 'algemeen',  subType: 'te_leen' },
+  { key: 'aanbevelingen',  label: 'Meeste Aanbevelingen',  category: 'algemeen',  subType: 'aanbeveling' },
+];
+
+// GET /api/streets/:streetId/hall-of-fame
+router.get('/:streetId/hall-of-fame', requireAuth, requireMembership('resident'), async (req, res) => {
+  const { streetId } = req.params;
+
+  const titles = await Promise.all(HALL_OF_FAME_TITLES.map(async (t) => {
+    const { rows } = await query(
+      `SELECT u.name, u.house_number, COUNT(*) AS count
+       FROM posts p JOIN users u ON u.id = p.user_id
+       WHERE p.street_id = $1 AND p.category = $2 AND p.sub_type = $3
+       GROUP BY u.id, u.name, u.house_number
+       ORDER BY count DESC, u.name ASC
+       LIMIT 1`,
+      [streetId, t.category, t.subType]
+    );
+    return {
+      key: t.key,
+      label: t.label,
+      winner: rows.length
+        ? { name: rows[0].name, houseNumber: rows[0].house_number, count: Number(rows[0].count) }
+        : null,
+    };
+  }));
+
+  const { rows: monthRows } = await query(
+    `SELECT
+       COUNT(*) FILTER (WHERE category = 'bezorging' AND sub_type = 'bezorgd') AS packages_delivered,
+       COUNT(*) FILTER (WHERE category = 'algemeen' AND sub_type = 'te_leen') AS items_lent,
+       COUNT(*) FILTER (WHERE category = 'evenement') AS events_organized,
+       COUNT(*) FILTER (WHERE category = 'algemeen' AND sub_type = 'aanbeveling') AS recommendations_posted
+     FROM posts
+     WHERE street_id = $1 AND created_at >= date_trunc('month', CURRENT_DATE)`,
+    [streetId]
+  );
+
+  res.json({
+    titles,
+    thisMonth: {
+      packagesDelivered: Number(monthRows[0].packages_delivered),
+      itemsLent: Number(monthRows[0].items_lent),
+      eventsOrganized: Number(monthRows[0].events_organized),
+      recommendationsPosted: Number(monthRows[0].recommendations_posted),
+    },
+  });
+});
+
 export default router;

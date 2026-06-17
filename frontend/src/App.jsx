@@ -40,6 +40,7 @@ import { QuestionIcon } from '@phosphor-icons/react/dist/csr/Question';
 import { ConfettiIcon } from '@phosphor-icons/react/dist/csr/Confetti';
 import { TrafficConeIcon } from '@phosphor-icons/react/dist/csr/TrafficCone';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
+import { TrophyIcon } from '@phosphor-icons/react/dist/csr/Trophy';
 
 const CATEGORIES = {
   bezorging:   { label: 'Bezorging',   labelEn: 'Package',   color: '#4488FF' },
@@ -1345,6 +1346,57 @@ function SettingsView({ user, onLogout }) {
 
 // ─── STREETS VIEW ──────────────────────────────────────────────────────────────
 
+// ─── HALL OF FAME ──────────────────────────────────────────────────────────────
+
+function HallOfFameView({ streetId }) {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    api.get(`/streets/${streetId}/hall-of-fame`).then(setData).catch(() => {});
+  }, [streetId]);
+
+  if (!data) return <div style={s.feed}><div style={s.emptyState}>{t('loading')}</div></div>;
+
+  const monthStats = [
+    { label: 'pakketten bezorgd', value: data.thisMonth.packagesDelivered },
+    { label: 'spullen uitgeleend', value: data.thisMonth.itemsLent },
+    { label: 'evenementen georganiseerd', value: data.thisMonth.eventsOrganized },
+    { label: 'aanbevelingen geplaatst', value: data.thisMonth.recommendationsPosted },
+  ];
+
+  return (
+    <div style={s.feed}>
+      <div style={s.sectionLabel}>Hall of Fame</div>
+      {data.titles.map(title => (
+        <div key={title.key} style={{ ...s.streetCard, cursor: 'default', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <TrophyIcon size={26} weight="duotone" color={COLORS.accent} style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: COLORS.textMuted }}>{title.label}</div>
+            {title.winner ? (
+              <div style={{ fontSize: 16, fontWeight: 800, color: COLORS.text, marginTop: 2 }}>
+                {title.winner.name} {title.winner.houseNumber}
+                <span style={{ fontSize: 13, fontWeight: 400, color: COLORS.textMuted }}> · {title.winner.count}x</span>
+              </div>
+            ) : (
+              <div style={{ fontSize: 14, color: COLORS.textDim, marginTop: 2 }}>Nog niemand — wees de eerste!</div>
+            )}
+          </div>
+        </div>
+      ))}
+
+      <div style={s.sectionLabel}>Deze maand</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 12px' }}>
+        {monthStats.map(stat => (
+          <div key={stat.label} style={{ ...s.streetCard, margin: 0, cursor: 'default', textAlign: 'center' }}>
+            <div style={{ fontSize: 24, fontWeight: 800, color: COLORS.accent }}>{stat.value}</div>
+            <div style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 2 }}>{stat.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StreetsView({ user }) {
   const [streets, setStreets] = useState([]);
 
@@ -1773,6 +1825,7 @@ export default function App() {
         </div>
       )}
 
+      {tab === 'hof' && <HallOfFameView streetId={STREET_ID} />}
       {tab === 'streets' && <StreetsView user={user} />}
       {tab === 'admin' && (
         <AdminView streetId={STREET_ID} user={user}
@@ -1785,6 +1838,7 @@ export default function App() {
         <div style={s.tabBar}>
           {[
             { id: 'feed', label: t('feed'), icon: HouseIcon },
+            { id: 'hof', label: 'Hall of Fame', icon: TrophyIcon },
             ...(canModerate ? [
               { id: 'streets', label: t('streets'), icon: MapPinIcon },
               { id: 'admin', label: t('admin'), icon: UserGearIcon },

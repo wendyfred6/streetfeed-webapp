@@ -148,3 +148,17 @@ export const DEMO_MEMBERS = [
 export const DEMO_PUSH_SETTINGS = Object.fromEntries(
   ['bezorging', 'straatzaken', 'melding', 'evenement'].map(k => [k, true])
 );
+
+export const DEMO_HALL_OF_FAME = {
+  titles: [
+    { key: 'pakketkoning', label: 'Pakketkoning(in)', winner: { name: 'Sophie', houseNumber: '29', count: 14 } },
+    { key: 'uitleningen', label: 'Meeste Uitleningen', winner: { name: 'Mark', houseNumber: '7', count: 6 } },
+    { key: 'aanbevelingen', label: 'Meeste Aanbevelingen', winner: null },
+  ],
+  thisMonth: {
+    packagesDelivered: 23,
+    itemsLent: 5,
+    eventsOrganized: 2,
+    recommendationsPosted: 0,
+  },
+};

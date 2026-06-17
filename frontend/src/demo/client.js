@@ -4,7 +4,7 @@
 
 import {
   DEMO_USER, DEMO_STREET,
-  DEMO_POSTS, DEMO_PENDING, DEMO_MEMBERS, DEMO_PUSH_SETTINGS,
+  DEMO_POSTS, DEMO_PENDING, DEMO_MEMBERS, DEMO_PUSH_SETTINGS, DEMO_HALL_OF_FAME,
 } from './data.js';
 
 // Deep-clone initial state so mutations don't affect the originals
@@ -25,6 +25,7 @@ export async function demoRequest(method, path, body) {
   // ── Streets ───────────────────────────────────────────────────────────────
   if (method === 'GET' && path === '/streets/1') return { ...DEMO_STREET };
   if (method === 'GET' && path === '/streets')   return [{ ...DEMO_STREET }];
+  if (method === 'GET' && path === '/streets/1/hall-of-fame') return JSON.parse(JSON.stringify(DEMO_HALL_OF_FAME));
 
   // ── Posts ─────────────────────────────────────────────────────────────────
   if (method === 'GET' && path.startsWith('/streets/1/posts')) {
