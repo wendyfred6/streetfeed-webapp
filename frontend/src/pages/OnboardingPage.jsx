@@ -5,6 +5,7 @@ import { EnvelopeSimpleIcon } from '@phosphor-icons/react/dist/csr/EnvelopeSimpl
 import { DeviceMobileIcon } from '@phosphor-icons/react/dist/csr/DeviceMobile';
 import { ShareIcon } from '@phosphor-icons/react/dist/csr/Share';
 import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
+import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 
 const s = {
   page: {
@@ -96,9 +97,8 @@ export default function OnboardingPage() {
 
   // Adres data
   const [postcode, setPostcode] = useState('');
-  const [huisnummer, setHuisnummer] = useState('');
-  const [toevoeging, setToevoeging] = useState('');
-  const [validatedAddress, setValidatedAddress] = useState(null); // { streetId, streetName, city, houseNumber }
+  const [validatedAddress, setValidatedAddress] = useState(null); // { streetId, streetName, city }
+  const [houseNumber, setHouseNumber] = useState(''); // bijv. "28" of "28-2", via HouseNumberPicker
 
   // Profiel
   const [firstName, setFirstName] = useState('');
@@ -118,14 +118,15 @@ export default function OnboardingPage() {
     setError('');
   };
 
-  const handleAddressSubmit = async () => {
+  // Postcode verplicht: exact 4 cijfers + 2 letters
+  const isValidPostcode = /^\d{4}[A-Z]{2}$/.test(postcode.replace(/\s/g, '').toUpperCase());
+
+  const handlePostcodeSubmit = async () => {
     setError('');
     setLoading(true);
     try {
       const pc = postcode.replace(/\s/g, '');
-      const params = new URLSearchParams({ postcode: pc, huisnummer });
-      if (toevoeging.trim()) params.set('toevoeging', toevoeging.trim());
-      const result = await api.get(`/bag/validate?${params}`);
+      const result = await api.get(`/bag/resolve-street?postcode=${encodeURIComponent(pc)}`);
       setValidatedAddress(result);
       setStep('confirm');
     } catch (err) {
@@ -133,7 +134,7 @@ export default function OnboardingPage() {
         if (err.data?.streetName) {
           setError(`${err.data.streetName} is nog niet beschikbaar in Streetfeed.`);
         } else {
-          setError('Dit adres is niet gevonden. Controleer je postcode en huisnummer.');
+          setError('Deze postcode is niet gevonden. Controleer hem nog eens.');
         }
       } else if (err.status === 502) {
         setError('De adressenservice is tijdelijk niet bereikbaar. Probeer het opnieuw.');
@@ -152,7 +153,7 @@ export default function OnboardingPage() {
       const payload = { email: email.trim() };
       if (!returnUser) {
         payload.firstName = firstName.trim();
-        payload.houseNumber = validatedAddress.houseNumber;
+        payload.houseNumber = houseNumber;
         payload.streetId = validatedAddress.streetId;
       }
       await api.post('/auth/request', payload);
@@ -168,9 +169,7 @@ export default function OnboardingPage() {
     }
   };
 
-  const preview = validatedAddress
-    ? `${firstName || '…'} ${validatedAddress.houseNumber}`
-    : '';
+  const preview = `${firstName || '…'} ${houseNumber || '…'}`;
 
   // ── LANDING ────────────────────────────────────────────────────────────────
 
@@ -194,10 +193,9 @@ export default function OnboardingPage() {
     );
   }
 
-  // ── ADRES ─────────────────────────────────────────────────────────────────
+  // ── POSTCODE ──────────────────────────────────────────────────────────────
 
   if (step === 'address') {
-    const canSubmit = postcode.replace(/\s/g, '').length === 6 && huisnummer.trim().length > 0;
     return (
       <div style={s.page}>
         <div style={{ width: '100%' }}>
@@ -205,9 +203,9 @@ export default function OnboardingPage() {
             ← Terug
           </button>
           <div style={s.card}>
-            <div style={s.stepLabel}>Stap 1 van 3</div>
+            <div style={s.stepLabel}>Stap 1 van 4</div>
             <div style={s.title}>Waar woon je?</div>
-            <p style={s.sub}>Streetfeed bepaalt automatisch welke straat bij jouw adres hoort.</p>
+            <p style={s.sub}>Streetfeed bepaalt automatisch welke straat bij jouw postcode hoort.</p>
 
             {error && <p style={s.error}>{error}</p>}
 
@@ -220,38 +218,15 @@ export default function OnboardingPage() {
               onChange={handlePostcodeChange}
               maxLength={7}
               autoComplete="postal-code"
+              autoFocus
             />
 
-            <div style={s.row}>
-              <div>
-                <label style={s.label}>Huisnummer</label>
-                <input
-                  style={s.input}
-                  type="number"
-                  placeholder="28"
-                  value={huisnummer}
-                  onChange={e => { setHuisnummer(e.target.value); setError(''); }}
-                  min="1"
-                />
-              </div>
-              <div>
-                <label style={s.label}>Toevoeging</label>
-                <input
-                  style={s.input}
-                  type="text"
-                  placeholder="2, hs (opt.)"
-                  value={toevoeging}
-                  onChange={e => { setToevoeging(e.target.value); setError(''); }}
-                />
-              </div>
-            </div>
-
             <button
-              style={{ ...s.btn, ...((!canSubmit || loading) ? s.btnDisabled : {}) }}
-              onClick={handleAddressSubmit}
-              disabled={!canSubmit || loading}
+              style={{ ...s.btn, ...((!isValidPostcode || loading) ? s.btnDisabled : {}) }}
+              onClick={handlePostcodeSubmit}
+              disabled={!isValidPostcode || loading}
             >
-              {loading ? 'Adres opzoeken…' : 'Volgende'}
+              {loading ? 'Straat opzoeken…' : 'Volgende'}
             </button>
           </div>
         </div>
@@ -269,20 +244,55 @@ export default function OnboardingPage() {
             ← Terug
           </button>
           <div style={s.card}>
-            <div style={s.stepLabel}>Stap 2 van 3</div>
+            <div style={s.stepLabel}>Stap 2 van 4</div>
             <div style={s.title}>Welkom in de {validatedAddress.streetName}!</div>
             <p style={s.sub}>We hebben jouw straat gevonden. Is dit correct?</p>
 
             <div style={s.streetConfirm}>
               <div style={s.streetName}>{validatedAddress.streetName}</div>
-              <div style={s.streetCity}>{validatedAddress.city} · nr. {validatedAddress.houseNumber}</div>
+              <div style={s.streetCity}>{validatedAddress.city}</div>
             </div>
 
-            <button style={s.btn} onClick={() => setStep('name')}>
+            <button style={s.btn} onClick={() => setStep('huisnummer')}>
               Dit klopt
             </button>
             <button style={s.btnGhost} onClick={() => { setValidatedAddress(null); setStep('address'); }}>
               Dit klopt niet
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── HUISNUMMER ────────────────────────────────────────────────────────────
+
+  if (step === 'huisnummer') {
+    return (
+      <div style={s.page}>
+        <div style={{ width: '100%' }}>
+          <button style={s.backBtn} onClick={() => setStep('confirm')}>
+            ← Terug
+          </button>
+          <div style={s.card}>
+            <div style={s.stepLabel}>Stap 3 van 4</div>
+            <div style={s.title}>Wat is je huisnummer?</div>
+            <p style={s.sub}>Kies 'm uit de bestaande adressen in de {validatedAddress.streetName}.</p>
+
+            <label style={s.label}>Huisnummer</label>
+            <HouseNumberPicker
+              streetId={validatedAddress.streetId}
+              value={houseNumber}
+              onChange={setHouseNumber}
+              style={{ marginBottom: 14 }}
+            />
+
+            <button
+              style={{ ...s.btn, ...(!houseNumber ? s.btnDisabled : {}) }}
+              onClick={() => setStep('name')}
+              disabled={!houseNumber}
+            >
+              Volgende
             </button>
           </div>
         </div>
@@ -296,17 +306,17 @@ export default function OnboardingPage() {
     return (
       <div style={s.page}>
         <div style={{ width: '100%' }}>
-          <button style={s.backBtn} onClick={() => setStep('confirm')}>
+          <button style={s.backBtn} onClick={() => setStep('huisnummer')}>
             ← Terug
           </button>
           <div style={s.card}>
-            <div style={s.stepLabel}>Stap 3 van 3</div>
+            <div style={s.stepLabel}>Stap 4 van 4</div>
             <div style={s.title}>Hoe mogen buren je herkennen?</div>
             <p style={s.sub}>Alleen je voornaam en huisnummer zijn zichtbaar.</p>
 
             <div style={s.preview}>
               <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 4 }}>Zo zie je eruit in de feed</div>
-              <div style={s.previewName}>{firstName.trim() || '…'} {validatedAddress.houseNumber}</div>
+              <div style={s.previewName}>{firstName.trim() || '…'} {houseNumber}</div>
             </div>
 
             <label style={s.label}>Voornaam</label>

@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
 import { query } from '../db/index.js';
 
 const router = Router();
@@ -135,8 +134,51 @@ router.get('/validate', async (req, res) => {
   }
 });
 
-// GET /api/bag/addresses/:streetId
-router.get('/addresses/:streetId', requireAuth, async (req, res) => {
+// GET /api/bag/resolve-street?postcode=XXXX — straat herleiden uit
+// alleen de postcode (geen auth vereist, voor onboarding stap 1).
+// Een Nederlandse postcode is granulair genoeg om altijd naar dezelfde
+// straat/plaats te wijzen, dus het eerste resultaat is betrouwbaar.
+router.get('/resolve-street', async (req, res) => {
+  const { postcode } = req.query;
+  if (!postcode) return res.status(400).json({ error: 'Postcode is verplicht' });
+
+  const pc = postcode.replace(/\s/g, '').toUpperCase();
+  if (!/^\d{4}[A-Z]{2}$/.test(pc)) {
+    return res.status(400).json({ error: 'Ongeldige postcode' });
+  }
+
+  try {
+    const params = new URLSearchParams({ q: pc, fq: 'type:adres', rows: '5', start: '0' });
+    const resp = await fetch(`${PDOK_BASE}?${params}`);
+    if (!resp.ok) throw new Error(`PDOK ${resp.status}`);
+    const data = await resp.json();
+    const docs = data.response?.docs || [];
+    if (!docs.length) return res.status(404).json({ error: 'Postcode niet gevonden' });
+
+    const { straatnaam, woonplaatsnaam } = docs[0];
+    const { rows } = await query(
+      'SELECT id, name, city FROM streets WHERE LOWER(name) = LOWER($1) AND LOWER(city) = LOWER($2)',
+      [straatnaam, woonplaatsnaam]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({
+        error: 'Deze straat is nog niet beschikbaar in Streetfeed',
+        streetName: straatnaam,
+        city: woonplaatsnaam,
+      });
+    }
+
+    res.json({ streetId: rows[0].id, streetName: rows[0].name, city: rows[0].city });
+  } catch (err) {
+    console.error('[bag] resolve-street error:', err.message);
+    res.status(502).json({ error: 'BAG service tijdelijk niet beschikbaar' });
+  }
+});
+
+// GET /api/bag/addresses/:streetId — geen auth: ook nodig tijdens
+// onboarding (stap 2, huisnummer kiezen), vóórdat je bent ingelogd.
+router.get('/addresses/:streetId', async (req, res) => {
   const { rows } = await query(
     'SELECT name, city FROM streets WHERE id = $1',
     [req.params.streetId]
