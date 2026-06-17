@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { query } from '../db/index.js';
 import { requireAuth, requireMembership } from '../middleware/auth.js';
-import { sendPushToStreet } from '../services/push.js';
+import { sendPushToStreet, sendPushToUser, findUserIdsAtHouse } from '../services/push.js';
 import { getPublicUrl } from '../services/storage.js';
 
 function withPhotoUrl(post) {
@@ -100,17 +100,37 @@ router.post('/:streetId/posts', requireAuth, requireMembership('resident'), asyn
 
   // Push notification (fire and forget)
   const isSearchPackage = (category === 'bezorging' || category === 'package') && (subType === 'gezocht' || subType === 'search');
-  sendPushToStreet(streetId, category, isSearchPackage ? {
-    title,
-    body: 'Weet jij waar dit pakket is?',
-    url: `/?post=${post.id}`,
-    category,
-  } : {
-    title,
-    body: (body || '').substring(0, 100),
-    url: `/?post=${post.id}`,
-    category,
-  }).catch(() => {});
+  const isDelivered = (category === 'bezorging' || category === 'package') && (subType === 'bezorgd' || subType === 'have');
+
+  (async () => {
+    // Verplichte notificatie: pakket aangenomen voor jouw huisnummer —
+    // negeert de bezorging-voorkeur, want dit is altijd relevant voor jou
+    let targetUserIds = [];
+    if (isDelivered && startHouse) {
+      targetUserIds = (await findUserIdsAtHouse(streetId, startHouse, null))
+        .filter(id => id !== req.user.user_id);
+      targetUserIds.forEach(uid => sendPushToUser(uid, {
+        title: 'Pakket voor jou!',
+        body: `Er is een pakket aangenomen voor jouw huisnummer.`,
+        url: `/?post=${post.id}`,
+        category: 'mandatory',
+      }).catch(() => {}));
+    }
+
+    // Normale straat-brede broadcast — doelgebruikers hierboven al apart
+    // bediend, dus uitgesloten om dubbele notificaties te voorkomen
+    sendPushToStreet(streetId, category, isSearchPackage ? {
+      title,
+      body: 'Weet jij waar dit pakket is?',
+      url: `/?post=${post.id}`,
+      category,
+    } : {
+      title,
+      body: (body || '').substring(0, 100),
+      url: `/?post=${post.id}`,
+      category,
+    }, targetUserIds).catch(() => {});
+  })();
 
   res.status(201).json(post);
 });
@@ -304,6 +324,30 @@ router.post('/:streetId/posts/:postId/comments', requireAuth, requireMembership(
     [req.params.postId, req.user.user_id, body.trim()]
   );
   res.status(201).json(rows[0]);
+
+  // Verplichte notificatie: post-auteur + bewoners van het gekoppelde
+  // huisnummer — negeert notification_prefs, want een reactie op je eigen
+  // bericht (of een bericht over jouw huisnummer) is altijd relevant
+  (async () => {
+    const { rows: postRows } = await query(
+      'SELECT user_id, title, start_house, end_house FROM posts WHERE id = $1',
+      [req.params.postId]
+    );
+    if (!postRows.length) return;
+    const post = postRows[0];
+
+    const houseUserIds = await findUserIdsAtHouse(req.params.streetId, post.start_house, post.end_house);
+    const targetIds = new Set([post.user_id, ...houseUserIds]);
+    targetIds.delete(req.user.user_id);
+
+    const firstName = (req.user.name || '').split(' ')[0] || 'Iemand';
+    targetIds.forEach(uid => sendPushToUser(uid, {
+      title: 'Nieuwe reactie',
+      body: `${firstName} reageerde op "${post.title}"`,
+      url: `/?post=${req.params.postId}`,
+      category: 'mandatory',
+    }).catch(() => {}));
+  })();
 });
 
 export default router;
