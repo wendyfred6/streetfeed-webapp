@@ -40,6 +40,7 @@ import { QuestionIcon } from '@phosphor-icons/react/dist/csr/Question';
 import { ConfettiIcon } from '@phosphor-icons/react/dist/csr/Confetti';
 import { TrafficConeIcon } from '@phosphor-icons/react/dist/csr/TrafficCone';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
+import { ArrowLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowLeft';
 import { TrophyIcon } from '@phosphor-icons/react/dist/csr/Trophy';
 
 const CATEGORIES = {
@@ -88,14 +89,25 @@ const s = {
   endDateBadge: { fontSize: 10, color: COLORS.accent, background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.xs, padding: '2px 6px' },
   filterBar: { display: 'flex', gap: 6, padding: '12px 20px', overflowX: 'auto', scrollbarWidth: 'none' },
   filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : 'rgba(255,255,255,0.55)', color: active ? '#FFFFFF' : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
-  bottomBar: { position: 'fixed', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 28px)', maxWidth: 374, display: 'flex', alignItems: 'center', gap: 10, zIndex: 50 },
+  bottomBar: { position: 'fixed', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 28px)', maxWidth: 374, display: 'flex', alignItems: 'center', zIndex: 50 },
   tabBar: { ...GLASS.header, border: '1px solid rgba(255,255,255,0.55)', borderRadius: RADIUS.pill, padding: '5px', display: 'flex', flex: '1 1 auto' },
   tab: (active) => ({ flex: 1, padding: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? ALPHA.accentSubtle : 'none', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', color: active ? COLORS.accent : COLORS.textMuted, transition: 'background 0.15s' }),
-  postCta: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: 54, height: 54, background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', boxShadow: `0 4px 20px ${ALPHA.terraGlow}`, flexShrink: 0 },
+  postCta: (visible) => ({
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: visible ? 54 : 0, height: 54, marginLeft: visible ? 10 : 0,
+    background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill,
+    cursor: 'pointer', flexShrink: 0, overflow: 'hidden',
+    opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(0.4)',
+    boxShadow: visible ? `0 4px 20px ${ALPHA.terraGlow}` : 'none',
+    transition: 'width 0.28s ease, margin-left 0.28s ease, opacity 0.18s ease, transform 0.28s ease, box-shadow 0.28s ease',
+    pointerEvents: visible ? 'auto' : 'none',
+  }),
   overlay: { position: 'fixed', inset: 0, background: 'rgba(26,10,18,0.50)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' },
-  sheet: { ...GLASS.sheet, borderRadius: `${RADIUS.xl}px ${RADIUS.xl}px 0 0`, width: '100%', maxWidth: 480, padding: '20px 20px 40px', maxHeight: '90vh', overflowY: 'auto' },
+  sheet: { ...GLASS.sheet, borderRadius: `${RADIUS.xl}px ${RADIUS.xl}px 0 0`, width: '100%', maxWidth: 480, padding: '20px 20px 40px', maxHeight: '90vh', overflowY: 'auto', touchAction: 'pan-y', overscrollBehaviorX: 'none' },
   sheetHandle: { width: 36, height: 4, background: 'rgba(0,0,0,0.15)', borderRadius: 2, margin: '0 auto 20px' },
   sheetTitle: { fontSize: 18, fontWeight: 800, marginBottom: 20, letterSpacing: '-0.3px' },
+  sheetBackRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 },
+  sheetBackBtn: { background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: RADIUS.pill, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: COLORS.text, flexShrink: 0 },
   input: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
   textarea: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', resize: 'none', minHeight: 80, marginBottom: 10 },
   label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.accent, display: 'block', marginBottom: 6 },
@@ -258,7 +270,7 @@ function CarrierBadge({ carrier }) {
 
 // ─── POST CARD ─────────────────────────────────────────────────────────────────
 
-function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, canModerate, onEdit, canEdit, autoExpand }) {
+function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, onDelete, canModerate, onEdit, canEdit, autoExpand }) {
   const [expanded, setExpanded] = useState(false);
   const [threadComments, setThreadComments] = useState(null);
   const [commentText, setCommentText] = useState('');
@@ -462,8 +474,8 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, can
                   <PencilSimpleIcon size={13} weight="regular" />
                 </button>
               )}
-              {canModerate ? (
-                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('delete')}>
+              {canEdit ? (
+                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onDelete(post.id); }} title={t('delete')}>
                   <TrashIcon size={13} weight="regular" />
                 </button>
               ) : (
@@ -718,6 +730,7 @@ function EditPostSheet({ post, onClose, onSave, streetId }) {
 
   const isEvent      = post.category === 'evenement' || post.category === 'event';
   const isBezorging  = post.category === 'bezorging' || post.category === 'package';
+  const isAlgemeen   = post.category === 'algemeen';
   const isGezocht    = isBezorging && (post.sub_type === 'gezocht' || post.sub_type === 'search');
   const isBezorgd    = isBezorging && (post.sub_type === 'bezorgd' || post.sub_type === 'have');
   const hasDateRange = ['straatzaken', 'works', 'blockage', 'container'].includes(post.category);
@@ -745,7 +758,7 @@ function EditPostSheet({ post, onClose, onSave, streetId }) {
           </>
         )}
 
-        {!isBezorging && (
+        {!isBezorging && !isAlgemeen && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
             <div>
               <label style={s.label}>Van nr.</label>
@@ -943,14 +956,20 @@ function typeLabel(cat, type) {
   return TYPE_META[cat]?.find(t => t.key === type)?.label || type;
 }
 
-function TypePickerSheet({ cat, onClose, onSelect }) {
+function TypePickerSheet({ cat, onClose, onBack, onSelect }) {
   const [closing, setClosing] = useState(false);
   const close = () => { setClosing(true); setTimeout(onClose, 270); };
+  const back = () => { setClosing(true); setTimeout(onBack, 270); };
   const types = TYPE_META[cat] || [];
   return (
     <SheetOverlay closing={closing} onOverlayClick={close}>
       <div style={s.sheetHandle} />
-      <div style={s.sheetTitle}>{catLabel(cat)} — welk type?</div>
+      <div style={s.sheetBackRow}>
+        <button style={s.sheetBackBtn} onClick={back} aria-label="Terug">
+          <ArrowLeftIcon size={16} weight="bold" />
+        </button>
+        <div style={{ ...s.sheetTitle, marginBottom: 0 }}>{catLabel(cat)} — welk type?</div>
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
         {types.map(({ key, label: lbl, sub, icon: TypeIcon }) => (
           <div key={key}
@@ -970,7 +989,7 @@ function TypePickerSheet({ cat, onClose, onSelect }) {
   );
 }
 
-function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 'bezorging', initialType = null }) {
+function NewPostSheet({ onClose, onBack, onSubmit, streetId, canPin, user, initialCat = 'bezorging', initialType = null }) {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [startHouse, setStartHouse] = useState('');
@@ -987,6 +1006,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
   const [uploading, setUploading] = useState(false);
   const [closing, setClosing] = useState(false);
   const close = () => { setClosing(true); setTimeout(onClose, 270); };
+  const back = () => { setClosing(true); setTimeout(onBack, 270); };
 
   const isBezorging   = initialCat === 'bezorging'   || initialCat === 'package';
   const isStraatzaken = initialCat === 'straatzaken'  || initialCat === 'works';
@@ -1000,7 +1020,7 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
   // huisnummer is al bekend uit het account
   const autoTitle = isGezocht
     ? (user?.house_number ? `Pakket gezocht voor nr. ${user.house_number}` : 'Pakket gezocht')
-    : startHouse.trim() ? `Pakket voor nr. ${startHouse.trim()}` : '';
+    : startHouse.trim() ? `Pakket aangenomen voor nr. ${startHouse.trim()}` : '';
 
   const canSubmit = !uploading && (isBezorging
     ? (isGezocht || !!startHouse.trim())
@@ -1049,9 +1069,14 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
   return (
     <SheetOverlay closing={closing} onOverlayClick={close}>
       <div style={s.sheetHandle} />
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.3px', marginBottom: 2 }}>{t('new_post')}</div>
-        <div style={{ fontSize: 12, color: COLORS.textDim }}>{catTypeLine}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+        <button style={s.sheetBackBtn} onClick={back} aria-label="Terug">
+          <ArrowLeftIcon size={16} weight="bold" />
+        </button>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.3px', marginBottom: 2 }}>{t('new_post')}</div>
+          <div style={{ fontSize: 12, color: COLORS.textDim }}>{catTypeLine}</div>
+        </div>
       </div>
 
       {/* Bezorging */}
@@ -1144,7 +1169,6 @@ function NewPostSheet({ onClose, onSubmit, streetId, canPin, user, initialCat = 
         <>
           <label style={s.label}>Titel *</label>
           <input style={s.input} placeholder="Bijv. Tweedehands bank te koop" value={title} onChange={e => setTitle(e.target.value)} />
-          {houseRow}
           <label style={s.label}>Omschrijving</label>
           <AutoTextarea style={{ ...s.textarea, minHeight: 60 }} value={body} onChange={e => setBody(e.target.value)} />
         </>
@@ -1711,15 +1735,13 @@ export default function App() {
   };
 
   const handleReport = async (id) => {
-    if (canModerate) {
-      setDeleteConfirm(id);
-    } else {
-      await api.post(`/streets/${STREET_ID}/posts/${id}/report`);
-      setPosts(ps => ps.map(p => p.id === id ? { ...p, reported: true } : p));
-      setReportedToast(true);
-      setTimeout(() => setReportedToast(false), 2500);
-    }
+    await api.post(`/streets/${STREET_ID}/posts/${id}/report`);
+    setPosts(ps => ps.map(p => p.id === id ? { ...p, reported: true } : p));
+    setReportedToast(true);
+    setTimeout(() => setReportedToast(false), 2500);
   };
+
+  const handleDeleteClick = (id) => setDeleteConfirm(id);
 
   const handleDeleteConfirmed = async () => {
     const id = deleteConfirm;
@@ -1872,12 +1894,12 @@ export default function App() {
             : <>
               {pinnedPosts.length > 0 && (
                 <><div style={s.sectionLabel}>{t('pinned')}</div>
-                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} />)}</>
+                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onDelete={handleDeleteClick} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} />)}</>
               )}
               <div style={s.sectionLabel}>{t('recent')}</div>
               {regularPosts.length === 0
                 ? <div style={s.emptyState}>{t('no_posts')}</div>
-                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} />)}
+                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onDelete={handleDeleteClick} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} />)}
             </>
           }
         </div>
@@ -1913,11 +1935,9 @@ export default function App() {
           })}
         </div>
 
-        {tab === 'feed' && (
-          <button style={s.postCta} onClick={() => setShowCatPicker(true)} aria-label="Bericht plaatsen" title="Bericht plaatsen">
-            <PlusIcon size={22} weight="bold" />
-          </button>
-        )}
+        <button style={s.postCta(tab === 'feed')} onClick={() => setShowCatPicker(true)} aria-label="Bericht plaatsen" title="Bericht plaatsen" tabIndex={tab === 'feed' ? 0 : -1}>
+          <PlusIcon size={22} weight="bold" style={{ flexShrink: 0 }} />
+        </button>
       </div>
 
       {showCatPicker && (
@@ -1939,11 +1959,20 @@ export default function App() {
         <TypePickerSheet
           cat={pendingCat}
           onClose={() => setShowTypePicker(false)}
+          onBack={() => { setShowTypePicker(false); setTimeout(() => setShowCatPicker(true), 270); }}
           onSelect={(type) => { setPendingType(type); setShowTypePicker(false); setTimeout(() => setShowPost(true), 270); }}
         />
       )}
       {showPost && (
-        <NewPostSheet onClose={() => setShowPost(false)} onSubmit={(data) => { handleNewPost(data); setShowPost(false); window.scrollTo({ top: 0, behavior: 'instant' }); }}
+        <NewPostSheet onClose={() => setShowPost(false)}
+          onBack={() => {
+            setShowPost(false);
+            setTimeout(() => {
+              if (TYPE_META[pendingCat]?.length) setShowTypePicker(true);
+              else setShowCatPicker(true);
+            }, 270);
+          }}
+          onSubmit={(data) => { handleNewPost(data); setShowPost(false); window.scrollTo({ top: 0, behavior: 'instant' }); }}
           streetId={STREET_ID} canPin={canPin} user={user} initialCat={pendingCat} initialType={pendingType} />
       )}
       {showNotifInbox && (

@@ -193,7 +193,17 @@ router.patch('/:streetId/posts/:postId', requireAuth, requireMembership('residen
 });
 
 // DELETE /api/streets/:streetId/posts/:postId
-router.delete('/:streetId/posts/:postId', requireAuth, requireMembership('moderator'), async (req, res) => {
+router.delete('/:streetId/posts/:postId', requireAuth, requireMembership('resident'), async (req, res) => {
+  const { rows: existing } = await query(
+    'SELECT user_id FROM posts WHERE id = $1 AND street_id = $2',
+    [req.params.postId, req.params.streetId]
+  );
+  if (!existing.length) return res.status(404).json({ error: 'Post not found' });
+
+  const isAuthor = existing[0].user_id === req.user.user_id;
+  const canMod = req.user.is_super_admin || ['admin', 'moderator'].includes(req.membership?.role);
+  if (!isAuthor && !canMod) return res.status(403).json({ error: 'Forbidden' });
+
   const { rows } = await query(
     'DELETE FROM posts WHERE id = $1 AND street_id = $2 RETURNING id',
     [req.params.postId, req.params.streetId]
