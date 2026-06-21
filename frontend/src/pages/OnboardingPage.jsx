@@ -10,14 +10,15 @@ import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 
 const s = {
   page: {
-    minHeight: '100vh',
+    minHeight: '100dvh',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '32px 24px',
+    padding: 'calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom))',
     maxWidth: 390,
     margin: '0 auto',
+    boxSizing: 'border-box',
   },
   logo: { fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', color: COLORS.text, marginBottom: 8 },
   accent: { color: COLORS.accent },
