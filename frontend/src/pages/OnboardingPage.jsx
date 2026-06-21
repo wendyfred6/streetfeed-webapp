@@ -5,6 +5,7 @@ import { EnvelopeSimpleIcon } from '@phosphor-icons/react/dist/csr/EnvelopeSimpl
 import { DeviceMobileIcon } from '@phosphor-icons/react/dist/csr/DeviceMobile';
 import { ShareIcon } from '@phosphor-icons/react/dist/csr/Share';
 import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 
 const s = {
@@ -21,25 +22,20 @@ const s = {
   logo: { fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', color: COLORS.text, marginBottom: 8 },
   accent: { color: COLORS.accent },
   card: { width: '100%', ...GLASS.card, borderRadius: RADIUS.xl, padding: '32px 24px' },
-  stepLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textMuted, marginBottom: 20 },
-  title: { fontSize: 22, fontWeight: 800, letterSpacing: '-0.3px', color: COLORS.text, marginBottom: 8, lineHeight: 1.25 },
-  sub: { fontSize: 14, color: COLORS.textMuted, lineHeight: 1.55, marginBottom: 24 },
-  label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.accent, display: 'block', marginBottom: 6 },
+  stepLabel: { fontSize: 8, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textMuted, marginBottom: 20 },
+  title: { fontSize: 24, fontWeight: 700, color: COLORS.text, marginBottom: 8, lineHeight: '28px' },
+  sub: { fontSize: 16, color: COLORS.textMuted, lineHeight: '24px', marginBottom: 24 },
+  label: { fontSize: 8, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textMuted, display: 'block', marginBottom: 6 },
   input: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '12px 14px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', marginBottom: 14 },
-  row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 },
-  btn: { width: '100%', background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '14px 24px', fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 4, boxShadow: `0 4px 16px ${ALPHA.terraGlow}` },
+  btn: { width: '100%', background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 4, boxShadow: `0 4px 16px ${ALPHA.terraGlow}` },
   btnDisabled: { opacity: 0.45, cursor: 'default' },
-  btnGhost: { width: '100%', background: 'transparent', color: COLORS.accent, border: `2px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.pill, padding: '12px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
+  btnGhost: { width: '100%', background: 'transparent', color: COLORS.text, border: `1.5px solid ${COLORS.border}`, borderRadius: RADIUS.pill, padding: '12px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 8 },
+  linkRow: { background: 'none', border: 'none', color: COLORS.textMuted, fontSize: 13, fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', padding: 0, marginTop: 16, display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'center', width: '100%' },
   error: { color: COLORS.red, fontSize: 13, marginBottom: 12, lineHeight: 1.4 },
   preview: { ...GLASS.subtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '12px 16px', marginBottom: 20, fontSize: 14, color: COLORS.textMuted },
-  previewName: { fontSize: 17, fontWeight: 800, color: COLORS.text },
-  heroTitle: { fontSize: 32, fontWeight: 800, letterSpacing: '-0.8px', color: COLORS.text, lineHeight: 1.2, marginBottom: 12 },
-  heroCta: { ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.pill, padding: '6px 12px', fontSize: 12, color: COLORS.textMuted, background: 'none', cursor: 'pointer', marginTop: 20 },
+  previewName: { fontSize: 14, fontWeight: 700, color: COLORS.text },
   successIcon: { display: 'flex', justifyContent: 'center', color: COLORS.accent, marginBottom: 16 },
   backBtn: { background: 'none', border: 'none', color: COLORS.textMuted, fontSize: 13, cursor: 'pointer', padding: 0, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 4 },
-  streetConfirm: { ...GLASS.subtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '16px', marginBottom: 20 },
-  streetName: { fontSize: 18, fontWeight: 800, color: COLORS.text, marginBottom: 4 },
-  streetCity: { fontSize: 13, color: COLORS.textMuted },
   homeScreenBox: { ...GLASS.subtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '14px 16px', marginTop: 16, textAlign: 'left' },
   homeScreenTitle: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 8 },
   homeScreenStep: { display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: COLORS.textMuted, lineHeight: 1.5, marginBottom: 6 },
@@ -86,8 +82,7 @@ function HomeScreenPrompt() {
 }
 
 export default function OnboardingPage() {
-  const [step, setStep] = useState('landing');
-  const [returnUser, setReturnUser] = useState(false);
+  const [step, setStep] = useState('login');
 
   // Adres data
   const [postcode, setPostcode] = useState('');
@@ -100,6 +95,27 @@ export default function OnboardingPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const canSendLogin = email.includes('@') && email.includes('.');
+
+  // ── INLOGGEN (enige ingang — bepaalt zelf bekend vs. onbekend e-mailadres) ──
+
+  const handleLoginSubmit = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      await api.post('/auth/request', { email: email.trim() });
+      setStep('sent');
+    } catch (err) {
+      if (err.data?.newUser) {
+        setStep('unknown');
+      } else {
+        setError(err.message || 'Er ging iets mis');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatPostcode = (val) => {
     const clean = val.replace(/\s/g, '').toUpperCase();
@@ -140,48 +156,81 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleSendMagicLink = async () => {
+  // E-mailadres is al bekend (ingevuld bij stap 'login') — hier maken we het
+  // account daadwerkelijk aan met de inmiddels verzamelde adresgegevens.
+  const handleCreateAccount = async () => {
     setError('');
     setLoading(true);
     try {
-      const payload = { email: email.trim() };
-      if (!returnUser) {
-        payload.firstName = firstName.trim();
-        payload.houseNumber = houseNumber;
-        payload.streetId = validatedAddress.streetId;
-      }
-      await api.post('/auth/request', payload);
+      await api.post('/auth/request', {
+        email: email.trim(),
+        firstName: firstName.trim(),
+        houseNumber,
+        streetId: validatedAddress.streetId,
+      });
       setStep('sent');
     } catch (err) {
-      if (err.data?.newUser) {
-        setError('Dit e-mailadres is nog niet bekend. Gebruik de volledige registratie.');
-      } else {
-        setError(err.message || 'Er ging iets mis');
-      }
+      setError(err.message || 'Er ging iets mis');
     } finally {
       setLoading(false);
     }
   };
 
-  const preview = `${firstName || '…'} ${houseNumber || '…'}`;
+  // ── INLOGGEN ──────────────────────────────────────────────────────────────
 
-  // ── LANDING ────────────────────────────────────────────────────────────────
-
-  if (step === 'landing') {
+  if (step === 'login') {
     return (
       <div style={s.page}>
-        <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
-        <div style={{ width: '100%', ...GLASS.card, borderRadius: RADIUS.xl, padding: '36px 24px', textAlign: 'center', marginTop: 8 }}>
-          <div style={s.heroTitle}>Alles wat er<br />speelt in jouw straat.</div>
-          <p style={{ fontSize: 15, color: COLORS.textMuted, lineHeight: 1.6, marginBottom: 28 }}>
-            Pakketjes, werkzaamheden, evenementen — direct bij je buren.
-          </p>
-          <button style={s.btn} onClick={() => setStep('address')}>
-            Start gratis
-          </button>
-          <button style={s.heroCta} onClick={() => { setReturnUser(true); setStep('email'); }}>
-            Al een account? Inloggen
-          </button>
+        <div style={{ width: '100%' }}>
+          <div style={{ ...s.logo, textAlign: 'center' }}>Street<span style={s.accent}>feed</span></div>
+          <div style={s.card}>
+            <div style={s.title}>Inloggen</div>
+            <p style={s.sub}>We sturen je een Magic Link, geen wachtwoord nodig.</p>
+
+            {error && <p style={s.error}>{error}</p>}
+
+            <label style={s.label}>E-mailadres</label>
+            <input
+              style={s.input}
+              type="email"
+              placeholder="jij@voorbeeld.nl"
+              value={email}
+              onChange={e => { setEmail(e.target.value); setError(''); }}
+              autoFocus
+              autoComplete="email"
+            />
+
+            <button
+              style={{ ...s.btn, ...((!canSendLogin || loading) ? s.btnDisabled : {}) }}
+              onClick={handleLoginSubmit}
+              disabled={!canSendLogin || loading}
+            >
+              {loading ? 'Versturen…' : 'Stuur Magic Link'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── E-MAILADRES ONBEKEND ─────────────────────────────────────────────────
+
+  if (step === 'unknown') {
+    return (
+      <div style={s.page}>
+        <div style={{ width: '100%' }}>
+          <div style={s.card}>
+            <div style={s.title}>We kennen dit e-mailadres nog niet</div>
+            <p style={s.sub}>Jouw e-mailadres is onbekend.</p>
+
+            <button style={s.btn} onClick={() => setStep('address')}>
+              Account aanmaken
+            </button>
+            <button style={s.linkRow} onClick={() => { setError(''); setStep('login'); }}>
+              Ander e-mailadres gebruiken
+              <CaretRightIcon size={12} weight="bold" />
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -193,7 +242,7 @@ export default function OnboardingPage() {
     return (
       <div style={s.page}>
         <div style={{ width: '100%' }}>
-          <button style={s.backBtn} onClick={() => setStep('landing')}>
+          <button style={s.backBtn} onClick={() => setStep('unknown')}>
             ← Terug
           </button>
           <div style={s.card}>
@@ -239,13 +288,8 @@ export default function OnboardingPage() {
           </button>
           <div style={s.card}>
             <div style={s.stepLabel}>Stap 2 van 4</div>
-            <div style={s.title}>Welkom in de {validatedAddress.streetName}!</div>
-            <p style={s.sub}>We hebben jouw straat gevonden. Is dit correct?</p>
-
-            <div style={s.streetConfirm}>
-              <div style={s.streetName}>{validatedAddress.streetName}</div>
-              <div style={s.streetCity}>{validatedAddress.city}</div>
-            </div>
+            <div style={s.title}>Welkom in de {validatedAddress.streetName}</div>
+            <p style={s.sub}>We hebben je straat gevonden. Is dit correct?</p>
 
             <button style={s.btn} onClick={() => setStep('huisnummer')}>
               Dit klopt
@@ -271,7 +315,7 @@ export default function OnboardingPage() {
           <div style={s.card}>
             <div style={s.stepLabel}>Stap 3 van 4</div>
             <div style={s.title}>Wat is je huisnummer?</div>
-            <p style={s.sub}>Kies 'm uit de bestaande adressen in de {validatedAddress.streetName}.</p>
+            <p style={s.sub}>Kies je huisnummer en toevoeging in de straat.</p>
 
             <label style={s.label}>Huisnummer</label>
             <HouseNumberPicker
@@ -308,10 +352,7 @@ export default function OnboardingPage() {
             <div style={s.title}>Hoe mogen buren je herkennen?</div>
             <p style={s.sub}>Alleen je voornaam en huisnummer zijn zichtbaar.</p>
 
-            <div style={s.preview}>
-              <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 4 }}>Zo zie je eruit in de feed</div>
-              <div style={s.previewName}>{firstName.trim() || '…'} {houseNumber}</div>
-            </div>
+            {error && <p style={s.error}>{error}</p>}
 
             <label style={s.label}>Voornaam</label>
             <input
@@ -324,71 +365,18 @@ export default function OnboardingPage() {
               autoComplete="given-name"
             />
 
-            <button
-              style={{ ...s.btn, ...(!firstName.trim() ? s.btnDisabled : {}) }}
-              onClick={() => setStep('email')}
-              disabled={!firstName.trim()}
-            >
-              Volgende
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── E-MAIL ────────────────────────────────────────────────────────────────
-
-  if (step === 'email') {
-    const canSend = email.includes('@') && email.includes('.');
-    return (
-      <div style={s.page}>
-        <div style={{ width: '100%' }}>
-          {!returnUser && (
-            <button style={s.backBtn} onClick={() => setStep('name')}>
-              ← Terug
-            </button>
-          )}
-          <div style={s.card}>
-            {returnUser
-              ? <>
-                  <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
-                  <div style={{ ...s.title, marginTop: 16 }}>Inloggen</div>
-                  <p style={s.sub}>We sturen je een magische link — geen wachtwoord nodig.</p>
-                </>
-              : <>
-                  <div style={s.stepLabel}>Bijna klaar</div>
-                  <div style={s.title}>Maak je account aan</div>
-                  <p style={s.sub}>We sturen je een magische link — geen wachtwoord nodig.</p>
-                </>
-            }
-
-            {error && <p style={s.error}>{error}</p>}
-
-            <label style={s.label}>E-mailadres</label>
-            <input
-              style={s.input}
-              type="email"
-              placeholder="jij@voorbeeld.nl"
-              value={email}
-              onChange={e => { setEmail(e.target.value); setError(''); }}
-              autoFocus
-              autoComplete="email"
-            />
+            <div style={s.preview}>
+              <div style={s.label}>Zo zien buren je in de feed</div>
+              <div style={s.previewName}>{firstName.trim() || '…'} {houseNumber}</div>
+            </div>
 
             <button
-              style={{ ...s.btn, ...(!canSend || loading ? s.btnDisabled : {}) }}
-              onClick={handleSendMagicLink}
-              disabled={!canSend || loading}
+              style={{ ...s.btn, ...((!firstName.trim() || loading) ? s.btnDisabled : {}) }}
+              onClick={handleCreateAccount}
+              disabled={!firstName.trim() || loading}
             >
-              {loading ? 'Versturen…' : 'Stuur magische link'}
+              {loading ? 'Versturen…' : 'Stuur Magic Link'}
             </button>
-
-            {returnUser && (
-              <button style={s.btnGhost} onClick={() => { setReturnUser(false); setStep('landing'); }}>
-                Nieuw account aanmaken
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -402,15 +390,15 @@ export default function OnboardingPage() {
       <div style={s.page}>
         <div style={{ width: '100%', ...GLASS.card, borderRadius: RADIUS.xl, padding: '36px 24px', textAlign: 'center' }}>
           <div style={s.successIcon}><EnvelopeSimpleIcon size={48} weight="regular" /></div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.text, marginBottom: 8 }}>Check je e-mail</div>
-          <p style={{ fontSize: 14, color: COLORS.textMuted, lineHeight: 1.6, marginBottom: 24 }}>
-            We hebben een link gestuurd naar <strong style={{ color: COLORS.text }}>{email}</strong>. Klik op de link om in te loggen.
+          <div style={{ ...s.title, marginBottom: 8 }}>Check je e-mail</div>
+          <p style={{ ...s.sub, marginBottom: 24 }}>
+            We hebben een Magic Link gestuurd naar <strong style={{ color: COLORS.text }}>{email}</strong>. Klik op de link in je e-mail om in te loggen.
           </p>
           <div style={{ ...GLASS.subtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '12px 14px', fontSize: 13, color: COLORS.textMuted, lineHeight: 1.5 }}>
             Geen mail ontvangen? Check je spam, of{' '}
             <button
               style={{ background: 'none', border: 'none', color: COLORS.accent, fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: 13 }}
-              onClick={() => { setStep('email'); setError(''); }}
+              onClick={() => { setStep('login'); setError(''); }}
             >
               probeer opnieuw
             </button>

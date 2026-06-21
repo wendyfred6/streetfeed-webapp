@@ -18,7 +18,10 @@ export const COLORS = {
 };
 
 // ─── Paginagradiënt ─────────────────────────────────────────────────────────────
-export const BG_GRADIENT = 'linear-gradient(160deg, #FFF7E3 0%, #FFC4C5 45%, #FFFDE7 73%, #FFE1F1 100%)';
+// Doorgerekend op 40% opacity over wit (zelfde recept als index.html's
+// body::before), zodat dit token overal waar het als platte achtergrond
+// gebruikt wordt hetzelfde resultaat geeft zonder losse opacity-regel.
+export const BG_GRADIENT = 'linear-gradient(160deg, #FFFCF4 0%, #FFE7E8 45%, #FFFEF5 73%, #FFF3F9 100%)';
 
 // ─── Semitransparante varianten ──────────────────────────────────────────────────
 export const ALPHA = {
