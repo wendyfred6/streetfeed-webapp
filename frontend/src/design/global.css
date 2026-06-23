@@ -10,8 +10,8 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
   outline: none;
-  border-color: #000000 !important;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+  border-color: #FF0066 !important;
+  box-shadow: 0 0 0 2px rgba(255, 0, 102, 0.15);
 }
 
 /* Knoppen: hover/active feedback */
