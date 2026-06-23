@@ -1,15 +1,15 @@
 // ─── Kleuren ────────────────────────────────────────────────────────────────────
 export const COLORS = {
-  bg:           'rgba(255,255,255,0.60)', // frosted glass neutraal oppervlak
-  surface:      'rgba(255,255,255,0.75)', // frosted glass basisoppervlak
-  border:       'rgba(255,0,102,0.15)',   // subtiele roze rand
-  accent:       '#FF0066',               // Electric Pink — labels, CTA, actieve states
-  terracotta:   '#FF0066',               // zelfde als accent
-  text:         '#1C1A18',               // neutraal bijna-zwart, geen paarse ondertoon
-  textMuted:    '#6C6860',               // neutraal grijs, geen roze/paarse ondertoon
-  textDim:      '#8E8C84',               // licht neutraal grijs
-  pinned:       'rgba(255,255,255,0.82)',// vastgepinde kaart — iets minder transparant
-  pinnedBorder: 'rgba(255,0,102,0.22)', // vastgepinde kaart rand — Electric Pink outline
+  bg:           'rgba(255,255,255,0.60)',
+  surface:      'rgba(255,255,255,0.75)',
+  border:       'rgba(0,0,0,0.12)',
+  accent:       '#000000',
+  terracotta:   '#000000',
+  text:         '#000000',
+  textMuted:    '#6C6860',
+  textDim:      '#8E8C84',
+  pinned:       'rgba(255,255,255,0.82)',
+  pinnedBorder: 'rgba(0,0,0,0.15)',
   red:          '#FF4444',
   blue:         '#4488FF',
   orange:       '#FF8833',
@@ -25,9 +25,9 @@ export const BG_GRADIENT = 'linear-gradient(160deg, #FFFCF4 0%, #FFE7E8 45%, #FF
 
 // ─── Semitransparante varianten ──────────────────────────────────────────────────
 export const ALPHA = {
-  accentSubtle: 'rgba(255,0,102,0.08)',
-  accentBorder: 'rgba(255,0,102,0.2)',
-  terraGlow:    'rgba(255,0,102,0.30)',
+  accentSubtle: 'rgba(0,0,0,0.06)',
+  accentBorder: 'rgba(0,0,0,0.12)',
+  terraGlow:    'rgba(0,0,0,0.15)',
 };
 
 // ─── Frosted glass presets ───────────────────────────────────────────────────────

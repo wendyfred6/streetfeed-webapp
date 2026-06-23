@@ -21,31 +21,36 @@ import { ChatsCircleIcon } from '@phosphor-icons/react/dist/csr/ChatsCircle';
 import { UsersThreeIcon } from '@phosphor-icons/react/dist/csr/UsersThree';
 import { PackageIcon } from '@phosphor-icons/react/dist/csr/Package';
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
-import { WrenchIcon } from '@phosphor-icons/react/dist/csr/Wrench';
 import { CarIcon } from '@phosphor-icons/react/dist/csr/Car';
-import { StairsIcon } from '@phosphor-icons/react/dist/csr/Stairs';
 import { CraneTowerIcon } from '@phosphor-icons/react/dist/csr/CraneTower';
-import { KeyIcon } from '@phosphor-icons/react/dist/csr/Key';
-import { SpeakerHighIcon } from '@phosphor-icons/react/dist/csr/SpeakerHigh';
 import { WarningIcon } from '@phosphor-icons/react/dist/csr/Warning';
 import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
-import { HandshakeIcon } from '@phosphor-icons/react/dist/csr/Handshake';
-import { MoneyIcon } from '@phosphor-icons/react/dist/csr/Money';
 import { GiftIcon } from '@phosphor-icons/react/dist/csr/Gift';
-import { ThumbsUpIcon } from '@phosphor-icons/react/dist/csr/ThumbsUp';
 import { QuestionIcon } from '@phosphor-icons/react/dist/csr/Question';
-import { ConfettiIcon } from '@phosphor-icons/react/dist/csr/Confetti';
 import { TrafficConeIcon } from '@phosphor-icons/react/dist/csr/TrafficCone';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import { ArrowLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowLeft';
 import { TrophyIcon } from '@phosphor-icons/react/dist/csr/Trophy';
+import { ArrowCircleLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowCircleLeft';
+import { BinocularsIcon } from '@phosphor-icons/react/dist/csr/Binoculars';
+import { BarricadeIcon } from '@phosphor-icons/react/dist/csr/Barricade';
+import { MaskHappyIcon } from '@phosphor-icons/react/dist/csr/MaskHappy';
+import { DropIcon } from '@phosphor-icons/react/dist/csr/Drop';
+import { LadderIcon } from '@phosphor-icons/react/dist/csr/Ladder';
+import { CraneIcon } from '@phosphor-icons/react/dist/csr/Crane';
+import { MapPinIcon } from '@phosphor-icons/react/dist/csr/MapPin';
+import { ShieldStarIcon } from '@phosphor-icons/react/dist/csr/ShieldStar';
+import { ArmchairIcon } from '@phosphor-icons/react/dist/csr/Armchair';
+import { CalendarPlusIcon } from '@phosphor-icons/react/dist/csr/CalendarPlus';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 
 const CATEGORIES = {
-  bezorging:   { label: 'Bezorging',   labelEn: 'Package',   color: '#4488FF' },
-  straatzaken: { label: 'Straatzaken', labelEn: 'Street',    color: '#FF8833', pinnable: true },
-  melding:     { label: 'Melding',     labelEn: 'Report',    color: '#FF4444' },
-  evenement:   { label: 'Evenement',   labelEn: 'Event',     color: '#AA77FF', pinnable: true, isEvent: true },
-  algemeen:    { label: 'Algemeen',    labelEn: 'General',   color: '#44BB44' },
+  bezorging:    { label: 'Bezorging',    labelEn: 'Package',       color: '#4488FF' },
+  straatzaken:  { label: 'Straatzaken',  labelEn: 'Street',        color: '#FF8833', pinnable: true },
+  melding:      { label: 'Melding',      labelEn: 'Report',        color: '#FF4444' },
+  lostandfound: { label: 'Lost & Found', labelEn: 'Lost & Found',  color: '#9966CC' },
+  evenement:    { label: 'Evenement',    labelEn: 'Event',         color: '#AA77FF', pinnable: true, isEvent: true },
+  algemeen:     { label: 'Algemeen',     labelEn: 'General',       color: '#44BB44' },
 };
 
 // Backward compat labels for posts stored before the category rename
@@ -111,7 +116,7 @@ const s = {
   catGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 },
   catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}18` : 'rgba(255,255,255,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: `1px solid ${selected ? CATEGORIES[cat]?.color : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
   submitBtn: { width: '100%', background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '13px 24px', fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 8 },
-  cancelBtn: { width: '100%', background: 'rgba(255,255,255,0.60)', color: COLORS.accent, border: `2px solid ${COLORS.accent}`, borderRadius: RADIUS.pill, padding: '11px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
+  cancelBtn: { width: '100%', background: 'rgba(255,255,255,0.60)', color: COLORS.text, border: `1.5px solid rgba(0,0,0,0.15)`, borderRadius: RADIUS.pill, padding: '11px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
   badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}18`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 11, fontWeight: 700, padding: '2px 7px' }),
   infoBox: { ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', marginBottom: 10 },
   adminCard: { ...GLASS.card, borderRadius: RADIUS.lg, padding: '14px 16px', marginBottom: 8 },
@@ -490,42 +495,190 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, onD
 
 // ─── CATEGORY PICKER SHEET ────────────────────────────────────────────────────
 
-const CAT_META = {
-  bezorging:   { icon: PackageIcon,     sub: 'Bezorging & vermist pakket' },
-  straatzaken: { icon: TrafficConeIcon, sub: 'Werkzaamheden in de straat' },
-  melding:     { icon: WarningIcon,     sub: 'Iets melden aan de buurt' },
-  evenement:   { icon: ConfettiIcon,    sub: 'Buurtactiviteit organiseren' },
-  algemeen:    { icon: ChatsCircleIcon, sub: 'Lenen, kopen, verkopen, vragen' },
-};
+// Declaratieve data voor CategoryPicker — alle niveaus in één boom
+const PICKER_DATA = [
+  {
+    key: 'bezorging', label: 'Bezorging', sub: 'Pakket aangenomen of pakket gezocht', icon: PackageIcon,
+    types: [
+      { key: 'pakket_aangenomen', label: 'Pakket aangenomen', sub: 'Pakket ontvangen voor een buur',    icon: PackageIcon },
+      { key: 'pakket_gezocht',    label: 'Pakket gezocht',    sub: 'Op zoek naar een vermist pakket',   icon: MagnifyingGlassIcon },
+    ],
+  },
+  {
+    key: 'straatzaken', label: 'Straatzaken', sub: 'Verhuizing, container of tijdelijke hinder', icon: TrafficConeIcon,
+    types: [
+      { key: 'verhuizing',      label: 'Verhuizing',                   sub: 'Je gaat verhuizen of komt wonen in de straat', icon: HouseIcon },
+      { key: 'parkeerplaatsen', label: 'Parkeerplaatsen gereserveerd', sub: 'Tijdelijk minder parkeerruimte',               icon: CarIcon },
+      {
+        key: 'tijdelijke_hinder', label: 'Tijdelijke hinder', sub: 'Tijdelijke overlast of afsluiting', icon: BarricadeIcon,
+        types: [
+          { key: 'container', label: 'Container', sub: 'Container geplaatst of onderweg',    icon: PackageIcon },
+          { key: 'steiger',   label: 'Steiger',   sub: 'Steiger geplaatst of gepland',        icon: LadderIcon },
+          { key: 'kraan',     label: 'Kraan',     sub: 'Kraanwerkzaamheden in de straat',     icon: CraneIcon },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'melding', label: 'Melding', sub: 'Schade, overlast of iets verdachts', icon: WarningIcon,
+    types: [
+      { key: 'overlast', label: 'Overlast',           sub: 'Meld overlast in de straat',  icon: MaskHappyIcon },
+      { key: 'schade',   label: 'Schade',             sub: 'Meld schade in de straat',    icon: DropIcon },
+      { key: 'verdacht', label: 'Verdachte situatie', sub: 'Iets gezien dat niet klopt?', icon: EyeIcon },
+    ],
+  },
+  {
+    key: 'lostandfound', label: 'Lost & Found', sub: 'Iets verloren of gevonden', icon: BinocularsIcon,
+    types: [
+      { key: 'verloren', label: 'Verloren', sub: 'Iets kwijtgeraakt', icon: MagnifyingGlassIcon },
+      { key: 'gevonden', label: 'Gevonden', sub: 'Iets gevonden',      icon: MapPinIcon },
+    ],
+  },
+  { key: 'evenement', label: 'Evenement', sub: 'Van straatborrel tot....straatborrel?', icon: CalendarPlusIcon, types: null },
+  {
+    key: 'algemeen', label: 'Algemeen', sub: 'Van oppas gezocht tot gratis af te halen', icon: ChatsCircleIcon,
+    types: [
+      { key: 'gezocht',     label: 'Gezocht',          sub: 'Op zoek naar iets of iemand',          icon: QuestionIcon },
+      { key: 'te_koop',     label: 'Te koop',           sub: 'Bied iets te koop aan',                icon: ArmchairIcon },
+      { key: 'gratis',      label: 'Gratis af te halen', sub: 'Geef iets gratis weg',               icon: GiftIcon },
+      { key: 'aanbeveling', label: 'Aanbeveling',       sub: 'Tip een bedrijf, restaurant of vakman', icon: ShieldStarIcon },
+    ],
+  },
+];
 
-function CategoryPickerSheet({ onClose, onSelect }) {
+// ─── CATEGORY PICKER (gecentreerde modal, alle niveaus intern) ────────────────
+
+function CategoryPicker({ onClose, onSelect }) {
+  // path = navigatiehistorie: [] = hoofdscherm, [{key,label}] = subcategorie, etc.
+  const [path, setPath] = useState([]);
+  const [selected, setSelected] = useState(null); // { cat, type } bij leaf-selectie
   const [closing, setClosing] = useState(false);
-  const close = () => { setClosing(true); setTimeout(onClose, 270); };
+
+  const close = () => { setClosing(true); setTimeout(onClose, 220); };
+
+  const confirm = () => {
+    if (!selected) return;
+    setClosing(true);
+    setTimeout(() => onSelect(selected.cat, selected.type), 220);
+  };
+
+  // Huidige items op basis van pad door PICKER_DATA-boom
+  const currentItems = path.reduce(
+    (items, { key }) => items.find(it => it.key === key)?.types || [],
+    PICKER_DATA,
+  );
+
+  const handleRow = (item) => {
+    if (item.types) {
+      setSelected(null);
+      setPath(prev => [...prev, { key: item.key, label: item.label }]);
+    } else {
+      const cat  = path.length === 0 ? item.key : path[0].key;
+      const type = path.length === 0 ? null     : item.key;
+      setSelected({ cat, type });
+    }
+  };
+
+  const goBack = () => { setSelected(null); setPath(prev => prev.slice(0, -1)); };
+
+  const isMain     = path.length === 0;
+  const heading    = isMain ? 'Wat wil je delen?' : path[path.length - 1].label;
+  const breadcrumb = path.length > 1 ? path[path.length - 2].label : null;
+
+  const rowStyle = (isSelected) => ({
+    display: 'flex', alignItems: 'center', gap: 14,
+    background:  isSelected ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.65)',
+    border: `1px solid ${isSelected ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.55)'}`,
+    borderRadius: RADIUS.lg,
+    padding: '14px 16px',
+    cursor: 'pointer',
+  });
 
   return (
-    <SheetOverlay closing={closing} onOverlayClick={close}>
-      <div style={s.sheetHandle} />
-      <div style={s.sheetTitle}>Wat wil je delen?</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-        {Object.entries(CATEGORIES).map(([key]) => {
-          const meta = CAT_META[key] || {};
-          const MetaIcon = meta.icon;
-          return (
-            <div key={key}
-              onClick={() => { setClosing(true); setTimeout(() => onSelect(key), 270); }}
-              style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.50)', borderRadius: RADIUS.lg, padding: '14px 16px', cursor: 'pointer' }}>
-              {MetaIcon && <MetaIcon size={22} weight="regular" color={COLORS.text} style={{ flexShrink: 0 }} />}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{catLabel(key)}</div>
-                <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 2 }}>{meta.sub}</div>
+    <div
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(26,10,18,0.55)',
+        backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+        zIndex: 100,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '20px',
+        animation: `${closing ? 'overlayOut 0.22s ease-in' : 'overlayIn 0.18s ease-out'} forwards`,
+      }}
+      onClick={close}
+    >
+      <div
+        style={{
+          width: '100%', maxWidth: 350,
+          ...GLASS.sheet,
+          borderRadius: RADIUS.xl,
+          padding: '28px 20px 24px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+          animation: `${closing ? 'modalOut 0.22s ease-in' : 'modalIn 0.28s cubic-bezier(0.34,1.2,0.64,1)'} forwards`,
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        {isMain ? (
+          <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.text, marginBottom: 20 }}>
+            Wat wil je delen?
+          </div>
+        ) : (
+          <div style={{ marginBottom: 20 }}>
+            {breadcrumb && (
+              <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textMuted, letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 4 }}>
+                {breadcrumb}
               </div>
-              <Chevron size={16} color={COLORS.textDim} />
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button onClick={goBack} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', flexShrink: 0 }} aria-label="Terug">
+                <ArrowCircleLeftIcon size={32} weight="regular" color={COLORS.text} />
+              </button>
+              <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.text }}>{heading}</div>
             </div>
-          );
-        })}
+          </div>
+        )}
+
+        {/* Rijen */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 4 }}>
+          {currentItems.map(item => {
+            const Icon = item.icon;
+            const isSel = selected && (
+              path.length === 0 ? selected.cat === item.key && selected.type === null
+                                : selected.type === item.key
+            );
+            return (
+              <div key={item.key} onClick={() => handleRow(item)} className="tap-feedback" style={rowStyle(isSel)}>
+                <Icon size={28} weight="regular" color={COLORS.text} style={{ flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{item.label}</div>
+                  {item.sub && <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 2 }}>{item.sub}</div>}
+                </div>
+                <CaretRightIcon size={16} weight="bold" color={COLORS.textDim} />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Knoppen */}
+        <button
+          onClick={confirm}
+          disabled={!selected}
+          style={{
+            width: '100%', background: COLORS.text, color: '#FFFFFF',
+            border: 'none', borderRadius: RADIUS.pill,
+            padding: '14px 24px', fontSize: 16, fontWeight: 700,
+            cursor: selected ? 'pointer' : 'not-allowed',
+            marginTop: 16, opacity: selected ? 1 : 0.35,
+          }}
+        >
+          Plaats bericht
+        </button>
+        <button onClick={close} style={{ ...s.cancelBtn, marginTop: 8 }}>
+          Annuleren
+        </button>
       </div>
-      <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
-    </SheetOverlay>
+    </div>
   );
 }
 
@@ -920,70 +1073,46 @@ function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, doc
 
 // ─── TYPE PICKER + NEW POST SHEET ─────────────────────────────────────────────
 
+// Gebruikt door typeLabel() voor weergave in feed + formulier (inclusief backward-compat keys)
 const TYPE_META = {
   bezorging: [
-    { key: 'bezorgd', label: 'Bezorgd', sub: 'Pakket ontvangen voor een buur',   icon: PackageIcon },
-    { key: 'gezocht', label: 'Gezocht', sub: 'Op zoek naar een vermist pakket',  icon: MagnifyingGlassIcon },
+    { key: 'pakket_aangenomen', label: 'Pakket aangenomen' },
+    { key: 'pakket_gezocht',    label: 'Pakket gezocht' },
+    { key: 'bezorgd',           label: 'Bezorgd' },
+    { key: 'gezocht',           label: 'Gezocht' },
   ],
   straatzaken: [
-    { key: 'werkzaamheden',      label: 'Werkzaamheden',      icon: WrenchIcon },
-    { key: 'parkeerverbod',      label: 'Parkeerverbod',      icon: CarIcon },
-    { key: 'steiger',            label: 'Steiger',            icon: StairsIcon },
-    { key: 'container',          label: 'Container',          icon: TrashIcon },
-    { key: 'kraan',              label: 'Kraan',              icon: CraneTowerIcon },
-    { key: 'verhuizing',         label: 'Verhuizing',         icon: PackageIcon },
+    { key: 'verhuizing',        label: 'Verhuizing' },
+    { key: 'parkeerplaatsen',   label: 'Parkeerplaatsen gereserveerd' },
+    { key: 'container',         label: 'Container' },
+    { key: 'steiger',           label: 'Steiger' },
+    { key: 'kraan',             label: 'Kraan' },
+    { key: 'tijdelijke_hinder', label: 'Tijdelijke hinder' },
+    { key: 'werkzaamheden',     label: 'Werkzaamheden' },
+    { key: 'parkeerverbod',     label: 'Parkeerverbod' },
   ],
   melding: [
-    { key: 'lost_found', label: 'Lost & Found',       sub: 'Gevonden of verloren voorwerp',          icon: KeyIcon },
-    { key: 'overlast',   label: 'Overlast',           sub: 'Geluids-, parkeer- of andere overlast',  icon: SpeakerHighIcon },
-    { key: 'schade',     label: 'Schade',             sub: 'Schade aan eigendom of voertuig',        icon: WarningIcon },
-    { key: 'verdacht',   label: 'Verdachte situatie', sub: 'Onraad of verdacht gedrag',              icon: EyeIcon },
+    { key: 'overlast',  label: 'Overlast' },
+    { key: 'schade',    label: 'Schade' },
+    { key: 'verdacht',  label: 'Verdachte situatie' },
+    { key: 'lost_found', label: 'Lost & Found' },
+  ],
+  lostandfound: [
+    { key: 'verloren', label: 'Verloren' },
+    { key: 'gevonden', label: 'Gevonden' },
   ],
   algemeen: [
-    { key: 'gezocht',     label: 'Gezocht',            sub: 'Je zoekt iets',                          icon: MagnifyingGlassIcon },
-    { key: 'te_leen',     label: 'Te leen',             sub: 'Iets uitlenen aan de buurt',             icon: HandshakeIcon },
-    { key: 'te_koop',     label: 'Te koop',             sub: 'Iets verkopen',                          icon: MoneyIcon },
-    { key: 'gratis',      label: 'Gratis af te halen',  sub: 'Iets weggeven',                          icon: GiftIcon },
-    { key: 'aanbeveling', label: 'Aanbeveling',         sub: 'Een vakman of dienst vragen of aanraden', icon: ThumbsUpIcon },
-    { key: 'vraag',       label: 'Vraag',               sub: 'Een algemene vraag aan de buurt',        icon: QuestionIcon },
+    { key: 'gezocht',     label: 'Gezocht' },
+    { key: 'te_koop',     label: 'Te koop' },
+    { key: 'gratis',      label: 'Gratis af te halen' },
+    { key: 'aanbeveling', label: 'Aanbeveling' },
+    { key: 'te_leen',     label: 'Te leen' },
+    { key: 'vraag',       label: 'Vraag' },
   ],
 };
 
 function typeLabel(cat, type) {
   return TYPE_META[cat]?.find(t => t.key === type)?.label || type;
-}
-
-function TypePickerSheet({ cat, onClose, onBack, onSelect }) {
-  const [closing, setClosing] = useState(false);
-  const close = () => { setClosing(true); setTimeout(onClose, 270); };
-  const back = () => { setClosing(true); setTimeout(onBack, 270); };
-  const types = TYPE_META[cat] || [];
-  return (
-    <SheetOverlay closing={closing} onOverlayClick={close}>
-      <div style={s.sheetHandle} />
-      <div style={s.sheetBackRow}>
-        <button style={s.sheetBackBtn} onClick={back} aria-label="Terug">
-          <ArrowLeftIcon size={16} weight="bold" />
-        </button>
-        <div style={{ ...s.sheetTitle, marginBottom: 0 }}>{catLabel(cat)} — welk type?</div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-        {types.map(({ key, label: lbl, sub, icon: TypeIcon }) => (
-          <div key={key}
-            onClick={() => { setClosing(true); setTimeout(() => onSelect(key), 270); }}
-            style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.50)', borderRadius: RADIUS.lg, padding: '14px 16px', cursor: 'pointer' }}>
-            {TypeIcon && <TypeIcon size={22} weight="regular" color={COLORS.text} style={{ flexShrink: 0 }} />}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{lbl}</div>
-              {sub && <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 2 }}>{sub}</div>}
-            </div>
-            <Chevron size={16} color={COLORS.textDim} />
-          </div>
-        ))}
-      </div>
-      <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
-    </SheetOverlay>
-  );
 }
 
 function NewPostSheet({ onClose, onBack, onSubmit, streetId, canPin, user, initialCat = 'bezorging', initialType = null }) {
@@ -1618,7 +1747,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [showPost, setShowPost] = useState(false);
   const [showCatPicker, setShowCatPicker] = useState(false);
-  const [showTypePicker, setShowTypePicker] = useState(false);
   const [pendingCat, setPendingCat] = useState('bezorging');
   const [pendingType, setPendingType] = useState(null);
   const [eventDetail, setEventDetail] = useState(null);
@@ -1876,7 +2004,7 @@ export default function App() {
       </div>
 
       {tab === 'feed' && (
-        <div style={{ ...s.feed, filter: (showPost || showCatPicker || showTypePicker || !!eventDetail || !!joinDetail || !!editPost) ? 'blur(4px)' : 'none', transition: 'filter 0.2s', pointerEvents: (showPost || showCatPicker || showTypePicker || !!eventDetail || !!joinDetail || !!editPost) ? 'none' : 'auto' }}>
+        <div style={{ ...s.feed, filter: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'blur(4px)' : 'none', transition: 'filter 0.2s', pointerEvents: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'none' : 'auto' }}>
           {notifSupported && !subscribed && permission !== 'denied' && (
             <div style={{ margin: '12px 12px 0', background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div>
@@ -1945,37 +2073,19 @@ export default function App() {
       </div>
 
       {showCatPicker && (
-        <CategoryPickerSheet
+        <CategoryPicker
           onClose={() => setShowCatPicker(false)}
-          onSelect={(cat) => {
+          onSelect={(cat, type) => {
             setPendingCat(cat);
-            setPendingType(null);
+            setPendingType(type);
             setShowCatPicker(false);
-            if (TYPE_META[cat]?.length) {
-              setTimeout(() => setShowTypePicker(true), 270);
-            } else {
-              setTimeout(() => setShowPost(true), 270);
-            }
+            setTimeout(() => setShowPost(true), 220);
           }}
-        />
-      )}
-      {showTypePicker && (
-        <TypePickerSheet
-          cat={pendingCat}
-          onClose={() => setShowTypePicker(false)}
-          onBack={() => { setShowTypePicker(false); setTimeout(() => setShowCatPicker(true), 270); }}
-          onSelect={(type) => { setPendingType(type); setShowTypePicker(false); setTimeout(() => setShowPost(true), 270); }}
         />
       )}
       {showPost && (
         <NewPostSheet onClose={() => setShowPost(false)}
-          onBack={() => {
-            setShowPost(false);
-            setTimeout(() => {
-              if (TYPE_META[pendingCat]?.length) setShowTypePicker(true);
-              else setShowCatPicker(true);
-            }, 270);
-          }}
+          onBack={() => { setShowPost(false); setTimeout(() => setShowCatPicker(true), 220); }}
           onSubmit={(data) => { handleNewPost(data); setShowPost(false); window.scrollTo({ top: 0, behavior: 'instant' }); }}
           streetId={STREET_ID} canPin={canPin} user={user} initialCat={pendingCat} initialType={pendingType} />
       )}
