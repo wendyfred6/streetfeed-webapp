@@ -405,7 +405,6 @@ export default function OnboardingPage() {
             </button>
             .
           </div>
-          <HomeScreenPrompt />
         </div>
       </div>
     );
