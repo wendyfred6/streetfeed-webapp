@@ -1108,8 +1108,8 @@ function NewPostSheet({ onClose, onBack, onSubmit, streetId, canPin, user, initi
   const [photoPreview, setPhotoPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [closing, setClosing] = useState(false);
-  const close = () => { setClosing(true); setTimeout(onClose, 270); };
-  const back = () => { setClosing(true); setTimeout(onBack, 270); };
+  const close = () => { setClosing(true); setTimeout(onClose, 220); };
+  const back  = () => { setClosing(true); setTimeout(onBack,  220); };
 
   const isBezorging   = initialCat === 'bezorging'   || initialCat === 'package';
   const isStraatzaken = initialCat === 'straatzaken'  || initialCat === 'works';
@@ -1154,7 +1154,8 @@ function NewPostSheet({ onClose, onBack, onSubmit, streetId, canPin, user, initi
     close();
   };
 
-  const catTypeLine = `${catLabel(initialCat)}${initialType ? ' · ' + typeLabel(initialCat, initialType) : ''}`;
+  const heading      = initialType ? typeLabel(initialCat, initialType) : catLabel(initialCat);
+  const categoryPath = initialType ? catLabel(initialCat) : null;
 
   const houseRow = (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
@@ -1170,17 +1171,49 @@ function NewPostSheet({ onClose, onBack, onSubmit, streetId, canPin, user, initi
   );
 
   return (
-    <SheetOverlay closing={closing} onOverlayClick={close}>
-      <div style={s.sheetHandle} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-        <button style={s.sheetBackBtn} onClick={back} aria-label="Terug">
-          <ArrowLeftIcon size={16} weight="bold" />
-        </button>
-        <div>
-          <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.3px', marginBottom: 2 }}>{t('new_post')}</div>
-          <div style={{ fontSize: 12, color: COLORS.textDim }}>{catTypeLine}</div>
+    <div
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(26,10,18,0.55)',
+        backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+        zIndex: 100,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '20px',
+        animation: `${closing ? 'overlayOut 0.22s ease-in' : 'overlayIn 0.18s ease-out'} forwards`,
+      }}
+      onClick={close}
+    >
+      <div
+        style={{
+          width: '100%', maxWidth: 350,
+          background: COLORS.surfaceModal,
+          backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
+          borderRadius: RADIUS.xl,
+          padding: '28px 20px 24px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+          maxHeight: '85vh',
+          display: 'flex', flexDirection: 'column',
+          animation: `${closing ? 'modalOut 0.22s ease-in' : 'modalIn 0.28s cubic-bezier(0.34,1.2,0.64,1)'} forwards`,
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ marginBottom: 20, flexShrink: 0 }}>
+          {categoryPath && (
+            <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textDim, letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 4 }}>
+              {categoryPath}
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button onClick={back} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', flexShrink: 0 }} aria-label="Terug">
+              <ArrowCircleLeftIcon size={32} weight="regular" color={COLORS.text} />
+            </button>
+            <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.text }}>{heading}</div>
+          </div>
         </div>
-      </div>
+
+        {/* Scrollbaar formuliergebied */}
+        <div style={{ flex: 1, overflowY: 'auto', marginBottom: 4 }}>
 
       {/* Bezorging */}
       {isBezorging && (
@@ -1277,14 +1310,23 @@ function NewPostSheet({ onClose, onBack, onSubmit, streetId, canPin, user, initi
         </>
       )}
 
-      <AttachmentUpload photoPreview={photoPreview} uploading={uploading} onUploading={setUploading}
-        onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); if (key) setPhotoKey(key); }} />
+          <AttachmentUpload photoPreview={photoPreview} uploading={uploading} onUploading={setUploading}
+            onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); if (key) setPhotoKey(key); }} />
+        </div>
 
-      <button style={{ ...s.submitBtn, opacity: canSubmit ? 1 : 0.5 }} disabled={!canSubmit} onClick={handleSubmit}>
-        {t('publish')}
-      </button>
-      <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
-    </SheetOverlay>
+        {/* Vaste CTA's */}
+        <div style={{ flexShrink: 0 }}>
+          <button
+            style={{ width: '100%', background: COLORS.text, color: '#fff', border: 'none', borderRadius: RADIUS.pill, padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: canSubmit ? 'pointer' : 'not-allowed', marginTop: 16, opacity: canSubmit ? 1 : 0.35 }}
+            disabled={!canSubmit}
+            onClick={handleSubmit}
+          >
+            {t('publish')}
+          </button>
+          <button style={{ ...s.cancelBtn, marginTop: 8 }} onClick={close}>{t('cancel')}</button>
+        </div>
+      </div>
+    </div>
   );
 }
 
