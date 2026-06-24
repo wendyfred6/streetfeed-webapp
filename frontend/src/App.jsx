@@ -551,16 +551,9 @@ const PICKER_DATA = [
 function CategoryPicker({ onClose, onSelect }) {
   // path = navigatiehistorie: [] = hoofdscherm, [{key,label}] = subcategorie, etc.
   const [path, setPath] = useState([]);
-  const [selected, setSelected] = useState(null); // { cat, type } bij leaf-selectie
   const [closing, setClosing] = useState(false);
 
   const close = () => { setClosing(true); setTimeout(onClose, 220); };
-
-  const confirm = () => {
-    if (!selected) return;
-    setClosing(true);
-    setTimeout(() => onSelect(selected.cat, selected.type), 220);
-  };
 
   // Huidige items op basis van pad door PICKER_DATA-boom
   const currentItems = path.reduce(
@@ -570,29 +563,29 @@ function CategoryPicker({ onClose, onSelect }) {
 
   const handleRow = (item) => {
     if (item.types) {
-      setSelected(null);
       setPath(prev => [...prev, { key: item.key, label: item.label }]);
     } else {
       const cat  = path.length === 0 ? item.key : path[0].key;
       const type = path.length === 0 ? null     : item.key;
-      setSelected({ cat, type });
+      setClosing(true);
+      setTimeout(() => onSelect(cat, type), 220);
     }
   };
 
-  const goBack = () => { setSelected(null); setPath(prev => prev.slice(0, -1)); };
+  const goBack = () => setPath(prev => prev.slice(0, -1));
 
   const isMain     = path.length === 0;
   const heading    = isMain ? 'Wat wil je delen?' : path[path.length - 1].label;
   const breadcrumb = path.length > 1 ? path[path.length - 2].label : null;
 
-  const rowStyle = (isSelected) => ({
+  const rowStyle = {
     display: 'flex', alignItems: 'center', gap: 14,
-    background:  isSelected ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.65)',
-    border: `1px solid ${isSelected ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.55)'}`,
+    background: 'rgba(255,255,255,0.65)',
+    border: '1px solid rgba(255,255,255,0.55)',
     borderRadius: RADIUS.lg,
     padding: '14px 16px',
     cursor: 'pointer',
-  });
+  };
 
   return (
     <div
@@ -610,7 +603,8 @@ function CategoryPicker({ onClose, onSelect }) {
       <div
         style={{
           width: '100%', maxWidth: 350,
-          ...GLASS.sheet,
+          background: COLORS.surfaceModal,
+          backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
           borderRadius: RADIUS.xl,
           padding: '28px 20px 24px',
           boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
@@ -643,38 +637,21 @@ function CategoryPicker({ onClose, onSelect }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 4 }}>
           {currentItems.map(item => {
             const Icon = item.icon;
-            const isSel = selected && (
-              path.length === 0 ? selected.cat === item.key && selected.type === null
-                                : selected.type === item.key
-            );
             return (
-              <div key={item.key} onClick={() => handleRow(item)} className="tap-feedback" style={rowStyle(isSel)}>
+              <div key={item.key} onClick={() => handleRow(item)} className="tap-feedback" style={rowStyle}>
                 <Icon size={28} weight="regular" color={COLORS.text} style={{ flexShrink: 0 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{item.label}</div>
                   {item.sub && <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 2 }}>{item.sub}</div>}
                 </div>
-                <CaretRightIcon size={16} weight="bold" color={COLORS.textDim} />
+                {item.types && <CaretRightIcon size={16} weight="bold" color={COLORS.textDim} />}
               </div>
             );
           })}
         </div>
 
         {/* Knoppen */}
-        <button
-          onClick={confirm}
-          disabled={!selected}
-          style={{
-            width: '100%', background: COLORS.text, color: '#FFFFFF',
-            border: 'none', borderRadius: RADIUS.pill,
-            padding: '14px 24px', fontSize: 16, fontWeight: 700,
-            cursor: selected ? 'pointer' : 'not-allowed',
-            marginTop: 16, opacity: selected ? 1 : 0.35,
-          }}
-        >
-          Plaats bericht
-        </button>
-        <button onClick={close} style={{ ...s.cancelBtn, marginTop: 8 }}>
+        <button onClick={close} style={{ ...s.cancelBtn, marginTop: 16 }}>
           Annuleren
         </button>
       </div>
@@ -1139,8 +1116,8 @@ function NewPostSheet({ onClose, onBack, onSubmit, streetId, canPin, user, initi
   const isMelding     = initialCat === 'melding'      || initialCat === 'incident';
   const isEvenement   = initialCat === 'evenement'    || initialCat === 'event';
   const isAlgemeen    = initialCat === 'algemeen';
-  const isGezocht     = initialType === 'gezocht';
-  const isBezorgd     = initialType === 'bezorgd';
+  const isGezocht = initialType === 'pakket_gezocht'    || initialType === 'gezocht';
+  const isBezorgd = initialType === 'pakket_aangenomen' || initialType === 'bezorgd';
 
   // Gezocht: de poster zoekt z'n eigen pakket — geen invoerveld nodig, het
   // huisnummer is al bekend uit het account
@@ -1956,12 +1933,12 @@ export default function App() {
   return (
     <div style={s.app}>
       {reportedToast && (
-        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: COLORS.surface, border: `1px solid ${COLORS.red}`, borderRadius: 10, padding: '10px 20px', fontSize: 13, color: COLORS.text, zIndex: 200, whiteSpace: 'nowrap' }}>
+        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: COLORS.surface, border: `1px solid ${COLORS.error}`, borderRadius: 10, padding: '10px 20px', fontSize: 13, color: COLORS.text, zIndex: 200, whiteSpace: 'nowrap' }}>
           {t('reported_toast')}
         </div>
       )}
       {postError && (
-        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: COLORS.surface, border: `1px solid ${COLORS.red}`, borderRadius: 10, padding: '10px 20px', fontSize: 13, color: COLORS.red, zIndex: 200, whiteSpace: 'nowrap' }}>
+        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: COLORS.surface, border: `1px solid ${COLORS.error}`, borderRadius: 10, padding: '10px 20px', fontSize: 13, color: COLORS.error, zIndex: 200, whiteSpace: 'nowrap' }}>
           {postError}
         </div>
       )}
@@ -2015,7 +1992,7 @@ export default function App() {
                 const result = await subscribe();
                 if (result.ok) setNotifToast('Notificaties staan nu aan');
                 else if (result.error) setNotifToast(result.error);
-              }} style={{ background: COLORS.terracotta, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              }} style={{ background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 Aanzetten
               </button>
             </div>

@@ -1,13 +1,20 @@
 // ─── Kleuren ────────────────────────────────────────────────────────────────────
+// Figma Variables source of truth: W65VpyQHr5Zy5121TZk05t → Streetfeed Colors v1.0
 export const COLORS = {
+  // — Figma Variables —
+  accent:       '#FF0066',           // Accent — CTA buttons, FAB, active states
+  text:         '#1C1A18',           // Text / Primary — titles, body text
+  textMuted:    'rgba(28,26,24,0.65)', // Text / Secondary — supporting text
+  textDim:      'rgba(28,26,24,0.40)', // Text / Tertiary — Category Path, metadata
+  background:   '#FFFFFF',           // Background — white base under gradient
+  surfaceModal: '#E8E6E7',           // Surface / Modal — Category Picker, modal sheets
+  success:      '#3D7A43',           // Success — toggle on, success states
+  error:        '#C62828',           // Error — validation errors, error states
+
+  // — UI-specifiek (niet in Figma Variables) —
   bg:           'rgba(255,255,255,0.60)',
   surface:      'rgba(255,255,255,0.75)',
   border:       'rgba(255,0,102,0.15)',
-  accent:       '#FF0066',
-  terracotta:   '#FF0066',
-  text:         '#1C1A18',
-  textMuted:    '#6C6860',
-  textDim:      '#8E8C84',
   pinned:       'rgba(255,255,255,0.82)',
   pinnedBorder: 'rgba(255,0,102,0.22)',
   red:          '#FF4444',
