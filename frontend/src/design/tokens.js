@@ -20,6 +20,9 @@ export const COLORS = {
   // Feedback
   success:        '#3D7A43',             // Feedback/Success — toggle on, success states
   error:          '#C62828',             // Feedback/Error — validation errors, error states
+  // Interaction (bewust los van Accent: onafhankelijk bij eventuele merkkleurwijziging)
+  interactionLike:         '#FF0066',    // Interaction/Like — like-hartje
+  interactionNotification: '#FF0066',    // Interaction/Notification — notificatiedot
 
   // — UI-specifiek (niet in Figma Variables) —
   bg:           'rgba(255,255,255,0.60)',

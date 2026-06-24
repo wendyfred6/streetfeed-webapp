@@ -87,17 +87,17 @@ const s = {
   cardBody: { fontSize: 15, color: COLORS.textDim, lineHeight: 1.5 },
   cardMeta: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
   cardMetaLeft: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: COLORS.textMuted },
-  pinnedBadge: { background: COLORS.accent, color: '#FFFFFF', fontSize: 9, fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', padding: '2px 6px', borderRadius: RADIUS.xs },
+  pinnedBadge: { background: COLORS.accent, color: COLORS.textInverse, fontSize: 9, fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', padding: '2px 6px', borderRadius: RADIUS.xs },
   endDateBadge: { fontSize: 10, color: COLORS.accent, background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.xs, padding: '2px 6px' },
   filterBar: { display: 'flex', gap: 6, padding: '12px 20px', overflowX: 'auto', scrollbarWidth: 'none' },
-  filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : 'rgba(255,255,255,0.55)', color: active ? '#FFFFFF' : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
+  filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : 'rgba(255,255,255,0.55)', color: active ? COLORS.textInverse : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
   bottomBar: { position: 'fixed', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 28px)', maxWidth: 374, display: 'flex', alignItems: 'center', zIndex: 50 },
   tabBar: { ...GLASS.header, border: '1px solid rgba(255,255,255,0.55)', borderRadius: RADIUS.pill, padding: '5px', display: 'flex', flex: '1 1 auto' },
   tab: (active) => ({ flex: 1, padding: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? ALPHA.accentSubtle : 'none', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', color: active ? COLORS.accent : COLORS.textMuted, transition: 'background 0.15s' }),
   postCta: (visible) => ({
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     width: visible ? 54 : 0, height: 54, marginLeft: visible ? 10 : 0,
-    background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill,
+    background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill,
     cursor: 'pointer', flexShrink: 0, overflow: 'hidden',
     opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(0.4)',
     boxShadow: visible ? `0 4px 20px ${ALPHA.terraGlow}` : 'none',
@@ -110,13 +110,13 @@ const s = {
   sheetTitle: { fontSize: 18, fontWeight: 800, marginBottom: 20, letterSpacing: '-0.3px' },
   sheetBackRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 },
   sheetBackBtn: { background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: RADIUS.pill, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: COLORS.text, flexShrink: 0 },
-  input: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
-  textarea: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', resize: 'none', minHeight: 80, marginBottom: 10 },
-  label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.accent, display: 'block', marginBottom: 6 },
+  input: { width: '100%', ...GLASS.input, border: `1px solid ${COLORS.borderTertiary}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
+  textarea: { width: '100%', ...GLASS.input, border: `1px solid ${COLORS.borderTertiary}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', resize: 'none', minHeight: 80, marginBottom: 10 },
+  label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textDim, display: 'block', marginBottom: 6 },
   catGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 },
   catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}18` : 'rgba(255,255,255,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: `1px solid ${selected ? CATEGORIES[cat]?.color : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
-  submitBtn: { width: '100%', background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '13px 24px', fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 8 },
-  cancelBtn: { width: '100%', background: 'rgba(255,255,255,0.60)', color: COLORS.accent, border: `2px solid ${COLORS.accent}`, borderRadius: RADIUS.pill, padding: '11px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
+  submitBtn: { width: '100%', background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, padding: '13px 24px', fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 8 },
+  cancelBtn: { width: '100%', background: 'rgba(255,255,255,0.60)', color: COLORS.text, border: `2px solid ${COLORS.borderPrimary}`, borderRadius: RADIUS.pill, padding: '11px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
   badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}18`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 11, fontWeight: 700, padding: '2px 7px' }),
   infoBox: { ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', marginBottom: 10 },
   adminCard: { ...GLASS.card, borderRadius: RADIUS.lg, padding: '14px 16px', marginBottom: 8 },
@@ -210,11 +210,11 @@ function AttendanceToggle({ post, onRsvp }) {
 const MELDING_LINKS = {
   overlast: [{ label: 'Overlast melden bij Gemeente Amsterdam', url: 'https://meldingen.amsterdam.nl/', color: COLORS.blue }],
   schade: [
-    { label: 'Aangifte doen bij politie', url: 'https://www.politie.nl/aangifte-of-melding-doen', color: COLORS.red },
+    { label: 'Aangifte doen bij politie', url: 'https://www.politie.nl/aangifte-of-melding-doen', color: COLORS.error },
     { label: 'Schade melden Waarborgfonds', url: 'https://www.svn.nl/', color: COLORS.blue },
   ],
   verdacht: [
-    { label: 'Bel 0900-8844 (politie non-spoed)', url: 'tel:09008844', color: COLORS.red },
+    { label: 'Bel 0900-8844 (politie non-spoed)', url: 'tel:09008844', color: COLORS.error },
     { label: 'Meld Misdaad Anoniem', url: 'https://www.meldmisdaadanoniem.nl', color: COLORS.blue },
   ],
 };
@@ -465,7 +465,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, onD
           {/* Acties */}
           <div style={{ ...s.cardMeta, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
             <div style={s.cardMetaLeft}>
-              <button style={{ ...s.actionBtn, gap: 5, color: post.liked ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>
+              <button style={{ ...s.actionBtn, gap: 5, color: post.liked ? COLORS.interactionLike : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>
                 <HeartIcon size={14} weight={post.liked ? 'fill' : 'regular'} style={{ display: 'block', flexShrink: 0 }} />
                 <span>{Number(post.likes)}</span>
               </button>
@@ -481,7 +481,7 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, onD
                   <TrashIcon size={13} weight="regular" />
                 </button>
               ) : (
-                <button style={{ ...s.actionBtn, color: post.reported ? COLORS.red : COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('report')}>
+                <button style={{ ...s.actionBtn, color: post.reported ? COLORS.error : COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('report')}>
                   {post.reported ? 'Gemeld' : t('report')}
                 </button>
               )}
@@ -982,7 +982,7 @@ function ActionMenu({ items, onClose }) {
           {items.map((item, i) => (
             <div key={i}>
               {i > 0 && <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '0 16px' }} />}
-              <div onClick={item.action} style={{ padding: '14px 16px', textAlign: 'center', fontSize: 16, color: item.destructive ? COLORS.red : COLORS.text, fontWeight: 400, cursor: 'pointer' }}>
+              <div onClick={item.action} style={{ padding: '14px 16px', textAlign: 'center', fontSize: 16, color: item.destructive ? COLORS.error : COLORS.text, fontWeight: 400, cursor: 'pointer' }}>
                 {item.label}
               </div>
             </div>
@@ -1321,7 +1321,7 @@ function NewPostSheet({ onClose, onBack, onSubmit, streetId, canPin, user, initi
         {/* Vaste CTA's */}
         <div style={{ flexShrink: 0 }}>
           <button
-            style={{ width: '100%', background: COLORS.text, color: '#fff', border: 'none', borderRadius: RADIUS.pill, padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: canSubmit ? 'pointer' : 'not-allowed', marginTop: 16, opacity: canSubmit ? 1 : 0.35 }}
+            style={{ width: '100%', background: COLORS.text, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: canSubmit ? 'pointer' : 'not-allowed', marginTop: 16, opacity: canSubmit ? 1 : 0.35 }}
             disabled={!canSubmit}
             onClick={handleSubmit}
           >
@@ -1391,7 +1391,7 @@ function AdminView({ streetId, user, memberCount, households }) {
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button style={{ flex: 1, background: COLORS.accent, color: '#000', border: 'none', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }} onClick={() => approve(p.id)}>{t('approve')}</button>
-                  <button style={{ flex: 1, background: 'none', color: COLORS.red, border: `1px solid ${COLORS.red}`, borderRadius: 8, padding: '8px', fontSize: 12, cursor: 'pointer' }} onClick={() => reject(p.id)}>{t('reject')}</button>
+                  <button style={{ flex: 1, background: 'none', color: COLORS.error, border: `1px solid ${COLORS.error}`, borderRadius: 8, padding: '8px', fontSize: 12, cursor: 'pointer' }} onClick={() => reject(p.id)}>{t('reject')}</button>
                 </div>
               </div>
             ))}
@@ -2012,7 +2012,7 @@ export default function App() {
           >
             <BellIcon size={20} weight={unreadCount > 0 ? 'fill' : 'regular'} />
             {unreadCount > 0 && (
-              <span style={{ position: 'absolute', top: 2, right: 2, width: 9, height: 9, borderRadius: '50%', background: COLORS.red, border: `1.5px solid ${COLORS.surface}` }} />
+              <span style={{ position: 'absolute', top: 2, right: 2, width: 9, height: 9, borderRadius: '50%', background: COLORS.interactionNotification, border: `1.5px solid ${COLORS.surface}` }} />
             )}
           </button>
           <button
@@ -2135,7 +2135,7 @@ export default function App() {
             <p style={{ fontSize: 15, color: COLORS.textDim, lineHeight: 1.5, marginBottom: 20 }}>
               Weet je zeker dat je dit bericht wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
             </p>
-            <button style={{ ...s.submitBtn, background: COLORS.red }} onClick={handleDeleteConfirmed}>
+            <button style={{ ...s.submitBtn, background: COLORS.error }} onClick={handleDeleteConfirmed}>
               Bericht verwijderen
             </button>
             <button style={s.cancelBtn} onClick={() => setDeleteConfirm(null)}>
