@@ -2,14 +2,24 @@
 // Figma Variables source of truth: W65VpyQHr5Zy5121TZk05t → Streetfeed Colors v1.0
 export const COLORS = {
   // — Figma Variables —
-  accent:       '#FF0066',           // Accent — CTA buttons, FAB, active states
-  text:         '#1C1A18',           // Text / Primary — titles, body text
-  textMuted:    'rgba(28,26,24,0.65)', // Text / Secondary — supporting text
-  textDim:      'rgba(28,26,24,0.40)', // Text / Tertiary — Category Path, metadata
-  background:   '#FFFFFF',           // Background — white base under gradient
-  surfaceModal: '#E8E6E7',           // Surface / Modal — Category Picker, modal sheets
-  success:      '#3D7A43',           // Success — toggle on, success states
-  error:        '#C62828',           // Error — validation errors, error states
+  // Accent
+  accent:         '#FF0066',             // Accent/Accent — CTA buttons, FAB, active states
+  // Text
+  text:           '#1C1A18',             // Text/Primary
+  textMuted:      'rgba(28,26,24,0.65)', // Text/Secondary — supporting text
+  textDim:        'rgba(28,26,24,0.40)', // Text/Tertiary — Category Path, metadata
+  textInverse:    '#FFFFFF',             // Text/Inverse — tekst op donkere achtergrond
+  // Border
+  borderPrimary:   '#1C1A18',             // Border/Primary
+  borderSecondary: 'rgba(28,26,24,0.65)', // Border/Secondary
+  borderTertiary:  'rgba(28,26,24,0.40)', // Border/Tertiary
+  // Background
+  background:     '#FFFFFF',             // Background/Background
+  // Surface
+  surfaceModal:   '#E8E6E7',             // Surface/Modal — Category Picker, modal sheets
+  // Feedback
+  success:        '#3D7A43',             // Feedback/Success — toggle on, success states
+  error:          '#C62828',             // Feedback/Error — validation errors, error states
 
   // — UI-specifiek (niet in Figma Variables) —
   bg:           'rgba(255,255,255,0.60)',
