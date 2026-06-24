@@ -1321,7 +1321,7 @@ function NewPostSheet({ onClose, onBack, onSubmit, streetId, canPin, user, initi
         {/* Vaste CTA's */}
         <div style={{ flexShrink: 0 }}>
           <button
-            style={{ width: '100%', background: COLORS.text, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: canSubmit ? 'pointer' : 'not-allowed', marginTop: 16, opacity: canSubmit ? 1 : 0.35 }}
+            style={{ width: '100%', background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: canSubmit ? 'pointer' : 'not-allowed', marginTop: 16, opacity: canSubmit ? 1 : 0.35 }}
             disabled={!canSubmit}
             onClick={handleSubmit}
           >
