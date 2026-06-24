@@ -619,16 +619,18 @@ function CategoryPicker({ onClose, onSelect }) {
           </div>
         ) : (
           <div style={{ marginBottom: 20 }}>
-            {breadcrumb && (
-              <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textDim, letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 6 }}>
-                {breadcrumb}
-              </div>
-            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button onClick={goBack} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', flexShrink: 0 }} aria-label="Terug">
                 <ArrowCircleLeftIcon size={40} weight="regular" color={COLORS.text} />
               </button>
-              <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.text }}>{heading}</div>
+              <div>
+                {breadcrumb && (
+                  <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textDim, letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 4 }}>
+                    {breadcrumb}
+                  </div>
+                )}
+                <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.text }}>{heading}</div>
+              </div>
             </div>
           </div>
         )}
@@ -1199,16 +1201,18 @@ function NewPostSheet({ onClose, onBack, onSubmit, streetId, canPin, user, initi
       >
         {/* Header */}
         <div style={{ marginBottom: 20, flexShrink: 0 }}>
-          {categoryPath && (
-            <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textDim, letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 6 }}>
-              {categoryPath}
-            </div>
-          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button onClick={back} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', flexShrink: 0 }} aria-label="Terug">
               <ArrowCircleLeftIcon size={40} weight="regular" color={COLORS.text} />
             </button>
-            <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.text }}>{heading}</div>
+            <div>
+              {categoryPath && (
+                <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textDim, letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 4 }}>
+                  {categoryPath}
+                </div>
+              )}
+              <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.text }}>{heading}</div>
+            </div>
           </div>
         </div>
 
