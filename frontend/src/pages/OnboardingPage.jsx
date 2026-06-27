@@ -5,7 +5,6 @@ import { EnvelopeSimpleIcon } from '@phosphor-icons/react/dist/csr/EnvelopeSimpl
 import { DeviceMobileIcon } from '@phosphor-icons/react/dist/csr/DeviceMobile';
 import { ShareIcon } from '@phosphor-icons/react/dist/csr/Share';
 import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
-import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 
 const s = {
@@ -23,21 +22,21 @@ const s = {
   logo: { fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', color: COLORS.text, marginBottom: 8 },
   accent: { color: COLORS.accent },
   card: { width: '100%', ...GLASS.card, borderRadius: RADIUS.xl, padding: '32px 24px' },
-  stepLabel: { fontSize: 8, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textMuted, marginBottom: 20 },
+  stepLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textDim, marginBottom: 20 },
   title: { fontSize: 24, fontWeight: 700, color: COLORS.text, marginBottom: 8, lineHeight: '28px' },
   sub: { fontSize: 16, color: COLORS.textMuted, lineHeight: '24px', marginBottom: 24 },
-  label: { fontSize: 8, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textMuted, display: 'block', marginBottom: 6 },
-  input: { width: '100%', ...GLASS.input, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '12px 14px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', marginBottom: 14 },
-  btn: { width: '100%', background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 4, boxShadow: `0 4px 16px ${ALPHA.terraGlow}` },
+  label: { fontSize: 10, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textDim, display: 'block', marginBottom: 6 },
+  input: { width: '100%', ...GLASS.input, border: `1px solid ${COLORS.borderTertiary}`, borderRadius: RADIUS.md, padding: '12px 14px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', marginBottom: 14 },
+  btn: { width: '100%', background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 4, boxShadow: `0 4px 16px ${ALPHA.terraGlow}` },
   btnDisabled: { opacity: 0.45, cursor: 'default' },
-  btnGhost: { width: '100%', background: 'transparent', color: COLORS.text, border: `1.5px solid ${COLORS.border}`, borderRadius: RADIUS.pill, padding: '12px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 8 },
-  linkRow: { background: 'none', border: 'none', color: COLORS.textMuted, fontSize: 13, fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', padding: 0, marginTop: 16, display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'center', width: '100%' },
-  error: { color: COLORS.red, fontSize: 13, marginBottom: 12, lineHeight: 1.4 },
-  preview: { ...GLASS.subtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '12px 16px', marginBottom: 20, fontSize: 14, color: COLORS.textMuted },
+  btnGhost: { width: '100%', background: 'transparent', color: COLORS.text, border: `2px solid ${COLORS.borderPrimary}`, borderRadius: RADIUS.pill, padding: '12px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 8 },
+  linkRow: { background: 'none', border: 'none', color: COLORS.textMuted, fontSize: 13, fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', padding: 0, marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' },
+  error: { color: COLORS.error, fontSize: 13, marginBottom: 12, lineHeight: 1.4 },
+  preview: { ...GLASS.subtle, border: `1px solid ${COLORS.borderTertiary}`, borderRadius: RADIUS.lg, padding: '12px 16px', marginBottom: 20, fontSize: 14, color: COLORS.textMuted },
   previewName: { fontSize: 14, fontWeight: 700, color: COLORS.text },
   successIcon: { display: 'flex', justifyContent: 'center', color: COLORS.accent, marginBottom: 16 },
   backBtn: { background: 'none', border: 'none', color: COLORS.textMuted, fontSize: 13, cursor: 'pointer', padding: 0, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 4 },
-  homeScreenBox: { ...GLASS.subtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.md, padding: '14px 16px', marginTop: 16, textAlign: 'left' },
+  homeScreenBox: { ...GLASS.subtle, border: `1px solid ${COLORS.borderTertiary}`, borderRadius: RADIUS.md, padding: '14px 16px', marginTop: 16, textAlign: 'left' },
   homeScreenTitle: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 8 },
   homeScreenStep: { display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: COLORS.textMuted, lineHeight: 1.5, marginBottom: 6 },
 };
@@ -229,7 +228,6 @@ export default function OnboardingPage() {
             </button>
             <button style={s.linkRow} onClick={() => { setError(''); setStep('login'); }}>
               Ander e-mailadres gebruiken
-              <CaretRightIcon size={12} weight="bold" />
             </button>
           </div>
         </div>
