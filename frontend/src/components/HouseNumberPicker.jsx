@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 
-import { COLORS } from '../design/tokens.js';
+import { COLORS, RADIUS, GLASS } from '../design/tokens.js';
 import { api } from '../api/client.js';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 
 const inputStyle = {
-  background: COLORS.bg,
-  border: `1px solid ${COLORS.border}`,
-  borderRadius: 8,
+  ...GLASS.input,
+  border: `1px solid ${COLORS.borderTertiary}`,
+  borderRadius: RADIUS.md,
   padding: '10px 12px',
   color: COLORS.text,
   fontSize: 14,
