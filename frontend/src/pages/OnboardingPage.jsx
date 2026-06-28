@@ -4,7 +4,7 @@ import { COLORS, RADIUS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL, FIELD_GROUP } from '../design/onboardingStyles.js';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
-import { resetIOSZoom } from '../utils/iosZoom.js';
+import { resetIOSZoom, lockIOSZoom } from '../utils/iosZoom.js';
 
 const s = {
   page: {
@@ -116,6 +116,7 @@ export default function OnboardingPage() {
   const handleLoginSubmit = async () => {
     setError('');
     setLoading(true);
+    const unlock = lockIOSZoom();
     try {
       await api.post('/auth/request', { email: email.trim() });
       setStep('sent');
@@ -127,6 +128,7 @@ export default function OnboardingPage() {
       }
     } finally {
       setLoading(false);
+      unlock();
     }
   };
 
@@ -171,6 +173,7 @@ export default function OnboardingPage() {
   const handleCreateAccount = async () => {
     setError('');
     setLoading(true);
+    const unlock = lockIOSZoom();
     try {
       await api.post('/auth/request', {
         email: email.trim(),
@@ -183,6 +186,7 @@ export default function OnboardingPage() {
       setError(err.message || 'Er ging iets mis');
     } finally {
       setLoading(false);
+      unlock();
     }
   };
 
