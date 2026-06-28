@@ -45,6 +45,7 @@ const s = {
   fieldGroup: FIELD_GROUP,
   label: { ...FIELD_LABEL, display: 'block' },
   input: FIELD_INPUT,
+  inputAccent: { ...FIELD_INPUT, border: `1px solid ${COLORS.accent}` },
   ctaGroup: { display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' },
   btn: {
     width: '100%',
@@ -202,7 +203,7 @@ export default function OnboardingPage() {
             <div style={s.fieldGroup}>
               <label style={s.label}>E-mail adres</label>
               <input
-                style={s.input}
+                style={s.inputAccent}
                 type="email"
                 placeholder="E-mail"
                 value={email}
