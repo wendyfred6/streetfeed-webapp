@@ -4,6 +4,7 @@ import { COLORS, RADIUS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL, FIELD_GROUP } from '../design/onboardingStyles.js';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
+import { resetIOSZoom } from '../utils/iosZoom.js';
 
 const s = {
   page: {
@@ -206,6 +207,7 @@ export default function OnboardingPage() {
                 placeholder="jij@voorbeeld.nl"
                 value={email}
                 onChange={e => { setEmail(e.target.value); setError(''); }}
+                onBlur={resetIOSZoom}
                 autoFocus
                 autoComplete="email"
               />
@@ -271,6 +273,7 @@ export default function OnboardingPage() {
                 placeholder="1082 AK"
                 value={postcode}
                 onChange={handlePostcodeChange}
+                onBlur={resetIOSZoom}
                 maxLength={7}
                 autoComplete="postal-code"
                 autoFocus
@@ -375,6 +378,7 @@ export default function OnboardingPage() {
                   placeholder="Bijv. Wendy"
                   value={firstName}
                   onChange={e => setFirstName(e.target.value)}
+                  onBlur={resetIOSZoom}
                   autoFocus
                   autoComplete="given-name"
                 />
