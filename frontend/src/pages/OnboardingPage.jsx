@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api/client.js';
 import { COLORS, RADIUS } from '../design/tokens.js';
+import { FIELD_INPUT, FIELD_LABEL, FIELD_GROUP } from '../design/onboardingStyles.js';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 
@@ -36,25 +37,13 @@ const s = {
     gap: 32,
     boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
   },
-  stepLabel: { fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textDim, lineHeight: 'normal' },
+  stepLabel: FIELD_LABEL,
   titleGroup: { display: 'flex', flexDirection: 'column', gap: 16 },
   title: { fontSize: 24, fontWeight: 700, color: COLORS.text, lineHeight: '28px' },
   sub: { fontSize: 16, color: COLORS.textMuted, lineHeight: '24px' },
-  fieldGroup: { display: 'flex', flexDirection: 'column', gap: 8 },
-  label: { fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textDim, lineHeight: 'normal', display: 'block' },
-  input: {
-    width: '100%',
-    background: COLORS.background,
-    border: `1px solid ${COLORS.accent}`,
-    borderRadius: RADIUS.pill,
-    height: 48,
-    padding: '4px 16px',
-    color: COLORS.text,
-    fontSize: 12,
-    lineHeight: '18px',
-    outline: 'none',
-    boxSizing: 'border-box',
-  },
+  fieldGroup: FIELD_GROUP,
+  label: { ...FIELD_LABEL, display: 'block' },
+  input: FIELD_INPUT,
   ctaGroup: { display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' },
   btn: {
     width: '100%',

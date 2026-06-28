@@ -1,34 +1,17 @@
 import { useState, useEffect } from 'react';
 
-import { COLORS, RADIUS } from '../design/tokens.js';
+import { COLORS } from '../design/tokens.js';
+import { FIELD_INPUT, FIELD_LABEL } from '../design/onboardingStyles.js';
 import { api } from '../api/client.js';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 
-const inputStyle = {
-  background: COLORS.background,
-  border: `1px solid ${COLORS.accent}`,
-  borderRadius: RADIUS.pill,
-  height: 48,
-  padding: '4px 16px',
+// Voegt select-specifieke overrides toe bovenop de gedeelde onboarding-inputstijl
+const selectStyle = {
+  ...FIELD_INPUT,
   paddingRight: 36,
-  color: COLORS.text,
-  fontSize: 12,
-  lineHeight: '18px',
-  outline: 'none',
-  boxSizing: 'border-box',
-  width: '100%',
   cursor: 'pointer',
   appearance: 'none',
   WebkitAppearance: 'none',
-};
-
-const labelStyle = {
-  fontSize: 10,
-  fontWeight: 600,
-  letterSpacing: '0.8px',
-  textTransform: 'uppercase',
-  color: COLORS.textDim,
-  lineHeight: 'normal',
 };
 
 const addressCache = new Map();
@@ -94,13 +77,13 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
   return (
     <div style={{ display: 'flex', gap: 8, ...style }}>
       <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
-        {showLabels && <div style={labelStyle}>Huisnummer</div>}
+        {showLabels && <div style={FIELD_LABEL}>Huisnummer</div>}
         <div style={{ position: 'relative' }}>
           <select
             value={num}
             onChange={e => handleNum(e.target.value)}
             disabled={loading}
-            style={{ ...inputStyle, opacity: loading ? 0.6 : 1 }}
+            style={{ ...selectStyle, opacity: loading ? 0.6 : 1 }}
           >
             <option value="">{loading ? 'Laden…' : 'Kies uit lijst'}</option>
             {numbers.map(n => <option key={n} value={n}>{n}</option>)}
@@ -112,12 +95,12 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
 
       {showSuffix && suffixes.length > 1 && (
         <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
-          {showLabels && <div style={labelStyle}>Toevoeging</div>}
+          {showLabels && <div style={FIELD_LABEL}>Toevoeging</div>}
           <div style={{ position: 'relative' }}>
             <select
               value={suf}
               onChange={e => handleSuf(e.target.value)}
-              style={inputStyle}
+              style={selectStyle}
             >
               <option value="">Toevoeging</option>
               {suffixes.map(s => (
