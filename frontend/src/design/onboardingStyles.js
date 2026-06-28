@@ -8,8 +8,8 @@ export const FIELD_INPUT = {
   height: 48,
   padding: '4px 16px',
   color: COLORS.text,
-  fontSize: 12,
-  lineHeight: '18px',
+  fontSize: 16,
+  lineHeight: '24px',
   outline: 'none',
   boxSizing: 'border-box',
 };

@@ -4,7 +4,6 @@ import { COLORS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL } from '../design/onboardingStyles.js';
 import { api } from '../api/client.js';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
-import { resetIOSZoom } from '../utils/iosZoom.js';
 
 const selectStyle = {
   ...FIELD_INPUT,
@@ -82,7 +81,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
           <select
             value={num}
             onChange={e => handleNum(e.target.value)}
-            onBlur={resetIOSZoom}
+
             disabled={loading}
             style={{ ...selectStyle, opacity: loading ? 0.6 : 1 }}
           >
@@ -101,7 +100,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
             <select
               value={suf}
               onChange={e => handleSuf(e.target.value)}
-              onBlur={resetIOSZoom}
+  
               style={selectStyle}
             >
               <option value="">Toevoeging</option>
