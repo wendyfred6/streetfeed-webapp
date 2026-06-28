@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 
 import { COLORS } from '../design/tokens.js';
-import { FIELD_INPUT, FIELD_LABEL } from '../design/onboardingStyles.js';
+import { FIELD_INPUT_WRAPPER, FIELD_INPUT_ELEMENT, FIELD_LABEL } from '../design/onboardingStyles.js';
 import { api } from '../api/client.js';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 
-// Voegt select-specifieke overrides toe bovenop de gedeelde onboarding-inputstijl
 const selectStyle = {
-  ...FIELD_INPUT,
-  paddingRight: 36,
+  ...FIELD_INPUT_ELEMENT,
+  paddingRight: 48,  // 36px visueel na 0.75 scale — ruimte voor CaretDown
   cursor: 'pointer',
   appearance: 'none',
   WebkitAppearance: 'none',
@@ -76,9 +75,9 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
 
   return (
     <div style={{ display: 'flex', gap: 8, ...style }}>
-      <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
+      <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : {}) }}>
         {showLabels && <div style={FIELD_LABEL}>Huisnummer</div>}
-        <div style={{ position: 'relative' }}>
+        <div style={FIELD_INPUT_WRAPPER}>
           <select
             value={num}
             onChange={e => handleNum(e.target.value)}
@@ -94,9 +93,9 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
       </div>
 
       {showSuffix && suffixes.length > 1 && (
-        <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
+        <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : {}) }}>
           {showLabels && <div style={FIELD_LABEL}>Toevoeging</div>}
-          <div style={{ position: 'relative' }}>
+          <div style={FIELD_INPUT_WRAPPER}>
             <select
               value={suf}
               onChange={e => handleSuf(e.target.value)}

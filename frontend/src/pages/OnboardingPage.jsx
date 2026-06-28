@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api/client.js';
 import { COLORS, RADIUS } from '../design/tokens.js';
-import { FIELD_INPUT, FIELD_LABEL, FIELD_GROUP } from '../design/onboardingStyles.js';
+import { FIELD_INPUT_WRAPPER, FIELD_INPUT_ELEMENT, FIELD_LABEL, FIELD_GROUP } from '../design/onboardingStyles.js';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 
@@ -43,7 +43,8 @@ const s = {
   sub: { fontSize: 16, color: COLORS.textMuted, lineHeight: '24px' },
   fieldGroup: FIELD_GROUP,
   label: { ...FIELD_LABEL, display: 'block' },
-  input: FIELD_INPUT,
+  inputWrapper: FIELD_INPUT_WRAPPER,
+  input: FIELD_INPUT_ELEMENT,
   ctaGroup: { display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' },
   btn: {
     width: '100%',
@@ -200,15 +201,17 @@ export default function OnboardingPage() {
             {error && <div style={s.error}>{error}</div>}
             <div style={s.fieldGroup}>
               <label style={s.label}>E-mail adres</label>
-              <input
-                style={s.input}
-                type="email"
-                placeholder="jij@voorbeeld.nl"
-                value={email}
-                onChange={e => { setEmail(e.target.value); setError(''); }}
-                autoFocus
-                autoComplete="email"
-              />
+              <div style={s.inputWrapper}>
+                <input
+                  style={s.input}
+                  type="email"
+                  placeholder="jij@voorbeeld.nl"
+                  value={email}
+                  onChange={e => { setEmail(e.target.value); setError(''); }}
+                  autoFocus
+                  autoComplete="email"
+                />
+              </div>
             </div>
             <div style={s.ctaGroup}>
               <button
@@ -265,16 +268,18 @@ export default function OnboardingPage() {
             {error && <div style={s.error}>{error}</div>}
             <div style={s.fieldGroup}>
               <label style={s.label}>Postcode</label>
-              <input
-                style={s.input}
-                type="text"
-                placeholder="1082 AK"
-                value={postcode}
-                onChange={handlePostcodeChange}
-                maxLength={7}
-                autoComplete="postal-code"
-                autoFocus
-              />
+              <div style={s.inputWrapper}>
+                <input
+                  style={s.input}
+                  type="text"
+                  placeholder="1082 AK"
+                  value={postcode}
+                  onChange={handlePostcodeChange}
+                  maxLength={7}
+                  autoComplete="postal-code"
+                  autoFocus
+                />
+              </div>
             </div>
             <div style={s.ctaGroup}>
               <button
@@ -369,15 +374,17 @@ export default function OnboardingPage() {
             <div style={s.inputFieldsGroup}>
               <div style={s.fieldGroup}>
                 <label style={s.label}>Voornaam</label>
-                <input
-                  style={s.input}
-                  type="text"
-                  placeholder="Bijv. Wendy"
-                  value={firstName}
-                  onChange={e => setFirstName(e.target.value)}
-                  autoFocus
-                  autoComplete="given-name"
-                />
+                <div style={s.inputWrapper}>
+                  <input
+                    style={s.input}
+                    type="text"
+                    placeholder="Bijv. Wendy"
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    autoFocus
+                    autoComplete="given-name"
+                  />
+                </div>
               </div>
               <div style={s.previewGroup}>
                 <div style={s.previewLabel}>Zo zien buren je in de feed</div>
