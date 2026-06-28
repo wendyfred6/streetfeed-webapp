@@ -85,7 +85,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
             disabled={loading}
             style={{ ...selectStyle, opacity: loading ? 0.6 : 1 }}
           >
-            <option value="">{loading ? 'Laden…' : 'Kies uit lijst'}</option>
+            <option value="">{loading ? 'Laden…' : 'Kies'}</option>
             {numbers.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
           <CaretDownIcon size={12} color={COLORS.textMuted} weight="regular"
@@ -103,7 +103,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
   
               style={selectStyle}
             >
-              <option value="">Toevoeging</option>
+              <option value="">Kies</option>
               {suffixes.map(s => (
                 <option key={s} value={s}>{s === 'hs' ? 'hs (begane grond)' : s}</option>
               ))}

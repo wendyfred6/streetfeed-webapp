@@ -17,7 +17,7 @@ export const FIELD_INPUT = {
 export const FIELD_LABEL = {
   fontSize: 10,
   fontWeight: 600,
-  letterSpacing: '0.8px',
+  letterSpacing: 0,
   textTransform: 'uppercase',
   color: COLORS.textDim,
   lineHeight: 'normal',

@@ -14,6 +14,7 @@ const s = {
     justifyContent: 'center',
     padding: 'calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 20px)',
     boxSizing: 'border-box',
+    background: 'radial-gradient(ellipse 180% 60% at 70% 0%, rgba(255,0,102,0.12) 0%, rgba(255,0,102,0.03) 55%, rgba(255,250,248,1) 100%)',
   },
   loginWrapper: {
     width: '100%',
@@ -93,7 +94,7 @@ const s = {
   error: { color: COLORS.error, fontSize: 13, lineHeight: 1.4 },
   inputFieldsGroup: { display: 'flex', flexDirection: 'column', gap: 24 },
   previewGroup: { display: 'flex', flexDirection: 'column', gap: 8 },
-  previewLabel: { fontSize: 10, fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase', color: COLORS.textMuted, lineHeight: 'normal' },
+  previewLabel: { fontSize: 10, fontWeight: 600, letterSpacing: 0, textTransform: 'uppercase', color: COLORS.textDim, lineHeight: 'normal' },
   previewName: { fontSize: 14, fontWeight: 700, color: COLORS.text, lineHeight: '20px' },
   noMailGroup: { display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', color: COLORS.textMuted, fontSize: 12, lineHeight: '18px' },
 };
@@ -203,7 +204,7 @@ export default function OnboardingPage() {
               <input
                 style={s.input}
                 type="email"
-                placeholder="jij@voorbeeld.nl"
+                placeholder="E-mail"
                 value={email}
                 onChange={e => { setEmail(e.target.value); setError(''); }}
 
@@ -269,7 +270,7 @@ export default function OnboardingPage() {
               <input
                 style={s.input}
                 type="text"
-                placeholder="1082 AK"
+                placeholder="Bijv. 1234 AB"
                 value={postcode}
                 onChange={handlePostcodeChange}
 
@@ -374,7 +375,7 @@ export default function OnboardingPage() {
                 <input
                   style={s.input}
                   type="text"
-                  placeholder="Bijv. Wendy"
+                  placeholder="Voornaam"
                   value={firstName}
                   onChange={e => setFirstName(e.target.value)}
   
