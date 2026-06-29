@@ -14,7 +14,7 @@ const s = {
     justifyContent: 'center',
     padding: 'calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 20px)',
     boxSizing: 'border-box',
-    background: 'radial-gradient(ellipse 180% 60% at 70% 0%, rgba(255,0,102,0.12) 0%, rgba(255,0,102,0.03) 55%, rgba(255,250,248,1) 100%)',
+    background: 'transparent',
   },
   loginWrapper: {
     width: '100%',
@@ -36,7 +36,6 @@ const s = {
     display: 'flex',
     flexDirection: 'column',
     gap: 32,
-    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
   },
   stepLabel: FIELD_LABEL,
   titleGroup: { display: 'flex', flexDirection: 'column', gap: 16 },
@@ -203,7 +202,7 @@ export default function OnboardingPage() {
             <div style={s.fieldGroup}>
               <label style={s.label}>E-mail adres</label>
               <input
-                style={s.inputAccent}
+                style={s.input}
                 type="email"
                 placeholder="E-mail"
                 value={email}
