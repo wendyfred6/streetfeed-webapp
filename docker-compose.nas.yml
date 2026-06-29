@@ -50,10 +50,7 @@ services:
       R2_PUBLIC_URL: ${R2_PUBLIC_URL:-}
 
   frontend:
-    build:
-      context: ./frontend
-      args:
-        VITE_API_URL: ""   # leeg = relatief /api (via frontend nginx proxy)
+    image: ghcr.io/wendyfred6/streetfeed-frontend:latest
     restart: unless-stopped
     ports:
       - "8080:80"          # Synology reverse proxy wijst hiernaartoe
