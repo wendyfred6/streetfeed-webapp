@@ -51,6 +51,8 @@ export default {
   profile: 'Profile',
   name: 'Name',
   address: 'Address',
+  profile_address_value: '{street} {number}',
+  house_nr: 'no. {n}',
   role: 'Role',
   notifications: 'Notifications',
   language: 'Taal / Language',
