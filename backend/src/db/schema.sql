@@ -184,6 +184,3 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications(user_id, created_at DESC);
-
--- Seed: super admin
-UPDATE users SET is_super_admin = true WHERE email = 'wendy@fred6.nl';

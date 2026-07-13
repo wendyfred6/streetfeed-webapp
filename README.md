@@ -43,19 +43,20 @@ cd frontend && npm install && npm run dev  # App on :5173
 
 ### First-time super admin setup
 
-After the database is running, create Wendy's account and set her as super admin:
+Super-admin is not granted automatically — it's a one-off ops action, not baked
+into the schema migration. After Wendy has logged in via magic link at least
+once (so her `users` row exists):
 
 ```bash
-# Access the DB container
-docker-compose exec db psql -U streetfeed streetfeed
+# Local / without Docker:
+cd backend && node scripts/grant-super-admin.js wendy@fred6.nl
 
--- Insert Wendy as super admin (after she logs in via magic link):
-UPDATE users SET is_super_admin = TRUE WHERE email = 'wendy@streetfeed.nl';
-
--- Also approve her Reyer Anslostraat membership:
-UPDATE memberships SET status = 'approved', role = 'admin'
-  WHERE user_id = (SELECT id FROM users WHERE email = 'wendy@streetfeed.nl');
+# Against a running container:
+docker-compose exec backend node scripts/grant-super-admin.js wendy@fred6.nl
 ```
+
+`is_super_admin` bypasses per-street membership checks entirely (see
+`middleware/auth.js`), so no separate membership row/role needs to be granted.
 
 ### Generate VAPID keys for push notifications
 
