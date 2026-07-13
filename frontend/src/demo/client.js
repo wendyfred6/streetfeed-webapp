@@ -55,7 +55,6 @@ export async function demoRequest(method, path, body) {
       event_time:     body.eventTime || null,
       event_location: body.eventLocation || null,
       bring_list:     body.bringList || [],
-      license_plate:  body.licensePlate || null,
       photo_key:      body.photoKey || null,
       link:           body.link || null,
       carrier:        body.carrier || null,

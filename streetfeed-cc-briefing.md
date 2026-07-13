@@ -26,7 +26,7 @@ Streetfeed replaces this with structured, categorized posts, time-based pinned a
 - 🏗️ **Container** — skip/container placed (pinnable with end date)
 - 🗑️ **Bulk waste** — illegal dumping near bins
 - 🎉 **Event** — street party with RSVP, bring-list, guest list
-- 🚨 **Incident** — hit and run, vandalism etc. with optional license plate field + live RDW vehicle lookup (Dutch open API, no key needed: `https://opendata.rdw.nl/resource/m9d7-ebf2.json?kenteken=XXXXXX`)
+- 🚨 **Incident** — hit and run, vandalism etc.
 - 💬 **General** — anything else
 
 ### Feed
@@ -40,13 +40,6 @@ Streetfeed replaces this with structured, categorized posts, time-based pinned a
 - Inline RSVP: Yes / Maybe / No
 - RSVP counter visible on the card without opening
 - Full guest list in detail view
-
-### RDW License Plate Lookup
-- Live API call to Dutch RDW open data
-- Returns: brand, model, color, year
-- Shown **only to the reporter** as a helper for filing a police report
-- Vehicle data is **not** automatically published in the post
-- Privacy warning shown to user before confirming
 
 ---
 
@@ -134,8 +127,7 @@ Streetfeed replaces this with structured, categorized posts, time-based pinned a
 - Photos auto-deleted per schedule (see above)
 - Only Street Admin can see the full member list
 - GDPR compliant: explicit consent at signup
-- RDW vehicle data shown only to reporter, never auto-published
-- Terms of Service must include: users are responsible for what they voluntarily post; combining license plates with personal data is prohibited
+- Terms of Service must include: users are responsible for what they voluntarily post
 - Privacy & Data section in Settings (plain language, not legal jargon)
 
 ---
@@ -144,7 +136,6 @@ Streetfeed replaces this with structured, categorized posts, time-based pinned a
 A fully working React prototype (JSX) is attached. Use it as the UI foundation — all screens, flows, and interactions are already designed and tested:
 - Feed with pinned items, category filters, like/comment/report
 - Event card with inline RSVP
-- Incident card with license plate display + RDW lookup flow
 - New post sheet with category-specific fields
 - Admin view: approval queue, member list with role management, street management
 - Settings: notification toggles per category, language toggle, privacy & data info
@@ -160,9 +151,8 @@ A fully working React prototype (JSX) is attached. Use it as the UI foundation �
 3. Magic link auth flow
 4. Push notification service worker
 5. Cloudflare R2 integration with lifecycle rules
-6. RDW API integration
-7. Docker setup for NASi
-8. Connect the existing React frontend to the real backend
+6. Docker setup for NASi
+7. Connect the existing React frontend to the real backend
 
 ---
 

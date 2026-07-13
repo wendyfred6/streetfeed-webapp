@@ -18,8 +18,6 @@ export default {
   close: 'Sluiten',
   end_date: 'Einddatum',
   end_date_placeholder: 'Bijv. 31 mei',
-  license_plate: 'Kenteken (optioneel)',
-  license_plate_placeholder: 'Bijv. ZG-345-X',
   event_date: 'Datum',
   event_date_placeholder: 'Bijv. za 31 mei',
   event_time: 'Tijd',

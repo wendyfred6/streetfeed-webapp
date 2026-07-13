@@ -148,7 +148,6 @@ instance.
 
 External services:
   - Resend (or SMTP) — magic link email
-  - RDW open data    — license plate lookup (not yet implemented)
 ```
 
 ---

@@ -63,7 +63,6 @@ export const DEMO_POSTS = [
     title: 'Aanrijding geparkeerde auto voor nr. 38',
     body: 'Gisteravond rond 23:00 is een geparkeerde auto aangereden. De bestuurder reed door zonder te stoppen. Heeft iemand het gezien?',
     pinned: false,
-    license_plate: 'GH-123-X',
     author_name: 'Mark',
     author_role: 'resident',
     likes: 12, liked: false, comments: 5,

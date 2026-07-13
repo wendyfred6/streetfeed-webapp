@@ -277,7 +277,7 @@ export default function DesignPage() {
         <div style={s.row}>
           <BtnSmall color={COLORS.accent}>Goedkeuren</BtnSmall>
           <BtnSmall color={COLORS.red}>Afwijzen</BtnSmall>
-          <BtnSmall color={COLORS.blue}>RDW-lookup</BtnSmall>
+          <BtnSmall color={COLORS.blue}>Details</BtnSmall>
         </div>
       </Section>
 

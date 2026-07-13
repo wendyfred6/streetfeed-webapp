@@ -52,7 +52,6 @@ CREATE TABLE IF NOT EXISTS posts (
   body           TEXT NOT NULL,
   pinned         BOOLEAN NOT NULL DEFAULT FALSE,
   end_date       DATE,
-  license_plate  TEXT, -- niet meer actief gebruikt (kentekens post-MVP) — kolom blijft staan voor bestaande data
   event_date     TEXT,
   event_time     TEXT,
   event_location TEXT,
@@ -184,3 +183,6 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications(user_id, created_at DESC);
+
+-- Migratie: kenteken/RDW-lookup nooit gebouwd — kolom nooit in gebruik geweest, verwijderen
+ALTER TABLE posts DROP COLUMN IF EXISTS license_plate;

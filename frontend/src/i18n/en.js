@@ -18,8 +18,6 @@ export default {
   close: 'Close',
   end_date: 'End date',
   end_date_placeholder: 'e.g. May 31',
-  license_plate: 'License plate (optional)',
-  license_plate_placeholder: 'e.g. ZG-345-X',
   event_date: 'Date',
   event_date_placeholder: 'e.g. Sat May 31',
   event_time: 'Time',
