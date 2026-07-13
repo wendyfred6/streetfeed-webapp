@@ -57,16 +57,21 @@ export async function sendMagicLink(email, name, token) {
   const url = `${process.env.APP_URL}/auth?token=${token}`;
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-      <h2 style="color:#E8FF47;background:#0F0F0F;padding:12px 20px;border-radius:8px;display:inline-block">
-        Street<span>feed</span>
+      <h2 style="margin:0 0 16px">
+        <span style="color:#1C1A18">Street</span><span style="color:#FF0066">feed</span>
       </h2>
       <p>Hoi ${name || 'bewoner'},</p>
       <p>Klik op de knop hieronder om in te loggen op Streetfeed. De link is <strong>15 minuten geldig</strong>.</p>
-      <a href="${url}" style="display:inline-block;background:#E8FF47;color:#000;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;margin:16px 0">
+      <a href="${url}" style="display:inline-block;background:#FF0066;color:#fff;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;margin:16px 0">
         Inloggen op Streetfeed →
       </a>
       <p style="color:#888;font-size:12px">Als je deze e-mail niet hebt aangevraagd, kun je hem negeren.</p>
       <p style="color:#888;font-size:12px">Directe link: ${url}</p>
+      <div style="margin-top:24px;padding:16px;background:#f7f7f7;border-radius:10px;font-size:13px;color:#555">
+        📱 <strong>Gebruik je een iPhone?</strong> Pushmeldingen werken op iOS alleen als
+        Streetfeed aan je beginscherm is toegevoegd. Open streetfeed.nl in Safari, tik op het
+        deel-icoon en kies "Zet op beginscherm".
+      </div>
     </div>
   `;
 
@@ -80,12 +85,12 @@ export async function sendApprovalEmail(email, name) {
   const url = process.env.APP_URL;
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-      <h2 style="color:#E8FF47;background:#0F0F0F;padding:12px 20px;border-radius:8px;display:inline-block">
-        Street<span>feed</span>
+      <h2 style="margin:0 0 16px">
+        <span style="color:#1C1A18">Street</span><span style="color:#FF0066">feed</span>
       </h2>
       <p>Hoi ${name || 'bewoner'},</p>
       <p>Goed nieuws — je aanvraag voor Streetfeed is goedgekeurd. Je hebt nu toegang tot de buurtfeed.</p>
-      <a href="${url}" style="display:inline-block;background:#E8FF47;color:#000;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;margin:16px 0">
+      <a href="${url}" style="display:inline-block;background:#FF0066;color:#fff;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;margin:16px 0">
         Open Streetfeed →
       </a>
     </div>
