@@ -1,8 +1,13 @@
 name: Build & push Docker images
 
+# Milestone-branch workflow (from M4 onward): feature/** branches get full
+# lint/test CI so issues can be verified against a real CI run same as on
+# main, but only main builds and publishes :latest — that image is what
+# docker-compose.nas.yml pins in production, so it must only ever move on a
+# milestone merge to main, never mid-milestone. See docs/DECISIONS.md.
 on:
   push:
-    branches: [main]
+    branches: [main, 'feature/**']
 
 env:
   REGISTRY: ghcr.io
@@ -68,6 +73,7 @@ jobs:
 
   build-backend:
     needs: test-backend
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -93,6 +99,7 @@ jobs:
 
   build-frontend:
     needs: test-frontend
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -4,6 +4,24 @@ Short entries for decisions worth not re-litigating. Newest first.
 
 ---
 
+## 2026-07-13 — Milestone branches: main only moves at milestone boundaries
+
+**Decision:** Starting with M4, each milestone is developed on its own branch (`feature/m<N>-<short-name>`, e.g. `feature/m4-notifications`) instead of directly on `main`. Individual issues are committed and pushed to that branch, verified against CI on the branch, exactly as before. `main` only receives a milestone at the end, via the gate below.
+
+**Milestone-complete gate** (in order): CI green on the branch → Product Owner smoke test (Wendy, manually) → fix anything found and repeat → merge to `main` (regular merge commit, not squash, so per-issue history survives) → CI green on `main` → deploy via Portainer (Pull and Redeploy) → short production smoke test → `/clear`.
+
+**Hotfix exception:** if a production issue surfaces while a milestone branch is still open, it does not wait for that branch. Branch the hotfix directly off `main`, merge it to `main` on its own fast lane, deploy it immediately, then merge/rebase `main` back into the open milestone branch so the fix carries forward instead of being silently overwritten when that branch eventually merges.
+
+**Why:** `.github/workflows/docker.yml` rebuilds and pushes the `:latest` backend/frontend images on every push to `main`, and `docker-compose.nas.yml` pins `:latest` in production. With all work landing directly on `main`, `:latest` moved on every single issue's commit — not just at milestone boundaries — so the only thing standing between a half-finished milestone and production was remembering not to click "Pull and Redeploy" in Portainer too early. That's exactly the kind of gap that bites eventually; M0–M3 didn't hit it, but there was no technical reason M4+ wouldn't. Milestone branches make "mergeable" and "deployable" the same thing again: `main` is always a complete, PO-smoke-tested milestone, and `:latest` only ever moves when that's true.
+
+**Also changed:** `.github/workflows/docker.yml` now triggers on `feature/**` pushes too (`test-backend`/`test-frontend` run there, giving branch work the same CI-green discipline as `main` always had), but `build-backend`/`build-frontend` (the jobs that push `:latest`) are gated with `if: github.ref == 'refs/heads/main'` so only a merge to `main` can move `:latest`.
+
+**Revisit when:** the project gains a second collaborator (branch isolation between people becomes a real additional benefit, not just the deploy-gating one this decision is actually about), or the milestone cadence changes enough that per-milestone branches stop mapping cleanly to a single deploy unit.
+
+[[project-streetfeed-v1-plan]] [[feedback-challenge-proposals]]
+
+---
+
 ## 2026-07-13 — docker-compose.yml and docker-compose.nas.yml are not duplicates
 
 **Decision:** Keep both files, with clarified roles instead of picking one and deleting the other:

@@ -23,6 +23,25 @@ Streetfeed is a hyper-local street PWA for Reyer Anslostraat, Amsterdam (~111 ho
 | Post-Pilot Backlog | Filed, not scheduled: Events & RSVP, Streets view, Hall of Fame, full moderation/role management, RDW live lookup, other non-essential polish |
 
 **Active milestone: M4 — Notifications.**
+**Active branch:** `feature/m4-notifications` (create it off `main` before starting work if it doesn't exist yet).
+
+## Development workflow: milestone branches
+
+Adopted starting M4 — see `docs/DECISIONS.md` for the full rationale. Short version: every push to `main` rebuilds and publishes the `:latest` Docker images that `docker-compose.nas.yml` pins in production, so working directly on `main` meant `:latest` moved on every single issue's commit, not just at milestone boundaries — the only thing preventing a half-finished milestone from reaching production was remembering not to click "Pull and Redeploy" in Portainer too early.
+
+- Each milestone starts from a fresh branch off `main`: `feature/m<N>-<short-name>` (e.g. `feature/m4-notifications`).
+- Work issues one at a time on that branch exactly as before (In Progress → implement → verify → commit → push → CI green **on the branch** → end-report comment → Done → next issue). CI (`.github/workflows/docker.yml`) runs full lint/test on any `feature/**` branch push, same as on `main` — only `main` triggers the Docker build/publish jobs that push `:latest`.
+- File the retro when all issues are closed, same as before.
+- **Milestone-complete gate**, in order:
+  1. CI green on the branch.
+  2. Product Owner smoke test (Wendy, manually).
+  3. Fix anything found, push to the branch, repeat 1–2 until clean.
+  4. Merge the branch into `main` (a regular merge commit, not squash, so the per-issue commit history survives).
+  5. CI green on `main`.
+  6. Deploy via Portainer (Pull and Redeploy) — the actual moment `:latest` reaches production, even though it already moved in the registry as soon as `main`'s CI finished.
+  7. Short production smoke test.
+  8. `/clear`.
+- **Hotfix exception:** if a production issue surfaces while a milestone branch is still open (as FRE-345/346 did right after the M1 redeploy), branch the hotfix directly off `main`, merge it to `main` on its own fast lane without waiting for the milestone branch, deploy it, then merge/rebase `main` back into the open milestone branch so the fix isn't lost when that branch eventually merges. Full detail in `docs/DECISIONS.md`.
 
 M0 — Foundation & Safety is complete (all 9 issues Done, retro filed as FRE-343). Notably: the R2-vs-local-disk and docker-compose-consolidation decisions are both resolved (see `docs/DECISIONS.md`), async error handling is fixed, rate limiting is added, ESLint+Vitest+CI gate exist in both packages, and Cloudflare Tunnel is confirmed reachable. Two follow-ups spun out to M6 (FRE-341 photo retention, FRE-342 dependency bumps).
 
@@ -39,8 +58,9 @@ M3 — New Post is complete (all 7 issues Done, retro filed as FRE-350). Notably
 
 ## What to do this session
 
+0. If not already on it, create/checkout the active milestone's branch (see "Active branch" above) off `main`. All work this session happens on that branch, not `main`.
 1. Fetch M4's open issues from Linear (project "Streetfeed v1.0", milestone "M4 — Notifications"). Work them one at a time.
-2. Update each issue's status in Linear as you go (don't batch status updates to the end).
+2. Update each issue's status in Linear as you go (don't batch status updates to the end). Push to the milestone branch and confirm CI green there per issue — same discipline as before, just targeting the branch instead of `main`.
 3. When every M4 issue is closed: file one `Retro: M4 — Notifications` issue in that milestone using this template:
    ```
    - What went well
@@ -49,7 +69,8 @@ M3 — New Post is complete (all 7 issues Done, retro filed as FRE-350). Notably
    - Follow-up issues filed as a result (links)
    - Issues closed / commits or PRs merged (links)
    ```
-4. Edit this file: change "Active milestone" to **M5 — Profile & Settings**, and move this line's target in step 1 forward accordingly. Then stop and tell the user to `/clear`.
+4. Run the milestone-complete gate from "Development workflow: milestone branches" above: CI green on the branch → tell Wendy it's ready for her PO smoke test → fix anything she finds → merge to `main` → CI green on `main` → tell her to deploy via Portainer → short production smoke test.
+5. Once Wendy confirms the production smoke test is clean: edit this file — change "Active milestone" to **M5 — Profile & Settings**, update "Active branch" to `feature/m5-profile-settings` (not created yet — that's the next session's step 0), and move this line's target in step 1 forward accordingly. Then stop and tell the user to `/clear`.
 
 ## Workflow notes learned during M0 (worth keeping)
 
