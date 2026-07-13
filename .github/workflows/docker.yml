@@ -29,7 +29,9 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ghcr.io/wendyfred6/streetfeed-backend:latest
+          tags: |
+            ghcr.io/wendyfred6/streetfeed-backend:latest
+            ghcr.io/wendyfred6/streetfeed-backend:${{ github.sha }}
 
   build-frontend:
     runs-on: ubuntu-latest
@@ -51,6 +53,8 @@ jobs:
         with:
           context: ./frontend
           push: true
-          tags: ghcr.io/wendyfred6/streetfeed-frontend:latest
+          tags: |
+            ghcr.io/wendyfred6/streetfeed-frontend:latest
+            ghcr.io/wendyfred6/streetfeed-frontend:${{ github.sha }}
           build-args: |
             VITE_API_URL=
