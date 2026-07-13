@@ -1,3 +1,10 @@
+# Local development base config. Run with:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# This is NOT the production config. Production runs on the NAS via Portainer
+# using docker-compose.nas.yml (ghcr.io images, Cloudflare Tunnel, R2-free
+# local disk storage) — see that file's header and docs/DECISIONS.md.
+
 version: '3.9'
 
 services:

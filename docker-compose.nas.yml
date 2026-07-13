@@ -1,12 +1,14 @@
-# docker-compose voor Synology NAS (Portainer Stacks)
-# SSL wordt afgehandeld door Synology DSM Reverse Proxy — geen aparte nginx nodig.
+# THIS IS THE AUTHORITATIVE PRODUCTION CONFIG — deployed via Portainer on the
+# Synology NAS. docker-compose.yml (repo root) is for local development only;
+# it is not deployed anywhere. See docs/DECISIONS.md for why these are two
+# separate files rather than one with overrides.
 #
-# Stap 1: Deploy deze stack in Portainer met de .env variabelen.
-# Stap 2: In DSM → Configuratiescherm → Toepassingsportal → Reverse proxy:
-#           Bron:  HTTPS streetfeed.nl:443
-#           Doel:  HTTP  localhost:8080
-# Stap 3: In DSM → Configuratiescherm → Beveiliging → Certificaat:
-#           Let's Encrypt certificaat aanvragen voor streetfeed.nl
+# TLS is terminated by Cloudflare Tunnel (see the cloudflared service below),
+# not by a DSM reverse proxy or local nginx — nginx/nginx.conf in this repo is
+# unused/orphaned.
+#
+# Deploy: Portainer → Stack → paste this file → fill in env vars → Deploy.
+# Redeploy after a push: Portainer → Stack → Pull and Redeploy.
 
 version: '3.9'
 

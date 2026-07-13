@@ -68,65 +68,44 @@ npx web-push generate-vapid-keys
 
 ## Production deployment on NASi (Synology DSM 7)
 
-### 1. Prerequisites on NASi
+Production runs on the NAS through **Portainer**, not a manual `docker-compose up`.
+The stack definition is `docker-compose.nas.yml` (repo root) — read its header
+comment first, it's the authoritative source for how prod is actually configured.
 
-1. Install **Container Manager** from Synology Package Center
-2. Install **Git Server** (or use SSH to pull from GitHub)
-3. Enable SSH: Control Panel → Terminal → SSH
+### 1. Build & publish images
 
-### 2. Clone the repo
+Handled automatically: every push to `main` triggers `.github/workflows/docker.yml`,
+which builds and pushes `ghcr.io/wendyfred6/streetfeed-frontend` and
+`streetfeed-backend`. No manual build step on the NAS.
 
-```bash
-ssh admin@NASi
-cd /volume1/docker
-git clone <repo-url> streetfeed
-cd streetfeed
-cp .env.example .env
-nano .env   # fill in all secrets
-```
+### 2. Deploy / redeploy
 
-### 3. SSL Certificates
+1. In Portainer: **Stacks** → paste the contents of `docker-compose.nas.yml`
+2. Fill in the required environment variables (see `.env.example` — at minimum
+   `POSTGRES_PASSWORD`, `RESEND_API_KEY`, `VAPID_*`, `CLOUDFLARE_TUNNEL_TOKEN`)
+3. Deploy the stack
+4. After every subsequent push to `main` (once CI is green, ~45s): Portainer →
+   Stack → **Pull and Redeploy**
 
-Place your SSL certificates at:
-```
-nginx/certs/fullchain.pem
-nginx/certs/privkey.pem
-```
+### 3. TLS / DNS
 
-Option A — Let's Encrypt via Synology:
-- Control Panel → Security → Certificate → Add → Let's Encrypt
-- Export the certificate to `nginx/certs/`
+TLS is terminated by **Cloudflare Tunnel** (the `cloudflared` service in
+`docker-compose.nas.yml`), not by a Synology DSM reverse proxy or local
+certificates. DNS for `streetfeed.nl` points at Cloudflare's nameservers;
+Cloudflare Universal SSL handles the certificate. `nginx/nginx.conf` in this
+repo is unused/orphaned — no service runs it.
 
-Option B — Manual cert from your CA.
+### 4. Auto-restart after reboot
 
-### 4. DNS configuration
+The `restart: unless-stopped` policy on every service in `docker-compose.nas.yml`
+restarts containers automatically after a NAS reboot.
 
-At TransIP, point the `streetfeed.nl` A record to your NASi's public IP address.
-Also add a CNAME for `www` pointing to `streetfeed.nl`.
-
-If NASi is behind NAT, forward ports 80 and 443 in your router to NASi's local IP.
-
-### 5. Start the application
-
-```bash
-cd /volume1/docker/streetfeed
-docker-compose up -d
-```
-
-The app will be reachable at https://streetfeed.nl.
-
-### 6. Auto-restart after reboot
-
-The `restart: unless-stopped` policy in docker-compose.yml ensures all containers
-restart automatically when NASi reboots.
-
-### 7. Photo storage
+### 5. Photo storage
 
 Photos are stored on local disk inside the backend container, at `/data/photos`
-(configurable via `UPLOAD_DIR`). This directory **must** be mounted as a Docker
-volume (see the `photos:` volume in `docker-compose.nas.yml`) — without it,
-uploaded photos are lost every time the container is recreated (e.g. on every
-"Pull and Redeploy" in Portainer).
+(configurable via `UPLOAD_DIR`), mounted as the `photos:` Docker volume in
+`docker-compose.nas.yml` — this volume is required, without it uploaded photos
+are lost on every redeploy.
 
 Retention/auto-deletion per category (packages: 7d, incidents: 30d, etc., per
 the briefing) is not yet implemented — tracked as a follow-up, not required
@@ -137,33 +116,6 @@ for the pilot in favor of local disk: simpler, already fully implemented
 (resize/compress + HEIC conversion), and no external account/API keys needed
 at single-NAS scale. Revisit if Streetfeed needs to scale beyond one NAS
 instance.
-
-### 8. Auto-deploy on push to main
-
-Add this script to your CI/CD (GitHub Actions example):
-
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy to NASi
-on:
-  push:
-    branches: [main]
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.NASI_HOST }}
-          username: ${{ secrets.NASI_USER }}
-          key: ${{ secrets.NASI_SSH_KEY }}
-          script: |
-            cd /volume1/docker/streetfeed
-            git pull origin main
-            docker-compose build --no-cache
-            docker-compose up -d
-```
 
 ---
 
