@@ -44,6 +44,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-runMigrations()
-  .then(() => app.listen(PORT, () => console.log(`Streetfeed API listening on :${PORT}`)))
+export { app };
+
+// Exported so tests can await startup and get a handle to close the server
+// (see smoke.test.js) — runtime behavior when run directly is unchanged.
+export default runMigrations()
+  .then(() => new Promise((resolve) => {
+    const server = app.listen(PORT, () => {
+      console.log(`Streetfeed API listening on :${PORT}`);
+      resolve(server);
+    });
+  }))
   .catch(err => { console.error('Startup failed:', err); process.exit(1); });
