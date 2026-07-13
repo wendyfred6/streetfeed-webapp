@@ -3,11 +3,12 @@ import { randomBytes } from 'crypto';
 import { query } from '../db/index.js';
 import { sendMagicLink } from '../services/email.js';
 import { requireAuth } from '../middleware/auth.js';
+import { authRequestLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
 
 // POST /api/auth/request — send magic link
-router.post('/request', async (req, res) => {
+router.post('/request', authRequestLimiter, async (req, res) => {
   const { email, name, houseNumber, streetId } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
 

@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import { query } from '../db/index.js';
+import { bagLookupLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
+router.use(bagLookupLimiter);
 const PDOK_BASE = 'https://api.pdok.nl/bzk/locatieserver/search/v3_1/free';
 const addressCache = new Map();
 const CACHE_TTL = 24 * 3600 * 1000;
