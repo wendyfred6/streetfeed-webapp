@@ -7,11 +7,15 @@ const BASE = import.meta.env.VITE_API_URL || '/api';
 async function request(method, path, body) {
   if (isDemoMode) return demoRequest(method, path, body);
 
+  const isFormData = body instanceof FormData;
+
   const res = await fetch(`${BASE}${path}`, {
     method,
     credentials: 'include',
-    headers: body ? { 'Content-Type': 'application/json' } : {},
-    body: body ? JSON.stringify(body) : undefined,
+    // FormData sets its own multipart Content-Type (with boundary) — let
+    // fetch handle that itself rather than overriding it with JSON.
+    headers: (body && !isFormData) ? { 'Content-Type': 'application/json' } : {},
+    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
   });
 
   if (!res.ok) {

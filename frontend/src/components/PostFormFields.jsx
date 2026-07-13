@@ -14,7 +14,7 @@ import { postCategoryFlags } from '../utils/postCategoryFlags.js';
 // a uniform Title+Description up front, has no photo re-upload, and drops
 // the "required" asterisks) — those differences are branched explicitly
 // below rather than silently collapsed.
-export default function PostFormFields({ mode, category, subType, form, streetId, user }) {
+export default function PostFormFields({ mode, category, subType, form, streetId, user, onError }) {
   const isCreate = mode === 'create';
   const {
     title, setTitle, body, setBody,
@@ -192,8 +192,8 @@ export default function PostFormFields({ mode, category, subType, form, streetId
           {bodyField}
         </>
       )}
-      <AttachmentUpload photoPreview={photoPreview} uploading={uploading} onUploading={setUploading}
-        onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); if (key) setPhotoKey(key); }} />
+      <AttachmentUpload photoPreview={photoPreview} uploading={uploading} onUploading={setUploading} onError={onError}
+        onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); setPhotoKey(key); }} />
     </>
   );
 }

@@ -888,7 +888,7 @@ export default function App() {
         <NewPostSheet onClose={() => setShowPost(false)}
           onBack={() => { setShowPost(false); setTimeout(() => setShowCatPicker(true), 220); }}
           onSubmit={(data) => { handleNewPost(data); setShowPost(false); window.scrollTo({ top: 0, behavior: 'instant' }); }}
-          streetId={STREET_ID} user={user} initialCat={pendingCat} initialType={pendingType} />
+          streetId={STREET_ID} user={user} initialCat={pendingCat} initialType={pendingType} onError={showError} />
       )}
       {showNotifInbox && (
         <NotificationInboxSheet

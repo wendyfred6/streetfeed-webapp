@@ -8,7 +8,7 @@ import { usePostFormState } from '../hooks/usePostFormState.js';
 import PostFormFields from './PostFormFields.jsx';
 import { ArrowCircleLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowCircleLeft';
 
-export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user, initialCat = 'bezorging', initialType = null }) {
+export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user, initialCat = 'bezorging', initialType = null, onError }) {
   const form = usePostFormState();
   const { title, body, startHouse, endHouse, startDate, endDate, startTime, endTime, link, eventDate, eventTime, photoKey, uploading } = form;
   const [closing, setClosing] = useState(false);
@@ -99,7 +99,7 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
 
         {/* Scrollbaar formuliergebied */}
         <div style={{ flex: 1, overflowY: 'auto', marginBottom: 4 }}>
-          <PostFormFields mode="create" category={initialCat} subType={initialType} form={form} streetId={streetId} user={user} />
+          <PostFormFields mode="create" category={initialCat} subType={initialType} form={form} streetId={streetId} user={user} onError={onError} />
         </div>
 
         {/* Vaste CTA's */}

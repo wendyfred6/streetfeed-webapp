@@ -178,9 +178,10 @@ export async function demoRequest(method, path, body) {
     return result;
   }
 
-  // ── Upload presign (no-op in demo) ─────────────────────────────────────────
-  if (method === 'POST' && path === '/upload/presign') {
-    return { url: 'https://example.com/demo-upload', key: 'demo/placeholder.jpg' };
+  // ── Photo upload (no-op in demo — AttachmentUpload previews the local
+  // blob URL directly, so the response only needs a plausible photoKey) ──────
+  if (method === 'POST' && path === '/upload') {
+    return { key: 'demo/placeholder.jpg', url: 'https://example.com/demo-upload' };
   }
 
   console.warn('[demo] Unhandled request:', method, path, body);

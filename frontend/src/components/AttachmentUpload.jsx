@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { COLORS } from '../design/tokens.js';
+import { api } from '../api/client.js';
 import ActionMenu from './ActionMenu.jsx';
 
-export default function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, documentName, uploading, onUploading }) {
+export default function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, documentName, uploading, onUploading, onError }) {
   const [showMenu, setShowMenu] = useState(false);
   const cameraRef = useRef(null);
   const photoRef = useRef(null);
@@ -16,12 +17,11 @@ export default function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, ph
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', credentials: 'include', body: formData });
-      if (!res.ok) throw new Error('Upload mislukt');
-      const { key } = await res.json();
+      const { key } = await api.post('/upload', formData);
       onPhotoUploaded(URL.createObjectURL(file), key);
-    } catch (e) {
-      console.error('Upload failed', e);
+    } catch (err) {
+      onPhotoUploaded(null, null);
+      onError?.(err.message || 'Foto uploaden mislukt');
     } finally {
       onUploading?.(false);
     }
