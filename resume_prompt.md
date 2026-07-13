@@ -22,13 +22,15 @@ Streetfeed is a hyper-local street PWA for Reyer Anslostraat, Amsterdam (~111 ho
 | M6 — Pilot Readiness | Cross-cutting polish that doesn't attach to one feature: docs, Dockerfile hardening, migration tooling, final accessibility/i18n sweep, legal/privacy, acceptance test |
 | Post-Pilot Backlog | Filed, not scheduled: Events & RSVP, Streets view, Hall of Fame, full moderation/role management, RDW live lookup, other non-essential polish |
 
-**Active milestone: M0 — Foundation & Safety.**
+**Active milestone: M1 — Auth, Onboarding & Approval.**
+
+M0 — Foundation & Safety is complete (all 9 issues Done, retro filed as FRE-343). Notably: the R2-vs-local-disk and docker-compose-consolidation decisions are both resolved (see `docs/DECISIONS.md`), async error handling is fixed, rate limiting is added, ESLint+Vitest+CI gate exist in both packages, and Cloudflare Tunnel is confirmed reachable. Two follow-ups spun out to M6 (FRE-341 photo retention, FRE-342 dependency bumps) and one to M1 (FRE-301 gained an enumeration-closure acceptance criterion — see below).
 
 ## What to do this session
 
-1. Fetch M0's open issues from Linear (project "Streetfeed v1.0", milestone "M0 — Foundation & Safety"). Work them one at a time — this includes two `[Decision]`-prefixed issues (R2-vs-local-disk storage, docker-compose consolidation) that block other M0 work and should be resolved first.
+1. Fetch M1's open issues from Linear (project "Streetfeed v1.0", milestone "M1 — Auth, Onboarding & Approval"). Work them one at a time. Note: FRE-301 ("Reconcile AuthPage.jsx vs OnboardingPage.jsx") has an added acceptance criterion from FRE-295's work — read its Linear comments before starting it.
 2. Update each issue's status in Linear as you go (don't batch status updates to the end).
-3. When every M0 issue is closed: file one `Retro: M0 — Foundation & Safety` issue in that milestone using this template:
+3. When every M1 issue is closed: file one `Retro: M1 — Auth, Onboarding & Approval` issue in that milestone using this template:
    ```
    - What went well
    - What took longer than expected / was harder than it looked
@@ -36,7 +38,16 @@ Streetfeed is a hyper-local street PWA for Reyer Anslostraat, Amsterdam (~111 ho
    - Follow-up issues filed as a result (links)
    - Issues closed / commits or PRs merged (links)
    ```
-4. Edit this file: change "Active milestone" to **M1 — Auth, Onboarding & Approval**, and move this line's target in step 1 forward accordingly. Then stop and tell the user to `/clear`.
+4. Edit this file: change "Active milestone" to **M2 — Feed & Comments**, and move this line's target in step 1 forward accordingly. Then stop and tell the user to `/clear`.
+
+## Workflow notes learned during M0 (worth keeping)
+
+- Work one issue at a time: In Progress → implement → verify (don't just trust local checks, confirm against the real CI run when a change touches CI/deploy) → commit → push → wait for CI green → post an end-report comment to the Linear issue → Done → next issue.
+- If an issue turns out not to need a decision after investigation, don't force one — just resolve it and explain why in the end-report.
+- If part of an issue's scope collides with what another issue already owns (e.g. a UX change that belongs to a different issue's flow rework), split it explicitly: comment on the other issue with the added scope, note the split in the current issue's end-report, and narrow the current issue accordingly. Don't silently drop it and don't silently duplicate it.
+- Real bugs found incidentally while working an issue (not in its original description) are worth fixing in the same commit if small and directly related, with a follow-up issue filed for anything that's bigger or belongs to a later milestone.
+- The MCP connection to Linear occasionally times out on `save_issue`/`save_comment` calls for no apparent reason (server-side, not a real failure) — the action usually still succeeds. Check via `list_issues`/`get_issue` before retrying, to avoid duplicates.
+- This machine's global npm cache has pre-existing corruption (root-owned files from an old npm bug) and its default global npm (11.8.0) has a lockfile bug with platform-specific optional dependencies. Workaround already applied in CI (pins npm 11.18.0). If `npm install` fails locally with cache errors, use `npm install --cache /tmp/some-fresh-dir` rather than `sudo npm cache clean`.
 
 ## Background
 
