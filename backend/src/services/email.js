@@ -25,13 +25,36 @@ function withTimeout(promise, ms = 10000) {
   ]);
 }
 
-export async function sendMagicLink(email, name, token) {
+async function sendEmail({ to, subject, html }) {
   if (!resend && !smtpReady) {
     throw new Error('Geen e-mailservice geconfigureerd (RESEND_API_KEY ontbreekt)');
   }
 
+  if (resend) {
+    const { data, error } = await withTimeout(resend.emails.send({
+      from: process.env.EMAIL_FROM || 'Streetfeed <noreply@streetfeed.nl>',
+      to,
+      subject,
+      html,
+    }));
+    if (error) {
+      console.error('[Resend] Failed to send email:', error);
+      throw new Error(`Email send failed: ${error.message}`);
+    }
+    console.log('[Resend] Email sent, id:', data?.id);
+  } else {
+    const transport = nodemailerTransport();
+    await withTimeout(transport.sendMail({
+      from: process.env.EMAIL_FROM || 'Streetfeed <noreply@streetfeed.nl>',
+      to,
+      subject,
+      html,
+    }));
+  }
+}
+
+export async function sendMagicLink(email, name, token) {
   const url = `${process.env.APP_URL}/auth?token=${token}`;
-  const subject = 'Jouw Streetfeed inloglink';
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
       <h2 style="color:#E8FF47;background:#0F0F0F;padding:12px 20px;border-radius:8px;display:inline-block">
@@ -47,25 +70,26 @@ export async function sendMagicLink(email, name, token) {
     </div>
   `;
 
-  if (resend) {
-    const { data, error } = await withTimeout(resend.emails.send({
-      from: process.env.EMAIL_FROM || 'Streetfeed <noreply@streetfeed.nl>',
-      to: email,
-      subject,
-      html,
-    }));
-    if (error) {
-      console.error('[Resend] Failed to send email:', error);
-      throw new Error(`Email send failed: ${error.message}`);
-    }
-    console.log('[Resend] Email sent, id:', data?.id);
-  } else {
-    const transport = nodemailerTransport();
-    await withTimeout(transport.sendMail({
-      from: process.env.EMAIL_FROM || 'Streetfeed <noreply@streetfeed.nl>',
-      to: email,
-      subject,
-      html,
-    }));
-  }
+  await sendEmail({ to: email, subject: 'Jouw Streetfeed inloglink', html });
+}
+
+// Verstuurd zodra een straat-admin een aanvraag goedkeurt — de bewoner heeft
+// op dat moment vaak geen actieve sessie meer open (PendingPage doet niet aan
+// polling), dus e-mail is het enige betrouwbare kanaal om dit te melden.
+export async function sendApprovalEmail(email, name) {
+  const url = process.env.APP_URL;
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+      <h2 style="color:#E8FF47;background:#0F0F0F;padding:12px 20px;border-radius:8px;display:inline-block">
+        Street<span>feed</span>
+      </h2>
+      <p>Hoi ${name || 'bewoner'},</p>
+      <p>Goed nieuws — je aanvraag voor Streetfeed is goedgekeurd. Je hebt nu toegang tot de buurtfeed.</p>
+      <a href="${url}" style="display:inline-block;background:#E8FF47;color:#000;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;margin:16px 0">
+        Open Streetfeed →
+      </a>
+    </div>
+  `;
+
+  await sendEmail({ to: email, subject: 'Je aanvraag is goedgekeurd — welkom bij Streetfeed', html });
 }

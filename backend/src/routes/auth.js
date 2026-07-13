@@ -4,6 +4,7 @@ import { query } from '../db/index.js';
 import { sendMagicLink } from '../services/email.js';
 import { requireAuth } from '../middleware/auth.js';
 import { authRequestLimiter } from '../middleware/rateLimit.js';
+import { notifyStreetAdmins } from '../services/push.js';
 
 const router = Router();
 
@@ -31,13 +32,19 @@ router.post('/request', authRequestLimiter, async (req, res) => {
     );
     user = rows[0];
 
-    // Membership direct goedgekeurd — BAG-validatie is de poortwachter
+    // Pending — de straat admin moet goedkeuren voordat er feed-toegang is (FRE-304)
     await query(
       `INSERT INTO memberships (user_id, street_id, role, status)
-       VALUES ($1, $2, 'resident', 'approved')
+       VALUES ($1, $2, 'resident', 'pending')
        ON CONFLICT (user_id, street_id) DO NOTHING`,
       [user.id, streetId]
     );
+
+    notifyStreetAdmins(streetId, {
+      title: 'Nieuwe aanvraag',
+      body: `${user.name} (nr. ${user.house_number || '?'}) wil zich aanmelden.`,
+      category: 'mandatory',
+    }).catch(() => {});
   } else {
     // Onbekend e-mailadres zonder registratiegegevens: zelfde respons als een
     // geslaagde verzending, zonder token aan te maken of mail te sturen.

@@ -1672,20 +1672,6 @@ function StreetsView({ user }) {
   );
 }
 
-// ─── PENDING VIEW ──────────────────────────────────────────────────────────────
-
-function PendingView() {
-  return (
-    <div style={{ minHeight: '100vh', background: COLORS.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ width: '100%', maxWidth: 400, background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: 16, padding: '32px 28px', textAlign: 'center' }}>
-        <div style={{ marginBottom: 16 }} />
-        <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>{t('pending_title')}</div>
-        <div style={{ fontSize: 14, color: COLORS.textMuted, lineHeight: 1.6 }}>{t('pending_body')}</div>
-      </div>
-    </div>
-  );
-}
-
 // ─── SEGMENTED CONTROL ────────────────────────────────────────────────────────
 
 function SegmentedControl({ options, value, onChange, label, style }) {

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { query } from '../db/index.js';
 import { requireAuth, requireMembership } from '../middleware/auth.js';
+import { sendApprovalEmail } from '../services/email.js';
 
 const router = Router();
 
@@ -48,8 +49,10 @@ router.post('/', requireAuth, async (req, res) => {
 
 // GET /api/streets/:streetId/pending — pending membership requests (admin)
 router.get('/:streetId/pending', requireAuth, requireMembership('admin'), async (req, res) => {
+  // u.id (niet m.id) — de admin-UI stuurt dit veld terug als :userId bij
+  // approve/reject, dus dit moet de user id zijn, niet de membership id.
   const { rows } = await query(
-    `SELECT m.id, u.name, u.email, u.house_number, m.created_at
+    `SELECT u.id, u.name, u.email, u.house_number, m.created_at
      FROM memberships m JOIN users u ON u.id = m.user_id
      WHERE m.street_id = $1 AND m.status = 'pending'
      ORDER BY m.created_at ASC`,
@@ -60,19 +63,32 @@ router.get('/:streetId/pending', requireAuth, requireMembership('admin'), async 
 
 // POST /api/streets/:streetId/pending/:userId/approve
 router.post('/:streetId/pending/:userId/approve', requireAuth, requireMembership('admin'), async (req, res) => {
-  await query(
-    `UPDATE memberships SET status = 'approved' WHERE user_id = $1 AND street_id = $2`,
+  const { rows } = await query(
+    `UPDATE memberships SET status = 'approved'
+     WHERE user_id = $1 AND street_id = $2 AND status = 'pending'
+     RETURNING user_id`,
     [req.params.userId, req.params.streetId]
   );
+  if (!rows.length) return res.status(404).json({ error: 'Pending membership not found' });
+
+  const { rows: userRows } = await query('SELECT email, name FROM users WHERE id = $1', [req.params.userId]);
+  if (userRows.length) {
+    sendApprovalEmail(userRows[0].email, userRows[0].name)
+      .catch(err => console.error('[approve] Failed to send approval email:', err));
+  }
+
   res.json({ ok: true });
 });
 
 // DELETE /api/streets/:streetId/pending/:userId — reject
 router.delete('/:streetId/pending/:userId', requireAuth, requireMembership('admin'), async (req, res) => {
-  await query(
-    `UPDATE memberships SET status = 'rejected' WHERE user_id = $1 AND street_id = $2`,
+  const { rows } = await query(
+    `UPDATE memberships SET status = 'rejected'
+     WHERE user_id = $1 AND street_id = $2 AND status = 'pending'
+     RETURNING user_id`,
     [req.params.userId, req.params.streetId]
   );
+  if (!rows.length) return res.status(404).json({ error: 'Pending membership not found' });
   res.json({ ok: true });
 });
 

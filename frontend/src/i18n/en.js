@@ -81,6 +81,8 @@ export default {
   new_user_house_placeholder: 'e.g. 52',
   pending_title: 'Request submitted',
   pending_body: 'The street admin has been notified and will review your request as soon as possible. You\'ll receive an email once you have access.',
+  rejected_title: 'Request declined',
+  rejected_body: 'The street admin didn\'t approve your request. Get in touch with the street admin if you think this isn\'t right.',
   logout: 'Log out',
   pwa_ios_hint: 'Add Streetfeed to your home screen to receive push notifications (iOS).',
   enable_notifications: 'Enable push notifications',

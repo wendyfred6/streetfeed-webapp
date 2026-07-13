@@ -125,6 +125,19 @@ export async function notifyUser(userId, streetId, payload) {
   await sendPushToUser(userId, payload).catch(() => {});
 }
 
+// Alle straat-admins/moderators + super admins — voor gebeurtenissen die
+// alleen voor beheer relevant zijn (bijv. nieuwe pending-aanvraag).
+// Negeert notification_prefs bewust, net als notifyUser.
+export async function notifyStreetAdmins(streetId, payload) {
+  const { rows } = await query(
+    `SELECT id AS user_id FROM users WHERE is_super_admin = true
+     UNION
+     SELECT user_id FROM memberships WHERE street_id = $1 AND status = 'approved' AND role IN ('admin', 'moderator')`,
+    [streetId]
+  );
+  await Promise.allSettled(rows.map(r => notifyUser(r.user_id, streetId, payload)));
+}
+
 // Straat-brede notificatie: iedereen die deze categorie niet heeft
 // uitgezet krijgt een opgeslagen notificatie, los van of ze ook
 // daadwerkelijk een actieve pushsubscriptie hebben.

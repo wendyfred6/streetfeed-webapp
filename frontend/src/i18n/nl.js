@@ -81,6 +81,8 @@ export default {
   new_user_house_placeholder: 'Bijv. 52',
   pending_title: 'Aanvraag ingediend',
   pending_body: 'De straat admin wordt op de hoogte gesteld en beoordeelt jouw aanvraag zo snel mogelijk. Je ontvangt een e-mail zodra je toegang hebt.',
+  rejected_title: 'Aanvraag afgewezen',
+  rejected_body: 'De straat admin heeft je aanvraag niet goedgekeurd. Neem contact op met de straat admin als je denkt dat dit niet klopt.',
   logout: 'Uitloggen',
   pwa_ios_hint: 'Voeg Streetfeed toe aan je beginscherm voor pushberichten (iOS).',
   enable_notifications: 'Pushberichten inschakelen',

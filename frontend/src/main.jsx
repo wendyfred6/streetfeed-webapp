@@ -8,6 +8,7 @@ import { isDemoMode } from './api/client.js';
 import App from './App.jsx';
 import AuthPage from './pages/AuthPage.jsx';
 import OnboardingPage from './pages/OnboardingPage.jsx';
+import PendingPage from './pages/PendingPage.jsx';
 import DesignPage from './pages/DesignPage.jsx';
 
 function AppRouter() {
@@ -22,17 +23,21 @@ function AppRouter() {
   }
 
   const hasAccess = user?.is_super_admin || user?.memberships?.some(m => m.status === 'approved');
+  // MVP heeft één straat (zie App.jsx's STREET_ID) — geen memberships betekent
+  // in de praktijk niet-mogelijk (registratie maakt er altijd één aan), maar
+  // valt hier terug op 'pending' in plaats van een crash.
+  const membershipStatus = user?.memberships?.[0]?.status || 'pending';
 
   return (
     <Routes>
       {/* Magic link token verificatie */}
       <Route path="/auth" element={
-        hasAccess ? <Navigate to="/" replace /> : <AuthPage />
+        user ? <Navigate to="/" replace /> : <AuthPage />
       } />
 
       {/* Login + onboarding voor nieuwe gebruikers (enige registratie/login-UI, zie FRE-301) */}
       <Route path="/onboarding" element={
-        hasAccess ? <Navigate to="/" replace /> : <OnboardingPage />
+        user ? <Navigate to="/" replace /> : <OnboardingPage />
       } />
 
       {/* Design systeem — alleen super admin */}
@@ -45,7 +50,7 @@ function AppRouter() {
       {/* Hoofdapp */}
       <Route path="/*" element={
         !user ? <Navigate to="/onboarding" replace /> :
-        !hasAccess ? <Navigate to="/onboarding" replace /> :
+        !hasAccess ? <PendingPage status={membershipStatus} /> :
         <App />
       } />
     </Routes>
