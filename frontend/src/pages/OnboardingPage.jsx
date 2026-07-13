@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { COLORS, RADIUS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL, FIELD_GROUP } from '../design/onboardingStyles.js';
@@ -100,6 +101,7 @@ const s = {
 };
 
 export default function OnboardingPage() {
+  const location = useLocation();
   const [step, setStep] = useState('login');
 
   const [postcode, setPostcode] = useState('');
@@ -109,10 +111,15 @@ export default function OnboardingPage() {
   const [email, setEmail] = useState('');
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  // Alleen de eigen /auth-verificatie mag hier een fout injecteren; herbezoeken van
+  // deze pagina zonder navigatiestatus toont geen stale error.
+  const [error, setError] = useState(location.state?.authError || '');
 
   const canSendLogin = email.includes('@') && email.includes('.');
 
+  // Of dit e-mailadres al een account heeft, wordt hier bewust niet meer aan de
+  // backend-respons afgelezen (dat was een user-enumeration oracle — FRE-301/FRE-295).
+  // De gebruiker geeft zelf aan of het een bestaand of nieuw account is.
   const handleLoginSubmit = async () => {
     setError('');
     setLoading(true);
@@ -120,11 +127,7 @@ export default function OnboardingPage() {
       await api.post('/auth/request', { email: email.trim() });
       setStep('sent');
     } catch (err) {
-      if (err.data?.newUser) {
-        setStep('unknown');
-      } else {
-        setError(err.message || 'Er ging iets mis');
-      }
+      setError(err.message || 'Er ging iets mis');
     } finally {
       setLoading(false);
     }
@@ -220,31 +223,11 @@ export default function OnboardingPage() {
               >
                 {loading ? 'Versturen…' : 'Stuur Magic Link'}
               </button>
+              <button style={s.standaloneLink} onClick={() => { setError(''); setStep('address'); }}>
+                Nieuw hier? Account aanmaken
+                <CaretRightIcon size={8} weight="regular" />
+              </button>
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── E-MAILADRES ONBEKEND ─────────────────────────────────────────────────
-
-  if (step === 'unknown') {
-    return (
-      <div style={s.page}>
-        <div style={s.card}>
-          <div style={s.titleGroup}>
-            <div style={s.title}>We kennen dit e-mailadres nog niet</div>
-            <div style={s.sub}>Jouw e-mailadres is onbekend.</div>
-          </div>
-          <div style={s.ctaGroup}>
-            <button style={s.btn} onClick={() => setStep('address')}>
-              Account aanmaken
-            </button>
-            <button style={s.standaloneLink} onClick={() => { setError(''); setStep('login'); }}>
-              Ander e-mailadres gebruiken
-              <CaretRightIcon size={8} weight="regular" />
-            </button>
           </div>
         </div>
       </div>
@@ -257,7 +240,7 @@ export default function OnboardingPage() {
     return (
       <div style={s.page}>
         <div style={{ width: '100%' }}>
-          <button style={s.backBtn} onClick={() => setStep('unknown')}>← Terug</button>
+          <button style={s.backBtn} onClick={() => { setError(''); setStep('login'); }}>← Terug</button>
           <div style={s.card}>
             <div style={s.stepLabel}>Stap 1 van 4</div>
             <div style={s.titleGroup}>

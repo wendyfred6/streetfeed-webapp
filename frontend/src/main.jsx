@@ -30,7 +30,7 @@ function AppRouter() {
         hasAccess ? <Navigate to="/" replace /> : <AuthPage />
       } />
 
-      {/* Onboarding voor nieuwe gebruikers */}
+      {/* Login + onboarding voor nieuwe gebruikers (enige registratie/login-UI, zie FRE-301) */}
       <Route path="/onboarding" element={
         hasAccess ? <Navigate to="/" replace /> : <OnboardingPage />
       } />

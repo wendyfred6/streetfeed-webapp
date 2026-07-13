@@ -9,21 +9,22 @@ const router = Router();
 
 // POST /api/auth/request — send magic link
 router.post('/request', authRequestLimiter, async (req, res) => {
-  const { email, name, houseNumber, streetId } = req.body;
+  const { email, firstName, houseNumber, streetId } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   const normalizedEmail = email.toLowerCase().trim();
-  const token = randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+  const genericResponse = { ok: true, message: 'Magische link verstuurd — check je e-mail' };
 
-  // Find or create user
-  const firstName = req.body.firstName || name;
+  // De frontend laat de gebruiker zelf kiezen tussen inloggen en account aanmaken
+  // (OnboardingPage) in plaats van dat op te maken uit deze respons — anders is de
+  // respons een user-enumeration oracle (FRE-301, opgesplitst van FRE-295).
+  const isRegistration = !!(firstName && houseNumber && streetId);
+
   let user;
   const existing = await query('SELECT * FROM users WHERE email = $1', [normalizedEmail]);
   if (existing.rows.length) {
     user = existing.rows[0];
-  } else {
-    if (!firstName) return res.status(400).json({ error: 'Name required for new accounts', newUser: true });
+  } else if (isRegistration) {
     const { rows } = await query(
       'INSERT INTO users (email, name, house_number) VALUES ($1, $2, $3) RETURNING *',
       [normalizedEmail, firstName.trim(), houseNumber?.trim() || null]
@@ -31,17 +32,21 @@ router.post('/request', authRequestLimiter, async (req, res) => {
     user = rows[0];
 
     // Membership direct goedgekeurd — BAG-validatie is de poortwachter
-    if (streetId) {
-      await query(
-        `INSERT INTO memberships (user_id, street_id, role, status)
-         VALUES ($1, $2, 'resident', 'approved')
-         ON CONFLICT (user_id, street_id) DO NOTHING`,
-        [user.id, streetId]
-      );
-    }
+    await query(
+      `INSERT INTO memberships (user_id, street_id, role, status)
+       VALUES ($1, $2, 'resident', 'approved')
+       ON CONFLICT (user_id, street_id) DO NOTHING`,
+      [user.id, streetId]
+    );
+  } else {
+    // Onbekend e-mailadres zonder registratiegegevens: zelfde respons als een
+    // geslaagde verzending, zonder token aan te maken of mail te sturen.
+    return res.json(genericResponse);
   }
 
-  // Store token
+  const token = randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
   await query(
     'INSERT INTO auth_tokens (email, token, expires_at) VALUES ($1, $2, $3)',
     [normalizedEmail, token, expiresAt]
@@ -49,7 +54,7 @@ router.post('/request', authRequestLimiter, async (req, res) => {
 
   await sendMagicLink(normalizedEmail, user.name, token);
 
-  res.json({ ok: true, message: 'Magische link verstuurd — check je e-mail' });
+  res.json(genericResponse);
 });
 
 // GET /api/auth/verify?token=xxx — verify magic link (called by frontend JS, returns JSON)
