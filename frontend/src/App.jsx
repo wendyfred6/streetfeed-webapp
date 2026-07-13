@@ -12,6 +12,7 @@ import Toast from './components/Toast.jsx';
 import CatBadge from './components/CatBadge.jsx';
 import SheetOverlay from './components/SheetOverlay.jsx';
 import CategoryPicker from './components/CategoryPicker.jsx';
+import Switch from './components/Switch.jsx';
 import NewPostSheet from './components/NewPostSheet.jsx';
 import EditPostSheet from './components/EditPostSheet.jsx';
 import { CATEGORIES, catLabel } from './utils/categories.js';
@@ -187,7 +188,7 @@ function AdminView({ streetId, user, memberCount, households }) {
               <div key={p.id} style={{ ...s.adminCard, margin: '0 12px 8px' }}>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>{p.name}</div>
                 <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 12 }}>
-                  {p.house_number ? `nr. ${p.house_number}` : p.email} · {timeAgo(p.created_at)}
+                  {p.house_number ? t('house_nr', { n: p.house_number }) : p.email} · {timeAgo(p.created_at)}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button style={{ flex: 1, background: COLORS.accent, color: '#000', border: 'none', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }} onClick={() => approve(p.id)}>{t('approve')}</button>
@@ -205,13 +206,13 @@ function AdminView({ streetId, user, memberCount, households }) {
             <div key={m.id} style={{ ...s.adminCard, margin: '0 12px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>{m.name}</div>
-                <div style={{ fontSize: 11, color: COLORS.textMuted }}>{m.house_number ? `nr. ${m.house_number}` : m.email}</div>
+                <div style={{ fontSize: 11, color: COLORS.textMuted }}>{m.house_number ? t('house_nr', { n: m.house_number }) : m.email}</div>
               </div>
               <select value={m.role} onChange={e => changeRole(m.id, e.target.value)}
                 style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, color: COLORS.text, borderRadius: 6, padding: '4px 8px', fontSize: 12, cursor: 'pointer' }}>
-                <option value="resident">Bewoner</option>
-                <option value="moderator">Moderator</option>
-                <option value="admin">Admin</option>
+                <option value="resident">{t('resident')}</option>
+                <option value="moderator">{t('moderator')}</option>
+                <option value="admin">{t('street_admin')}</option>
               </select>
             </div>
           ))}
@@ -274,7 +275,7 @@ function NotificationInboxSheet({ onClose, onOpenPost }) {
 // Consolideert wat eerder losse tabs waren (Mijn straten, Beheer,
 // Instellingen) — de bottom nav houdt alleen Feed + Hall of Fame over.
 
-function ProfileView({ user, onLogout, canModerate, streetId, memberCount, households }) {
+function ProfileView({ user, onLogout, canModerate, streetId, streetName, memberCount, households }) {
   const [lang, setLangState] = useState(getLang());
   const [notifs, setNotifs] = useState({});
   const [subscribeMsg, setSubscribeMsg] = useState('');
@@ -309,7 +310,7 @@ function ProfileView({ user, onLogout, canModerate, streetId, memberCount, house
     <div style={s.feed}>
       <div style={s.sectionLabel}>{t('profile')}</div>
       <div style={{ padding: '0 12px' }}>
-        {[{ label: t('name'), value: user.name }, { label: t('address'), value: user.house_number ? `Reyer Anslostraat ${user.house_number}` : '–' }, { label: t('role'), value: roleLabel() }].map(item => (
+        {[{ label: t('name'), value: user.name }, { label: t('address'), value: (user.house_number && streetName) ? t('profile_address_value', { street: streetName, number: user.house_number }) : (user.house_number || '–') }, { label: t('role'), value: roleLabel() }].map(item => (
           <div key={item.label} style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 12, color: COLORS.textMuted }}>{item.label}</span>
             <span style={{ fontSize: 13, fontWeight: 600 }}>{item.value}</span>
@@ -353,9 +354,7 @@ function ProfileView({ user, onLogout, canModerate, streetId, memberCount, house
         {Object.entries(CATEGORIES).map(([key, c]) => (
           <div key={key} style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13 }}>{catLabel(key)}</span>
-            <div onClick={() => toggleNotif(key)} style={{ width: 36, height: 20, borderRadius: 10, background: notifs[key] ? COLORS.accent : COLORS.border, position: 'relative', cursor: 'pointer', transition: 'background 0.2s' }}>
-              <div style={{ position: 'absolute', top: 3, left: notifs[key] ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: notifs[key] ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
-            </div>
+            <Switch checked={!!notifs[key]} onChange={() => toggleNotif(key)} label={catLabel(key)} />
           </div>
         ))}
       </div>
@@ -365,7 +364,8 @@ function ProfileView({ user, onLogout, canModerate, streetId, memberCount, house
         <div style={s.adminCard}>
           <div style={{ display: 'flex', gap: 8 }}>
             {[['nl', 'Nederlands'], ['en', 'English']].map(([code, label]) => (
-              <div key={code} onClick={() => switchLang(code)} style={{ flex: 1, textAlign: 'center', padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: lang === code ? 700 : 400, background: lang === code ? COLORS.accent : 'none', color: lang === code ? '#000' : COLORS.textMuted, cursor: 'pointer' }}>{label}</div>
+              <button key={code} type="button" aria-pressed={lang === code} onClick={() => switchLang(code)}
+                style={{ flex: 1, textAlign: 'center', padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: lang === code ? 700 : 400, background: lang === code ? COLORS.accent : 'none', color: lang === code ? '#000' : COLORS.textMuted, cursor: 'pointer', border: 'none' }}>{label}</button>
             ))}
           </div>
         </div>
@@ -849,7 +849,7 @@ export default function App() {
       {tab === 'hof' && <HallOfFameView streetId={STREET_ID} />}
       {tab === 'profile' && (
         <ProfileView user={user} onLogout={logout} canModerate={canModerate} streetId={STREET_ID}
-          memberCount={streetInfo?.members || 0} households={streetInfo?.households || 0} />
+          streetName={streetInfo?.name} memberCount={streetInfo?.members || 0} households={streetInfo?.households || 0} />
       )}
 
       <div style={s.bottomBar}>
