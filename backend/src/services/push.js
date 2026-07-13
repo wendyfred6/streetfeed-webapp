@@ -40,6 +40,8 @@ export async function sendPushToStreet(streetId, category, payload, excludeUserI
       if (err.statusCode === 410 || err.statusCode === 404) {
         // Subscription expired — remove it
         await query('DELETE FROM push_subscriptions WHERE id = $1', [row.id]);
+      } else {
+        console.error(`[push] sendPushToStreet: delivery failed for subscription ${row.id} (street ${streetId}, category ${category})`, err);
       }
     }
   });
@@ -63,6 +65,8 @@ export async function sendPushToUser(userId, payload) {
     } catch (err) {
       if (err.statusCode === 410 || err.statusCode === 404) {
         await query('DELETE FROM push_subscriptions WHERE id = $1', [row.id]);
+      } else {
+        console.error(`[push] sendPushToUser: delivery failed for subscription ${row.id} (user ${userId})`, err);
       }
     }
   });
@@ -122,7 +126,9 @@ async function saveNotification(userId, streetId, payload) {
 // Eén gerichte notificatie: opslaan + proberen te pushen.
 export async function notifyUser(userId, streetId, payload) {
   await saveNotification(userId, streetId, payload);
-  await sendPushToUser(userId, payload).catch(() => {});
+  await sendPushToUser(userId, payload).catch(err => {
+    console.error(`[push] notifyUser: sendPushToUser threw for user ${userId}`, err);
+  });
 }
 
 // Alle straat-admins/moderators + super admins — voor gebeurtenissen die
@@ -135,7 +141,12 @@ export async function notifyStreetAdmins(streetId, payload) {
      SELECT user_id FROM memberships WHERE street_id = $1 AND status = 'approved' AND role IN ('admin', 'moderator')`,
     [streetId]
   );
-  await Promise.allSettled(rows.map(r => notifyUser(r.user_id, streetId, payload)));
+  const results = await Promise.allSettled(rows.map(r => notifyUser(r.user_id, streetId, payload)));
+  results.forEach((result, i) => {
+    if (result.status === 'rejected') {
+      console.error(`[push] notifyStreetAdmins: notifyUser failed for user ${rows[i].user_id} (street ${streetId})`, result.reason);
+    }
+  });
 }
 
 // Straat-brede notificatie: iedereen die deze categorie niet heeft
@@ -157,6 +168,13 @@ export async function notifyStreet(streetId, category, payload, excludeUserIds =
   }
   const { rows } = await query(sql, params);
 
-  await Promise.allSettled(rows.map(r => saveNotification(r.user_id, streetId, { ...payload, category })));
-  await sendPushToStreet(streetId, category, payload, excludeUserIds).catch(() => {});
+  const saveResults = await Promise.allSettled(rows.map(r => saveNotification(r.user_id, streetId, { ...payload, category })));
+  saveResults.forEach((result, i) => {
+    if (result.status === 'rejected') {
+      console.error(`[push] notifyStreet: saveNotification failed for user ${rows[i].user_id} (street ${streetId}, category ${category})`, result.reason);
+    }
+  });
+  await sendPushToStreet(streetId, category, payload, excludeUserIds).catch(err => {
+    console.error(`[push] notifyStreet: sendPushToStreet threw (street ${streetId}, category ${category})`, err);
+  });
 }

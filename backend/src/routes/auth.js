@@ -44,7 +44,7 @@ router.post('/request', authRequestLimiter, async (req, res) => {
       title: 'Nieuwe aanvraag',
       body: `${user.name} (nr. ${user.house_number || '?'}) wil zich aanmelden.`,
       category: 'mandatory',
-    }).catch(() => {});
+    }).catch(err => console.error(`[auth] notifyStreetAdmins failed for street ${streetId}`, err));
   } else {
     // Onbekend e-mailadres zonder registratiegegevens: zelfde respons als een
     // geslaagde verzending, zonder token aan te maken of mail te sturen.

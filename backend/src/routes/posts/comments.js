@@ -51,7 +51,7 @@ export function registerCommentRoutes(router) {
         url: `/?post=${req.params.postId}`,
         postId: req.params.postId,
         category: 'mandatory',
-      }).catch(() => {}));
+      }).catch(err => console.error(`[comments] notifyUser failed for user ${uid} (post ${req.params.postId})`, err)));
     })();
   });
 }
