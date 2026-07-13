@@ -10,7 +10,7 @@ Hyper-local street communication platform for the Reyer Anslostraat, Amsterdam.
 | Backend | Node.js 20 + Express |
 | Database | PostgreSQL 16 |
 | Auth | Magic links via Resend (or SMTP) |
-| Photos | Cloudflare R2 (presigned upload) |
+| Photos | Local disk, mounted as a Docker volume |
 | Push | Web Push API + service worker |
 | Hosting | Docker on Synology NAS (DSM 7) |
 
@@ -120,23 +120,23 @@ The app will be reachable at https://streetfeed.nl.
 The `restart: unless-stopped` policy in docker-compose.yml ensures all containers
 restart automatically when NASi reboots.
 
-### 7. Cloudflare R2 setup
+### 7. Photo storage
 
-1. Create a Cloudflare account and enable R2
-2. Create a bucket named `streetfeed`
-3. Create an API token with R2 read/write permissions
-4. Enable "Public access" on the bucket and note the public URL
-5. Fill in the R2 variables in `.env`
+Photos are stored on local disk inside the backend container, at `/data/photos`
+(configurable via `UPLOAD_DIR`). This directory **must** be mounted as a Docker
+volume (see the `photos:` volume in `docker-compose.nas.yml`) — without it,
+uploaded photos are lost every time the container is recreated (e.g. on every
+"Pull and Redeploy" in Portainer).
 
-Lifecycle rules for auto-deletion are handled by the backend using the
-retention schedule from the briefing (packages: 7d, incidents: 30d, etc.).
+Retention/auto-deletion per category (packages: 7d, incidents: 30d, etc., per
+the briefing) is not yet implemented — tracked as a follow-up, not required
+for the pilot.
 
-Note: Cloudflare R2 currently does not support native lifecycle rules via API.
-To enforce deletion, set up a nightly cron that runs:
-```bash
-docker-compose exec backend node src/scripts/cleanup-r2.js
-```
-(See `backend/src/scripts/cleanup-r2.js` — TODO: implement if needed)
+Cloudflare R2 was the original plan (see `docs/DECISIONS.md`) but was dropped
+for the pilot in favor of local disk: simpler, already fully implemented
+(resize/compress + HEIC conversion), and no external account/API keys needed
+at single-NAS scale. Revisit if Streetfeed needs to scale beyond one NAS
+instance.
 
 ### 8. Auto-deploy on push to main
 
@@ -195,8 +195,7 @@ jobs:
 
 External services:
   - Resend (or SMTP) — magic link email
-  - Cloudflare R2    — photo storage
-  - RDW open data    — license plate lookup
+  - RDW open data    — license plate lookup (not yet implemented)
 ```
 
 ---
