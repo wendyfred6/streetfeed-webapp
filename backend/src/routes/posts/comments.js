@@ -1,6 +1,8 @@
 import { query } from '../../db/index.js';
 import { requireAuth, requireMembership } from '../../middleware/auth.js';
 import { notifyUser, findUserIdsAtHouse } from '../../services/push.js';
+import { validateBody } from '../../validation/validate.js';
+import { commentSchema } from '../../validation/postSchemas.js';
 
 export function registerCommentRoutes(router) {
   // GET /api/streets/:streetId/posts/:postId/comments
@@ -18,13 +20,12 @@ export function registerCommentRoutes(router) {
   });
 
   // POST /api/streets/:streetId/posts/:postId/comments
-  router.post('/:streetId/posts/:postId/comments', requireAuth, requireMembership('resident'), async (req, res) => {
+  router.post('/:streetId/posts/:postId/comments', requireAuth, requireMembership('resident'), validateBody(commentSchema), async (req, res) => {
     const { body } = req.body;
-    if (!body?.trim()) return res.status(400).json({ error: 'Body required' });
 
     const { rows } = await query(
       `INSERT INTO comments (post_id, user_id, body) VALUES ($1, $2, $3) RETURNING *`,
-      [req.params.postId, req.user.user_id, body.trim()]
+      [req.params.postId, req.user.user_id, body]
     );
     res.status(201).json(rows[0]);
 

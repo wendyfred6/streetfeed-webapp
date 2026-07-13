@@ -3,6 +3,8 @@ import { requireAuth, requireMembership } from '../../middleware/auth.js';
 import { notifyStreet, notifyUser, findUserIdsAtHouse } from '../../services/push.js';
 import { getPublicUrl } from '../../services/storage.js';
 import { isAuthorOrModerator } from './authorization.js';
+import { validateBody } from '../../validation/validate.js';
+import { createPostSchema, editPostSchema, pinPostSchema, resolvePostSchema } from '../../validation/postSchemas.js';
 
 export function withPhotoUrl(post) {
   return post.photo_key
@@ -58,16 +60,12 @@ export function registerCrudRoutes(router) {
   });
 
   // POST /api/streets/:streetId/posts
-  router.post('/:streetId/posts', requireAuth, requireMembership('resident'), async (req, res) => {
+  router.post('/:streetId/posts', requireAuth, requireMembership('resident'), validateBody(createPostSchema), async (req, res) => {
     const { streetId } = req.params;
     const { category, title, body, endDate, startDate,
             eventDate, eventTime, bringList, photoKey,
             link, allowJoin, startTime, endTime, subType,
             startHouse, endHouse } = req.body;
-
-    if (!category || !title) {
-      return res.status(400).json({ error: 'category and title are required' });
-    }
 
     // Auto-pin for straatzaken/evenement with dates
     const autoPin = ['straatzaken', 'evenement'].includes(category) &&
@@ -136,7 +134,7 @@ export function registerCrudRoutes(router) {
   });
 
   // PATCH /api/streets/:streetId/posts/:postId — edit post content
-  router.patch('/:streetId/posts/:postId', requireAuth, requireMembership('resident'), async (req, res) => {
+  router.patch('/:streetId/posts/:postId', requireAuth, requireMembership('resident'), validateBody(editPostSchema), async (req, res) => {
     const { postId, streetId } = req.params;
 
     const { rows: existing } = await query(
@@ -207,7 +205,7 @@ export function registerCrudRoutes(router) {
   });
 
   // PATCH /api/streets/:streetId/posts/:postId/resolve
-  router.patch('/:streetId/posts/:postId/resolve', requireAuth, requireMembership('resident'), async (req, res) => {
+  router.patch('/:streetId/posts/:postId/resolve', requireAuth, requireMembership('resident'), validateBody(resolvePostSchema), async (req, res) => {
     const { postId, streetId } = req.params;
     const { resolved } = req.body;
     const { rows } = await query('SELECT user_id FROM posts WHERE id = $1 AND street_id = $2', [postId, streetId]);
@@ -220,7 +218,7 @@ export function registerCrudRoutes(router) {
   });
 
   // PATCH /api/streets/:streetId/posts/:postId/pin
-  router.patch('/:streetId/posts/:postId/pin', requireAuth, requireMembership('admin'), async (req, res) => {
+  router.patch('/:streetId/posts/:postId/pin', requireAuth, requireMembership('admin'), validateBody(pinPostSchema), async (req, res) => {
     const { pinned, endDate } = req.body;
     await query(
       'UPDATE posts SET pinned = $1, end_date = $2 WHERE id = $3 AND street_id = $4',

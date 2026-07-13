@@ -1,6 +1,8 @@
 import { query } from '../../db/index.js';
 import { requireAuth, requireMembership } from '../../middleware/auth.js';
 import { togglePostRelation } from './toggle.js';
+import { validateBody } from '../../validation/validate.js';
+import { rsvpSchema } from '../../validation/postSchemas.js';
 
 export function registerInteractionRoutes(router) {
   // POST /api/streets/:streetId/posts/:postId/like
@@ -10,14 +12,10 @@ export function registerInteractionRoutes(router) {
   });
 
   // POST /api/streets/:streetId/posts/:postId/rsvp
-  router.post('/:streetId/posts/:postId/rsvp', requireAuth, requireMembership('resident'), async (req, res) => {
+  router.post('/:streetId/posts/:postId/rsvp', requireAuth, requireMembership('resident'), validateBody(rsvpSchema), async (req, res) => {
     const { postId } = req.params;
     const { type } = req.body;
     const userId = req.user.user_id;
-
-    if (!['yes', 'maybe', 'no'].includes(type)) {
-      return res.status(400).json({ error: 'Invalid RSVP type' });
-    }
 
     const existing = await query(
       'SELECT type FROM rsvps WHERE post_id = $1 AND user_id = $2',
