@@ -1,6 +1,7 @@
 import { useState, useRef, useLayoutEffect } from 'react';
 import { COLORS, RADIUS, FONT, GLASS, BG_GRADIENT } from '../design/tokens.js';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
+import Switch from '../components/Switch.jsx';
 
 const CAT_OPTIONS = [
   { key: 'bezorging',   label: 'Bezorging' },
@@ -151,11 +152,10 @@ function AccentBadge({ label, color }) {
 
 // ── Toggle ───────────────────────────────────────────────────────────────────
 
-function Toggle({ on, onClick }) {
+function Toggle({ on, onClick, label = 'Toggle' }) {
   return (
-    <div onClick={onClick} style={{ width: 36, height: 20, borderRadius: 10, background: on ? COLORS.accent : 'rgba(0,0,0,0.14)', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
-      <div style={{ position: 'absolute', top: 3, left: on ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.20)', transition: 'left 0.2s' }} />
-    </div>
+    <Switch checked={on} onChange={onClick} label={label}
+      trackOffColor="rgba(0,0,0,0.14)" knobOnColor="#fff" knobOffColor="#fff" knobShadow />
   );
 }
 

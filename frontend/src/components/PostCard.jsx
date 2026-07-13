@@ -7,6 +7,7 @@ import { catLabel, typeLabel } from '../utils/categories.js';
 import { timeAgo } from '../utils/time.js';
 import { formatEventDate } from '../utils/eventDate.js';
 import AutoTextarea from './AutoTextarea.jsx';
+import Switch from './Switch.jsx';
 
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { HeartIcon } from '@phosphor-icons/react/dist/csr/Heart';
@@ -41,14 +42,13 @@ function Chevron({ size = 14, color, rotate = 0, style }) {
 function AttendanceToggle({ post, onRsvp }) {
   const attending = post.my_rsvp === 'yes';
   const count = (post.rsvp?.yes || []).length;
+  const toggle = e => { e.stopPropagation(); onRsvp(post.id, 'yes'); };
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0' }}
-        onClick={e => { e.stopPropagation(); onRsvp(post.id, 'yes'); }}>
-        <div style={{ width: 44, height: 26, borderRadius: 13, background: attending ? COLORS.green : 'rgba(0,0,0,0.15)', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
-          <div style={{ position: 'absolute', top: 3, left: attending ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'left 0.2s' }} />
-        </div>
-        <span style={{ fontSize: 14, fontWeight: attending ? 700 : 400, color: attending ? COLORS.text : COLORS.textMuted, cursor: 'pointer' }}>Ik ben erbij</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0' }}>
+        <Switch checked={attending} onChange={toggle} label="Ik ben erbij" size="lg"
+          trackOnColor={COLORS.green} trackOffColor="rgba(0,0,0,0.15)" knobOnColor="#fff" knobOffColor="#fff" knobShadow />
+        <span onClick={toggle} style={{ fontSize: 14, fontWeight: attending ? 700 : 400, color: attending ? COLORS.text : COLORS.textMuted, cursor: 'pointer' }}>Ik ben erbij</span>
       </div>
       {count > 0 && (
         <div style={{ fontSize: 12, color: COLORS.textMuted, display: 'flex', alignItems: 'center', gap: 5, paddingLeft: 2 }}>

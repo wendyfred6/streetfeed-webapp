@@ -12,6 +12,7 @@ import Toast from './components/Toast.jsx';
 import CatBadge from './components/CatBadge.jsx';
 import SheetOverlay from './components/SheetOverlay.jsx';
 import CategoryPicker from './components/CategoryPicker.jsx';
+import Switch from './components/Switch.jsx';
 import NewPostSheet from './components/NewPostSheet.jsx';
 import EditPostSheet from './components/EditPostSheet.jsx';
 import { CATEGORIES, catLabel } from './utils/categories.js';
@@ -353,9 +354,7 @@ function ProfileView({ user, onLogout, canModerate, streetId, streetName, member
         {Object.entries(CATEGORIES).map(([key, c]) => (
           <div key={key} style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 13 }}>{catLabel(key)}</span>
-            <div onClick={() => toggleNotif(key)} style={{ width: 36, height: 20, borderRadius: 10, background: notifs[key] ? COLORS.accent : COLORS.border, position: 'relative', cursor: 'pointer', transition: 'background 0.2s' }}>
-              <div style={{ position: 'absolute', top: 3, left: notifs[key] ? 19 : 3, width: 14, height: 14, borderRadius: '50%', background: notifs[key] ? '#000' : COLORS.textDim, transition: 'left 0.2s' }} />
-            </div>
+            <Switch checked={!!notifs[key]} onChange={() => toggleNotif(key)} label={catLabel(key)} />
           </div>
         ))}
       </div>
@@ -365,7 +364,8 @@ function ProfileView({ user, onLogout, canModerate, streetId, streetName, member
         <div style={s.adminCard}>
           <div style={{ display: 'flex', gap: 8 }}>
             {[['nl', 'Nederlands'], ['en', 'English']].map(([code, label]) => (
-              <div key={code} onClick={() => switchLang(code)} style={{ flex: 1, textAlign: 'center', padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: lang === code ? 700 : 400, background: lang === code ? COLORS.accent : 'none', color: lang === code ? '#000' : COLORS.textMuted, cursor: 'pointer' }}>{label}</div>
+              <button key={code} type="button" aria-pressed={lang === code} onClick={() => switchLang(code)}
+                style={{ flex: 1, textAlign: 'center', padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: lang === code ? 700 : 400, background: lang === code ? COLORS.accent : 'none', color: lang === code ? '#000' : COLORS.textMuted, cursor: 'pointer', border: 'none' }}>{label}</button>
             ))}
           </div>
         </div>
