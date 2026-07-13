@@ -6,19 +6,18 @@ import { t, getLang, setLang } from './i18n/index.js';
 
 import { COLORS, RADIUS, ALPHA, GLASS } from './design/tokens.js';
 import HouseNumberPicker from './components/HouseNumberPicker.jsx';
+import AutoTextarea from './components/AutoTextarea.jsx';
+import PostCard from './components/PostCard.jsx';
+import { CATEGORIES, catLabel } from './utils/categories.js';
+import { timeAgo } from './utils/time.js';
+import { formatEventDate, downloadICS, googleCalendarUrl } from './utils/eventDate.js';
 
 // Phosphor Icons — subpath imports per icoon i.p.v. de barrel, voor kleinere bundle
-import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
 import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
 import { BellIcon } from '@phosphor-icons/react/dist/csr/Bell';
 import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
-import { HeartIcon } from '@phosphor-icons/react/dist/csr/Heart';
-import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
-import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
-import { ChatCircleIcon } from '@phosphor-icons/react/dist/csr/ChatCircle';
 import { ChatsCircleIcon } from '@phosphor-icons/react/dist/csr/ChatsCircle';
-import { UsersThreeIcon } from '@phosphor-icons/react/dist/csr/UsersThree';
 import { PackageIcon } from '@phosphor-icons/react/dist/csr/Package';
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
 import { CarIcon } from '@phosphor-icons/react/dist/csr/Car';
@@ -44,33 +43,6 @@ import { ArmchairIcon } from '@phosphor-icons/react/dist/csr/Armchair';
 import { CalendarPlusIcon } from '@phosphor-icons/react/dist/csr/CalendarPlus';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 
-const CATEGORIES = {
-  bezorging:    { label: 'Bezorging',    labelEn: 'Package',       color: '#4488FF' },
-  straatzaken:  { label: 'Straatzaken',  labelEn: 'Street',        color: '#FF8833', pinnable: true },
-  melding:      { label: 'Melding',      labelEn: 'Report',        color: '#FF4444' },
-  lostandfound: { label: 'Lost & Found', labelEn: 'Lost & Found',  color: '#9966CC' },
-  evenement:    { label: 'Evenement',    labelEn: 'Event',         color: '#AA77FF', pinnable: true, isEvent: true },
-  algemeen:     { label: 'Algemeen',     labelEn: 'General',       color: '#44BB44' },
-};
-
-// Backward compat labels for posts stored before the category rename
-const LEGACY_LABELS = {
-  package:   { nl: 'Bezorging',   en: 'Package'     },
-  works:     { nl: 'Straatzaken', en: 'Street'      },
-  incident:  { nl: 'Melding',     en: 'Report'      },
-  event:     { nl: 'Evenement',   en: 'Event'       },
-  general:   { nl: 'Algemeen',    en: 'General'     },
-  blockage:  { nl: 'Blokkade',    en: 'Blockage'    },
-  container: { nl: 'Container',   en: 'Container'   },
-  waste:     { nl: 'Grofvuil',    en: 'Bulk waste'  },
-};
-
-function catLabel(key) {
-  const c = CATEGORIES[key];
-  if (!c) return LEGACY_LABELS[key]?.[getLang() === 'en' ? 'en' : 'nl'] || key;
-  return getLang() === 'en' ? c.labelEn : c.label;
-}
-
 // ─── STYLES ────────────────────────────────────────────────────────────────────
 
 const s = {
@@ -82,11 +54,7 @@ const s = {
   headerIconBtn: (active) => ({ width: 36, height: 36, background: active ? ALPHA.accentSubtle : 'rgba(0,0,0,0.05)', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? COLORS.accent : COLORS.textMuted }),
   feed: { padding: '0 0 calc(98px + env(safe-area-inset-bottom)) 0' },
   sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textMuted, padding: '16px 20px 8px' },
-  card: (pinned) => ({ margin: '0 12px 8px', ...GLASS.card, background: pinned ? COLORS.pinned : 'rgba(255,255,255,0.70)', border: `1px solid ${pinned ? COLORS.pinnedBorder : 'rgba(255,255,255,0.50)'}`, borderRadius: RADIUS.lg, padding: '12px 14px' }),
   cardTitle: { fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 },
-  cardBody: { fontSize: 15, color: COLORS.textDim, lineHeight: 1.5 },
-  cardMeta: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
-  cardMetaLeft: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: COLORS.textMuted },
   pinnedBadge: { background: COLORS.accent, color: COLORS.textInverse, fontSize: 9, fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', padding: '2px 6px', borderRadius: RADIUS.xs },
   endDateBadge: { fontSize: 10, color: COLORS.accent, background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.xs, padding: '2px 6px' },
   filterBar: { display: 'flex', gap: 6, padding: '12px 20px', overflowX: 'auto', scrollbarWidth: 'none' },
@@ -126,38 +94,10 @@ const s = {
   statLabel: { fontSize: 10, color: COLORS.textMuted, marginTop: 2 },
   streetCard: { margin: '0 12px 8px', ...GLASS.card, borderRadius: RADIUS.lg, padding: '16px', cursor: 'pointer' },
   emptyState: { textAlign: 'center', padding: '40px 20px', color: COLORS.textMuted, fontSize: 15 },
-  actionBtn: { background: 'none', border: 'none', color: COLORS.textMuted, fontSize: 13, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 },
   reportBtn: { background: 'none', border: 'none', color: COLORS.textMuted, fontSize: 12, cursor: 'pointer', padding: 0 },
 };
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
-
-function timeAgo(ts) {
-  const diff = (Date.now() - new Date(ts)) / 1000;
-  if (diff < 60) return t('time_just_now');
-  if (diff < 3600) return t('time_min_ago', { n: Math.floor(diff / 60) });
-  if (diff < 86400) return t('time_hour_ago', { n: Math.floor(diff / 3600) });
-  if (diff < 172800) return t('time_yesterday');
-  return new Date(ts).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' });
-}
-
-function Chevron({ size = 14, color, rotate = 0, style }) {
-  return (
-    <CaretDownIcon size={size} color={color || COLORS.textMuted} weight="regular"
-      style={{ flexShrink: 0, pointerEvents: 'none', transition: 'transform 0.2s', transform: `rotate(${rotate}deg)`, ...style }} />
-  );
-}
-
-function AutoTextarea({ style, value, ...props }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = `${el.scrollHeight}px`;
-  }, [value]);
-  return <textarea ref={ref} value={value} style={{ ...style, resize: 'none', overflow: 'hidden' }} {...props} />;
-}
 
 function CatBadge({ cat }) {
   return (
@@ -180,321 +120,6 @@ function RoleBadge({ role }) {
   const map = { admin: [COLORS.accent, 'Admin'], moderator: [COLORS.purple, 'Mod'], resident: [COLORS.textDim, 'Bewoner'] };
   const [color, label] = map[role] || [COLORS.textDim, role];
   return <span style={s.badge(color)}>{label}</span>;
-}
-
-// ─── RSVP BAR ──────────────────────────────────────────────────────────────────
-
-function AttendanceToggle({ post, onRsvp }) {
-  const attending = post.my_rsvp === 'yes';
-  const count = (post.rsvp?.yes || []).length;
-  return (
-    <div style={{ marginTop: 12 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0' }}
-        onClick={e => { e.stopPropagation(); onRsvp(post.id, 'yes'); }}>
-        <div style={{ width: 44, height: 26, borderRadius: 13, background: attending ? COLORS.green : 'rgba(0,0,0,0.15)', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
-          <div style={{ position: 'absolute', top: 3, left: attending ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'left 0.2s' }} />
-        </div>
-        <span style={{ fontSize: 14, fontWeight: attending ? 700 : 400, color: attending ? COLORS.text : COLORS.textMuted, cursor: 'pointer' }}>Ik ben erbij</span>
-      </div>
-      {count > 0 && (
-        <div style={{ fontSize: 12, color: COLORS.textMuted, display: 'flex', alignItems: 'center', gap: 5, paddingLeft: 2 }}>
-          <UsersThreeIcon size={12} weight="regular" />
-          {count} aanwezig
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-const MELDING_LINKS = {
-  overlast: [{ label: 'Overlast melden bij Gemeente Amsterdam', url: 'https://meldingen.amsterdam.nl/', color: COLORS.blue }],
-  schade: [
-    { label: 'Aangifte doen bij politie', url: 'https://www.politie.nl/aangifte-of-melding-doen', color: COLORS.error },
-    { label: 'Schade melden Waarborgfonds', url: 'https://www.svn.nl/', color: COLORS.blue },
-  ],
-  verdacht: [
-    { label: 'Bel 0900-8844 (politie non-spoed)', url: 'tel:09008844', color: COLORS.error },
-    { label: 'Meld Misdaad Anoniem', url: 'https://www.meldmisdaadanoniem.nl', color: COLORS.blue },
-  ],
-};
-
-function MeldingLinks({ post }) {
-  const links = MELDING_LINKS[post.sub_type] || [];
-  if (!links.length) return null;
-  return (
-    <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-      {links.map(({ label, url, color }) => (
-        <a key={url} href={url} target="_blank" rel="noopener noreferrer"
-          style={{ display: 'block', border: `1px solid ${color}44`, borderRadius: 8, padding: '8px 12px', fontSize: 12, color, textDecoration: 'none' }}>
-          {label} →
-        </a>
-      ))}
-    </div>
-  );
-}
-
-// ─── CARRIER BADGE ─────────────────────────────────────────────────────────────
-// (legacy weergave voor oudere posts die nog een carrier-waarde hebben)
-
-const CARRIER_COLORS = {
-  'PostNL':   { bg: '#FF6600', color: '#fff' },
-  'DHL':      { bg: '#FFCC00', color: '#CC0605' },
-  'DPD':      { bg: '#414042', color: '#DC0032' },
-  'GLS':      { bg: '#009900', color: '#fff' },
-  'FedEx':    { bg: '#4D148C', color: '#FF6600' },
-  'UPS':      { bg: '#351C15', color: '#FFB500' },
-  'Bol.com':  { bg: '#0000A4', color: '#fff' },
-  'Coolblue': { bg: '#003878', color: '#fff' },
-  'Amazon':   { bg: '#FF9900', color: '#000' },
-};
-
-function CarrierBadge({ carrier }) {
-  const style = CARRIER_COLORS[carrier];
-  if (!style) {
-    return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, ...s.badge(COLORS.blue), fontSize: 11, padding: '3px 8px' }}>
-        <PackageIcon size={11} color={COLORS.blue} weight="regular" />{carrier}
-      </span>
-    );
-  }
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      background: style.bg, color: style.color,
-      borderRadius: 4, fontSize: 10, fontWeight: 800,
-      padding: '3px 8px', letterSpacing: '0.3px',
-    }}>
-      <PackageIcon size={11} color={style.color} weight="regular" />{carrier}
-    </span>
-  );
-}
-
-// ─── POST CARD ─────────────────────────────────────────────────────────────────
-
-function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, onDelete, canModerate, onEdit, canEdit, autoExpand }) {
-  const [expanded, setExpanded] = useState(false);
-  const [threadComments, setThreadComments] = useState(null);
-  const [commentText, setCommentText] = useState('');
-  const [sendingComment, setSendingComment] = useState(false);
-  const { user } = useAuth();
-
-  useEffect(() => {
-    if (autoExpand) setExpanded(true);
-  }, [autoExpand]);
-
-  useEffect(() => {
-    if (expanded && threadComments === null) {
-      api.get(`/streets/1/posts/${post.id}/comments`)
-        .then(data => setThreadComments(data))
-        .catch(() => setThreadComments([]));
-    }
-  }, [expanded]);
-
-  const submitComment = async (e) => {
-    e.stopPropagation();
-    if (!commentText.trim() || sendingComment) return;
-    setSendingComment(true);
-    try {
-      const comment = await api.post(`/streets/1/posts/${post.id}/comments`, { body: commentText.trim() });
-      setThreadComments(prev => [...(prev || []), { ...comment, author_name: user?.name, author_house: user?.house_number, author_role: user?.role }]);
-      setCommentText('');
-    } catch (err) {
-      // Swallowed intentionally for now — proper user-facing error surfacing
-      // is tracked in FRE-313 (shared toast/error hook for feed & comments).
-      console.error('[comment] submit failed:', err);
-    }
-    setSendingComment(false);
-  };
-
-  const commentCount = parseInt(post.comments) || 0;
-  const isEvent    = post.category === 'evenement' || post.category === 'event';
-  const isIncident = post.category === 'melding'   || post.category === 'incident';
-  const isPackage  = post.category === 'bezorging' || post.category === 'package';
-  const isWorks    = post.category === 'straatzaken' || post.category === 'works' || ['blockage', 'container'].includes(post.category);
-  const isAlgemeen = post.category === 'algemeen';
-
-  // FRE-265: datum-badge logica
-  const getDateLabel = () => {
-    if (isEvent && post.event_date) return formatEventDate(post.event_date);
-    if (isWorks) {
-      const fmt = (d) => {
-        const [y, m, day] = d.substring(0, 10).split('-');
-        return new Date(+y, +m - 1, +day).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
-      };
-      const timePart = post.start_time || post.end_time
-        ? ` · ${post.start_time || '?'}–${post.end_time || '?'}`
-        : '';
-      if (post.start_date && post.end_date) return `${fmt(post.start_date)} – ${fmt(post.end_date)}${timePart}`;
-      if (post.start_date) return `${fmt(post.start_date)}${timePart}`;
-      if (post.end_date) return `t/m ${fmt(post.end_date)}${timePart}`;
-      if (timePart) return timePart.replace(' · ', '');
-    }
-    return null;
-  };
-  const dateLabel = getDateLabel();
-
-  const firstName = (post.author_name || '').split(' ')[0] || 'Bewoner';
-
-  return (
-    <div id={`post-${post.id}`} style={s.card(post.pinned)}>
-      {/* ── Klikbare header (altijd zichtbaar) ── */}
-      <div className="tap-feedback" style={{ cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
-          <div style={{ flex: 1, fontSize: 16, fontWeight: 700, lineHeight: 1.35 }}>
-            <span style={{ color: COLORS.textDim, fontWeight: 400 }}>
-              {(() => {
-                const INCIDENT_LBL = { lost_found: 'Lost & Found', overlast: 'Overlast', schade: 'Schade', verdacht: 'Verdachte situatie' };
-                const WORKS_LBL   = { steiger: 'Steiger', werkzaamheden: 'Werkzaamheden', parkeerverbod: 'Parkeerverbod', container: 'Container', kraan: 'Kraan', verhuizing: 'Verhuizing' };
-                const ALGEMEEN_LBL = { gezocht: 'Gezocht', te_leen: 'Te leen', te_koop: 'Te koop', gratis: 'Gratis af te halen', aanbeveling: 'Aanbeveling', vraag: 'Vraag' };
-                let second = null;
-                if (isPackage) {
-                  if (post.sub_type === 'gezocht' || post.sub_type === 'search') second = 'Gezocht';
-                  else if (post.sub_type === 'bezorgd' || post.sub_type === 'have') second = 'Bezorgd';
-                } else if (isIncident && post.sub_type) {
-                  second = INCIDENT_LBL[post.sub_type] || null;
-                } else if (isWorks) {
-                  second = WORKS_LBL[post.sub_type] || dateLabel;
-                } else if (isAlgemeen && post.sub_type) {
-                  second = ALGEMEEN_LBL[post.sub_type] || null;
-                } else {
-                  second = dateLabel || null;
-                }
-                return [catLabel(post.category), second].filter(Boolean).join(' · ') + ' · ';
-              })()}
-            </span>
-            {post.title}
-          </div>
-          <Chevron size={18} rotate={expanded ? 180 : 0} style={{ flexShrink: 0, marginTop: 3 }} />
-        </div>
-        {/* Altijd zichtbare onderste rij: voornaam · tijd · reacties */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: COLORS.textDim }}>
-          <span style={{ fontWeight: 600, color: COLORS.textMuted }}>
-            {firstName}{post.author_house ? ` ${post.author_house}` : ''}
-          </span>
-          <span>·</span><span>{timeAgo(post.created_at)}</span>
-          {commentCount > 0 && (
-            <>
-              <span>·</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <ChatCircleIcon size={11} weight="regular" />
-                {commentCount}
-              </span>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* ── Uitgeklapte inhoud ── */}
-      {expanded && (
-        <div style={{ marginTop: 10, borderTop: `1px solid ${COLORS.border}`, paddingTop: 10 }}>
-          {post.body && <div style={s.cardBody}>{post.body}</div>}
-          {(post.start_house || post.end_house) && (
-            <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginTop: 8 }}>
-              <span style={{ fontWeight: 700, color: COLORS.text }}>Nr. </span>
-              {post.start_house}{post.end_house ? ` t/m ${post.end_house}` : ''}
-            </div>
-          )}
-          {isEvent && post.event_date && (
-            <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 13, color: COLORS.textMuted }}>
-                <strong style={{ color: COLORS.text }}>Wanneer: </strong>
-                {formatEventDate(post.event_date)}{post.event_time ? ` om ${post.event_time}` : ''}
-              </div>
-            </div>
-          )}
-          {isEvent && <AttendanceToggle post={post} onRsvp={onRsvp} />}
-          {isIncident && <MeldingLinks post={post} />}
-          {post.photo_url && (
-            <img
-              src={post.photo_url}
-              alt=""
-              style={{ width: '100%', borderRadius: 8, marginTop: 8, objectFit: 'cover', maxHeight: 240 }}
-              onError={e => e.target.style.display = 'none'}
-            />
-          )}
-          {post.carrier && (
-            <div style={{ marginTop: 8 }}>
-              <CarrierBadge carrier={post.carrier} />
-            </div>
-          )}
-          {post.link && (
-            <a href={post.link} target="_blank" rel="noopener noreferrer"
-              style={{ display: 'block', marginTop: 8, fontSize: 12, color: COLORS.blue, textDecoration: 'underline', wordBreak: 'break-all' }}>
-              {post.link}
-            </a>
-          )}
-          {post.attachment_name && (
-            <div style={{ marginTop: 8, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '7px 12px', fontSize: 12, color: COLORS.textMuted, display: 'flex', alignItems: 'center', gap: 6 }}>
-              {post.attachment_name}
-            </div>
-          )}
-          {post.allow_join && (
-            <button onClick={e => { e.stopPropagation(); onOpenJoin(post); }}
-              style={{ marginTop: 10, width: '100%', background: post.my_join ? `${COLORS.green}22` : COLORS.bg, border: `1px solid ${post.my_join ? COLORS.green : COLORS.border}`, borderRadius: 8, padding: '8px 12px', color: post.my_join ? COLORS.green : COLORS.textMuted, fontSize: 13, fontWeight: post.my_join ? 700 : 400, cursor: 'pointer', textAlign: 'left' }}>
-              {post.my_join ? t('join_card') : t('join_cta')} <span style={{ color: COLORS.textDim, fontWeight: 400 }}>· {(post.joiners||[]).length} {t('join_participants').toLowerCase()}</span>
-            </button>
-          )}
-          {/* Comments-thread */}
-          <div style={{ marginTop: 14, borderTop: `1px solid ${COLORS.border}`, paddingTop: 12 }}>
-            {threadComments === null && (
-              <div style={{ fontSize: 12, color: COLORS.textDim, paddingBottom: 8 }}>Reacties laden…</div>
-            )}
-            {(threadComments || []).map((c, i) => (
-              <div key={c.id ?? i} style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textMuted, marginBottom: 2 }}>
-                  {(c.author_name || '').split(' ')[0] || 'Bewoner'}{c.author_house ? ` ${c.author_house}` : ''}
-                </div>
-                <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.5 }}>{c.body}</div>
-              </div>
-            ))}
-            {threadComments !== null && (
-              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', marginTop: 4 }} onClick={e => e.stopPropagation()}>
-                <AutoTextarea
-                  value={commentText}
-                  onChange={e => setCommentText(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(e); } }}
-                  placeholder="Reageer…"
-                  rows={1}
-                  style={{ ...s.textarea, flex: 1, padding: '8px 10px', fontSize: 16, minHeight: 'auto', marginBottom: 0 }}
-                />
-                <button onClick={submitComment} disabled={!commentText.trim() || sendingComment}
-                  style={{ background: commentText.trim() ? COLORS.accent : COLORS.border, color: commentText.trim() ? '#000' : COLORS.textDim, border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: commentText.trim() ? 'pointer' : 'default', flexShrink: 0, transition: 'background 0.15s' }}>
-                  {sendingComment ? '…' : 'Stuur'}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Acties */}
-          <div style={{ ...s.cardMeta, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
-            <div style={s.cardMetaLeft}>
-              <button style={{ ...s.actionBtn, gap: 5, color: post.liked ? COLORS.interactionLike : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>
-                <HeartIcon size={14} weight={post.liked ? 'fill' : 'regular'} style={{ display: 'block', flexShrink: 0 }} />
-                <span>{Number(post.likes)}</span>
-              </button>
-            </div>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              {canEdit && (
-                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onEdit(post); }} title="Bewerken">
-                  <PencilSimpleIcon size={13} weight="regular" />
-                </button>
-              )}
-              {canEdit ? (
-                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onDelete(post.id); }} title={t('delete')}>
-                  <TrashIcon size={13} weight="regular" />
-                </button>
-              ) : (
-                <button style={{ ...s.actionBtn, color: post.reported ? COLORS.error : COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('report')}>
-                  {post.reported ? 'Gemeld' : t('report')}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ─── CATEGORY PICKER SHEET ────────────────────────────────────────────────────
@@ -747,67 +372,6 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
         <button style={s.cancelBtn} onClick={close}>{t('close')}</button>
     </SheetOverlay>
   );
-}
-
-// ─── CALENDAR HELPERS ──────────────────────────────────────────────────────────
-
-const DUTCH_MONTHS = { 'januari':0,'februari':1,'maart':2,'april':3,'mei':4,'juni':5,'juli':6,'augustus':7,'september':8,'oktober':9,'november':10,'december':11 };
-
-function parseEventDate(dateStr, timeStr = '00:00') {
-  if (!dateStr) return null;
-  const [h, m] = (timeStr || '00:00').split(':').map(Number);
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const [y, mo, d] = dateStr.split('-').map(Number);
-    return new Date(y, mo - 1, d, h || 0, m || 0);
-  }
-  const p = dateStr.trim().split(' ');
-  if (p.length < 3) return null;
-  const month = DUTCH_MONTHS[p[1]?.toLowerCase()];
-  if (month === undefined) return null;
-  return new Date(parseInt(p[2]), month, parseInt(p[0]), h || 0, m || 0);
-}
-
-function formatEventDate(dateStr) {
-  if (!dateStr) return '';
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const [y, mo, d] = dateStr.split('-').map(Number);
-    return new Date(y, mo - 1, d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
-  }
-  return dateStr;
-}
-
-function toICSDate(d) {
-  const pad = n => String(n).padStart(2, '0');
-  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-}
-
-function downloadICS(post) {
-  const start = parseEventDate(post.event_date, post.event_time);
-  if (!start) return;
-  const end = new Date(start.getTime() + 2 * 3600 * 1000);
-  const ics = [
-    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Streetfeed//NL',
-    'BEGIN:VEVENT',
-    `DTSTART:${toICSDate(start)}`,
-    `DTEND:${toICSDate(end)}`,
-    `SUMMARY:${post.title}`,
-    `DESCRIPTION:${(post.body||'').replace(/\n/g,'\\n')}`,
-    `LOCATION:${post.event_location||''}`,
-    'END:VEVENT','END:VCALENDAR',
-  ].join('\r\n');
-  const a = Object.assign(document.createElement('a'), {
-    href: URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })),
-    download: 'evenement.ics',
-  });
-  a.click();
-}
-
-function googleCalendarUrl(post) {
-  const start = parseEventDate(post.event_date, post.event_time);
-  if (!start) return '#';
-  const end = new Date(start.getTime() + 2 * 3600 * 1000);
-  const fmt = d => d.toISOString().replace(/[-:.]/g,'').slice(0,15);
-  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(post.title)}&dates=${fmt(start)}/${fmt(end)}&details=${encodeURIComponent(post.body||'')}&location=${encodeURIComponent(post.event_location||'')}`;
 }
 
 // ─── JOIN DETAIL SHEET ─────────────────────────────────────────────────────────
