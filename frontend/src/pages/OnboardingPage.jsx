@@ -86,12 +86,6 @@ const s = {
     color: COLORS.text, fontSize: 12, lineHeight: '18px',
     cursor: 'pointer', padding: 0,
   },
-  backBtn: {
-    background: 'none', border: 'none',
-    color: COLORS.textMuted, fontSize: 13,
-    cursor: 'pointer', padding: 0, marginBottom: 16,
-    display: 'flex', alignItems: 'center', gap: 4,
-  },
   error: { color: COLORS.error, fontSize: 13, lineHeight: 1.4 },
   inputFieldsGroup: { display: 'flex', flexDirection: 'column', gap: 24 },
   previewGroup: { display: 'flex', flexDirection: 'column', gap: 8 },
@@ -239,38 +233,35 @@ export default function OnboardingPage() {
   if (step === 'address') {
     return (
       <div style={s.page}>
-        <div style={{ width: '100%' }}>
-          <button style={s.backBtn} onClick={() => { setError(''); setStep('login'); }}>← Terug</button>
-          <div style={s.card}>
-            <div style={s.stepLabel}>Stap 1 van 4</div>
-            <div style={s.titleGroup}>
-              <div style={s.title}>Waar woon je?</div>
-              <div style={s.sub}>Streetfeed bepaalt automatisch welke straat bij jouw postcode hoort.</div>
-            </div>
-            {error && <div style={s.error}>{error}</div>}
-            <div style={s.fieldGroup}>
-              <label style={s.label}>Postcode</label>
-              <input
-                style={s.input}
-                type="text"
-                placeholder="Bijv. 1234 AB"
-                value={postcode}
-                onChange={handlePostcodeChange}
+        <div style={s.card}>
+          <div style={s.stepLabel}>Stap 1 van 4</div>
+          <div style={s.titleGroup}>
+            <div style={s.title}>Waar woon je?</div>
+            <div style={s.sub}>Streetfeed bepaalt automatisch welke straat bij jouw postcode hoort.</div>
+          </div>
+          {error && <div style={s.error}>{error}</div>}
+          <div style={s.fieldGroup}>
+            <label style={s.label}>Postcode</label>
+            <input
+              style={s.input}
+              type="text"
+              placeholder="Bijv. 1234 AB"
+              value={postcode}
+              onChange={handlePostcodeChange}
 
-                maxLength={7}
-                autoComplete="postal-code"
-                autoFocus
-              />
-            </div>
-            <div style={s.ctaGroup}>
-              <button
-                style={{ ...s.btn, ...(!isValidPostcode || loading ? s.btnDisabled : {}) }}
-                onClick={handlePostcodeSubmit}
-                disabled={!isValidPostcode || loading}
-              >
-                {loading ? 'Straat opzoeken…' : 'Volgende'}
-              </button>
-            </div>
+              maxLength={7}
+              autoComplete="postal-code"
+              autoFocus
+            />
+          </div>
+          <div style={s.ctaGroup}>
+            <button
+              style={{ ...s.btn, ...(!isValidPostcode || loading ? s.btnDisabled : {}) }}
+              onClick={handlePostcodeSubmit}
+              disabled={!isValidPostcode || loading}
+            >
+              {loading ? 'Straat opzoeken…' : 'Volgende'}
+            </button>
           </div>
         </div>
       </div>
@@ -282,22 +273,19 @@ export default function OnboardingPage() {
   if (step === 'confirm') {
     return (
       <div style={s.page}>
-        <div style={{ width: '100%' }}>
-          <button style={s.backBtn} onClick={() => setStep('address')}>← Terug</button>
-          <div style={s.card}>
-            <div style={s.stepLabel}>Stap 2 van 4</div>
-            <div style={s.titleGroup}>
-              <div style={s.title}>Welkom in de {validatedAddress.streetName}</div>
-              <div style={s.sub}>We hebben je straat gevonden. Is dit correct?</div>
-            </div>
-            <div style={s.ctaGroup}>
-              <button style={s.btn} onClick={() => setStep('huisnummer')}>
-                Dit klopt
-              </button>
-              <button style={s.btnOutline} onClick={() => { setValidatedAddress(null); setStep('address'); }}>
-                Dit klopt niet
-              </button>
-            </div>
+        <div style={s.card}>
+          <div style={s.stepLabel}>Stap 2 van 4</div>
+          <div style={s.titleGroup}>
+            <div style={s.title}>Welkom in de {validatedAddress.streetName}</div>
+            <div style={s.sub}>We hebben je straat gevonden. Is dit correct?</div>
+          </div>
+          <div style={s.ctaGroup}>
+            <button style={s.btn} onClick={() => setStep('huisnummer')}>
+              Dit klopt
+            </button>
+            <button style={s.btnOutline} onClick={() => { setValidatedAddress(null); setStep('address'); }}>
+              Dit klopt niet
+            </button>
           </div>
         </div>
       </div>
@@ -309,29 +297,26 @@ export default function OnboardingPage() {
   if (step === 'huisnummer') {
     return (
       <div style={s.page}>
-        <div style={{ width: '100%' }}>
-          <button style={s.backBtn} onClick={() => setStep('confirm')}>← Terug</button>
-          <div style={s.card}>
-            <div style={s.stepLabel}>Stap 3 van 4</div>
-            <div style={s.titleGroup}>
-              <div style={s.title}>Wat is je huisnummer?</div>
-              <div style={s.sub}>Kies je huisnummer en toevoeging in de straat.</div>
-            </div>
-            <HouseNumberPicker
-              streetId={validatedAddress.streetId}
-              value={houseNumber}
-              onChange={setHouseNumber}
-              showLabels
-            />
-            <div style={s.ctaGroup}>
-              <button
-                style={{ ...s.btn, ...(!houseNumber ? s.btnDisabled : {}) }}
-                onClick={() => setStep('name')}
-                disabled={!houseNumber}
-              >
-                Volgende
-              </button>
-            </div>
+        <div style={s.card}>
+          <div style={s.stepLabel}>Stap 3 van 4</div>
+          <div style={s.titleGroup}>
+            <div style={s.title}>Wat is je huisnummer?</div>
+            <div style={s.sub}>Kies je huisnummer en toevoeging in de straat.</div>
+          </div>
+          <HouseNumberPicker
+            streetId={validatedAddress.streetId}
+            value={houseNumber}
+            onChange={setHouseNumber}
+            showLabels
+          />
+          <div style={s.ctaGroup}>
+            <button
+              style={{ ...s.btn, ...(!houseNumber ? s.btnDisabled : {}) }}
+              onClick={() => setStep('name')}
+              disabled={!houseNumber}
+            >
+              Volgende
+            </button>
           </div>
         </div>
       </div>
@@ -343,43 +328,40 @@ export default function OnboardingPage() {
   if (step === 'name') {
     return (
       <div style={s.page}>
-        <div style={{ width: '100%' }}>
-          <button style={s.backBtn} onClick={() => setStep('huisnummer')}>← Terug</button>
-          <div style={s.card}>
-            <div style={s.stepLabel}>Stap 4 van 4</div>
-            <div style={s.titleGroup}>
-              <div style={s.title}>Hoe mogen buren je herkennen?</div>
-              <div style={s.sub}>Alleen je voornaam en huisnummer zijn zichtbaar.</div>
+        <div style={s.card}>
+          <div style={s.stepLabel}>Stap 4 van 4</div>
+          <div style={s.titleGroup}>
+            <div style={s.title}>Hoe mogen buren je herkennen?</div>
+            <div style={s.sub}>Alleen je voornaam en huisnummer zijn zichtbaar.</div>
+          </div>
+          {error && <div style={s.error}>{error}</div>}
+          <div style={s.inputFieldsGroup}>
+            <div style={s.fieldGroup}>
+              <label style={s.label}>Voornaam</label>
+              <input
+                style={s.input}
+                type="text"
+                placeholder="Voornaam"
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+
+                autoFocus
+                autoComplete="given-name"
+              />
             </div>
-            {error && <div style={s.error}>{error}</div>}
-            <div style={s.inputFieldsGroup}>
-              <div style={s.fieldGroup}>
-                <label style={s.label}>Voornaam</label>
-                <input
-                  style={s.input}
-                  type="text"
-                  placeholder="Voornaam"
-                  value={firstName}
-                  onChange={e => setFirstName(e.target.value)}
-  
-                  autoFocus
-                  autoComplete="given-name"
-                />
-              </div>
-              <div style={s.previewGroup}>
-                <div style={s.previewLabel}>Zo zien buren je in de feed</div>
-                <div style={s.previewName}>{firstName.trim() || '…'} {houseNumber}</div>
-              </div>
+            <div style={s.previewGroup}>
+              <div style={s.previewLabel}>Zo zien buren je in de feed</div>
+              <div style={s.previewName}>{firstName.trim() || '…'} {houseNumber}</div>
             </div>
-            <div style={s.ctaGroup}>
-              <button
-                style={{ ...s.btn, ...(!firstName.trim() || loading ? s.btnDisabled : {}) }}
-                onClick={handleCreateAccount}
-                disabled={!firstName.trim() || loading}
-              >
-                {loading ? 'Versturen…' : 'Stuur Magic Link'}
-              </button>
-            </div>
+          </div>
+          <div style={s.ctaGroup}>
+            <button
+              style={{ ...s.btn, ...(!firstName.trim() || loading ? s.btnDisabled : {}) }}
+              onClick={handleCreateAccount}
+              disabled={!firstName.trim() || loading}
+            >
+              {loading ? 'Versturen…' : 'Stuur Magic Link'}
+            </button>
           </div>
         </div>
       </div>
