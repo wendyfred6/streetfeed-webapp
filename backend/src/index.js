@@ -1,4 +1,8 @@
 import express from 'express';
+// Must be imported before any route files — patches Express's router so
+// rejected promises in async handlers/middleware reach the error middleware
+// below instead of hanging the request with no response.
+import 'express-async-errors';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import 'dotenv/config';
@@ -35,6 +39,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.get('/api/health', (_, res) => res.json({ ok: true, ts: new Date() }));
 
 app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
   console.error(err);
   res.status(500).json({ error: 'Internal server error' });
 });
