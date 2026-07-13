@@ -8,7 +8,7 @@ import { COLORS, RADIUS, ALPHA, GLASS } from './design/tokens.js';
 import HouseNumberPicker from './components/HouseNumberPicker.jsx';
 import AutoTextarea from './components/AutoTextarea.jsx';
 import PostCard from './components/PostCard.jsx';
-import { CATEGORIES, catLabel } from './utils/categories.js';
+import { CATEGORIES, catLabel, CATEGORY_TREE, typeLabel } from './utils/categories.js';
 import { timeAgo } from './utils/time.js';
 import { formatEventDate, downloadICS, googleCalendarUrl } from './utils/eventDate.js';
 
@@ -17,30 +17,11 @@ import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
 import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
 import { BellIcon } from '@phosphor-icons/react/dist/csr/Bell';
 import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
-import { ChatsCircleIcon } from '@phosphor-icons/react/dist/csr/ChatsCircle';
-import { PackageIcon } from '@phosphor-icons/react/dist/csr/Package';
-import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
-import { CarIcon } from '@phosphor-icons/react/dist/csr/Car';
 import { CraneTowerIcon } from '@phosphor-icons/react/dist/csr/CraneTower';
-import { WarningIcon } from '@phosphor-icons/react/dist/csr/Warning';
-import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
-import { GiftIcon } from '@phosphor-icons/react/dist/csr/Gift';
-import { QuestionIcon } from '@phosphor-icons/react/dist/csr/Question';
-import { TrafficConeIcon } from '@phosphor-icons/react/dist/csr/TrafficCone';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import { ArrowLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowLeft';
 import { TrophyIcon } from '@phosphor-icons/react/dist/csr/Trophy';
 import { ArrowCircleLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowCircleLeft';
-import { BinocularsIcon } from '@phosphor-icons/react/dist/csr/Binoculars';
-import { BarricadeIcon } from '@phosphor-icons/react/dist/csr/Barricade';
-import { MaskHappyIcon } from '@phosphor-icons/react/dist/csr/MaskHappy';
-import { DropIcon } from '@phosphor-icons/react/dist/csr/Drop';
-import { LadderIcon } from '@phosphor-icons/react/dist/csr/Ladder';
-import { CraneIcon } from '@phosphor-icons/react/dist/csr/Crane';
-import { MapPinIcon } from '@phosphor-icons/react/dist/csr/MapPin';
-import { ShieldStarIcon } from '@phosphor-icons/react/dist/csr/ShieldStar';
-import { ArmchairIcon } from '@phosphor-icons/react/dist/csr/Armchair';
-import { CalendarPlusIcon } from '@phosphor-icons/react/dist/csr/CalendarPlus';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 
 // ─── STYLES ────────────────────────────────────────────────────────────────────
@@ -122,59 +103,6 @@ function RoleBadge({ role }) {
   return <span style={s.badge(color)}>{label}</span>;
 }
 
-// ─── CATEGORY PICKER SHEET ────────────────────────────────────────────────────
-
-// Declaratieve data voor CategoryPicker — alle niveaus in één boom
-const PICKER_DATA = [
-  {
-    key: 'bezorging', label: 'Bezorging', sub: 'Pakket aangenomen of pakket gezocht', icon: PackageIcon,
-    types: [
-      { key: 'pakket_aangenomen', label: 'Pakket aangenomen', sub: 'Pakket ontvangen voor een buur',    icon: PackageIcon },
-      { key: 'pakket_gezocht',    label: 'Pakket gezocht',    sub: 'Op zoek naar een vermist pakket',   icon: MagnifyingGlassIcon },
-    ],
-  },
-  {
-    key: 'straatzaken', label: 'Straatzaken', sub: 'Verhuizing, container of tijdelijke hinder', icon: TrafficConeIcon,
-    types: [
-      { key: 'verhuizing',      label: 'Verhuizing',                   sub: 'Je gaat verhuizen of komt wonen in de straat', icon: HouseIcon },
-      { key: 'parkeerplaatsen', label: 'Parkeerplaatsen gereserveerd', sub: 'Tijdelijk minder parkeerruimte',               icon: CarIcon },
-      {
-        key: 'tijdelijke_hinder', label: 'Tijdelijke hinder', sub: 'Tijdelijke overlast of afsluiting', icon: BarricadeIcon,
-        types: [
-          { key: 'container', label: 'Container', sub: 'Container geplaatst of onderweg',    icon: PackageIcon },
-          { key: 'steiger',   label: 'Steiger',   sub: 'Steiger geplaatst of gepland',        icon: LadderIcon },
-          { key: 'kraan',     label: 'Kraan',     sub: 'Kraanwerkzaamheden in de straat',     icon: CraneIcon },
-        ],
-      },
-    ],
-  },
-  {
-    key: 'melding', label: 'Melding', sub: 'Schade, overlast of iets verdachts', icon: WarningIcon,
-    types: [
-      { key: 'overlast', label: 'Overlast',           sub: 'Meld overlast in de straat',  icon: MaskHappyIcon },
-      { key: 'schade',   label: 'Schade',             sub: 'Meld schade in de straat',    icon: DropIcon },
-      { key: 'verdacht', label: 'Verdachte situatie', sub: 'Iets gezien dat niet klopt?', icon: EyeIcon },
-    ],
-  },
-  {
-    key: 'lostandfound', label: 'Lost & Found', sub: 'Iets verloren of gevonden', icon: BinocularsIcon,
-    types: [
-      { key: 'verloren', label: 'Verloren', sub: 'Iets kwijtgeraakt', icon: MagnifyingGlassIcon },
-      { key: 'gevonden', label: 'Gevonden', sub: 'Iets gevonden',      icon: MapPinIcon },
-    ],
-  },
-  { key: 'evenement', label: 'Evenement', sub: 'Van straatborrel tot....straatborrel?', icon: CalendarPlusIcon, types: null },
-  {
-    key: 'algemeen', label: 'Algemeen', sub: 'Van oppas gezocht tot gratis af te halen', icon: ChatsCircleIcon,
-    types: [
-      { key: 'gezocht',     label: 'Gezocht',          sub: 'Op zoek naar iets of iemand',          icon: QuestionIcon },
-      { key: 'te_koop',     label: 'Te koop',           sub: 'Bied iets te koop aan',                icon: ArmchairIcon },
-      { key: 'gratis',      label: 'Gratis af te halen', sub: 'Geef iets gratis weg',               icon: GiftIcon },
-      { key: 'aanbeveling', label: 'Aanbeveling',       sub: 'Tip een bedrijf, restaurant of vakman', icon: ShieldStarIcon },
-    ],
-  },
-];
-
 // ─── CATEGORY PICKER (gecentreerde modal, alle niveaus intern) ────────────────
 
 function CategoryPicker({ onClose, onSelect }) {
@@ -184,10 +112,10 @@ function CategoryPicker({ onClose, onSelect }) {
 
   const close = () => { setClosing(true); setTimeout(onClose, 220); };
 
-  // Huidige items op basis van pad door PICKER_DATA-boom
+  // Huidige items op basis van pad door CATEGORY_TREE
   const currentItems = path.reduce(
     (items, { key }) => items.find(it => it.key === key)?.types || [],
-    PICKER_DATA,
+    CATEGORY_TREE,
   );
 
   const handleRow = (item) => {
@@ -618,49 +546,7 @@ function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, doc
   );
 }
 
-// ─── TYPE PICKER + NEW POST SHEET ─────────────────────────────────────────────
-
-// Gebruikt door typeLabel() voor weergave in feed + formulier (inclusief backward-compat keys)
-const TYPE_META = {
-  bezorging: [
-    { key: 'pakket_aangenomen', label: 'Pakket aangenomen' },
-    { key: 'pakket_gezocht',    label: 'Pakket gezocht' },
-    { key: 'bezorgd',           label: 'Bezorgd' },
-    { key: 'gezocht',           label: 'Gezocht' },
-  ],
-  straatzaken: [
-    { key: 'verhuizing',        label: 'Verhuizing' },
-    { key: 'parkeerplaatsen',   label: 'Parkeerplaatsen gereserveerd' },
-    { key: 'container',         label: 'Container' },
-    { key: 'steiger',           label: 'Steiger' },
-    { key: 'kraan',             label: 'Kraan' },
-    { key: 'tijdelijke_hinder', label: 'Tijdelijke hinder' },
-    { key: 'werkzaamheden',     label: 'Werkzaamheden' },
-    { key: 'parkeerverbod',     label: 'Parkeerverbod' },
-  ],
-  melding: [
-    { key: 'overlast',  label: 'Overlast' },
-    { key: 'schade',    label: 'Schade' },
-    { key: 'verdacht',  label: 'Verdachte situatie' },
-    { key: 'lost_found', label: 'Lost & Found' },
-  ],
-  lostandfound: [
-    { key: 'verloren', label: 'Verloren' },
-    { key: 'gevonden', label: 'Gevonden' },
-  ],
-  algemeen: [
-    { key: 'gezocht',     label: 'Gezocht' },
-    { key: 'te_koop',     label: 'Te koop' },
-    { key: 'gratis',      label: 'Gratis af te halen' },
-    { key: 'aanbeveling', label: 'Aanbeveling' },
-    { key: 'te_leen',     label: 'Te leen' },
-    { key: 'vraag',       label: 'Vraag' },
-  ],
-};
-
-function typeLabel(cat, type) {
-  return TYPE_META[cat]?.find(t => t.key === type)?.label || type;
-}
+// ─── NEW POST SHEET ────────────────────────────────────────────────────────────
 
 function NewPostSheet({ onClose, onBack, onSubmit, streetId, canPin, user, initialCat = 'bezorging', initialType = null }) {
   const [title, setTitle] = useState('');

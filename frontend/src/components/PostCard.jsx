@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth.jsx';
 import { api } from '../api/client.js';
 import { t } from '../i18n/index.js';
 import { COLORS, RADIUS, GLASS } from '../design/tokens.js';
-import { catLabel } from '../utils/categories.js';
+import { catLabel, typeLabel } from '../utils/categories.js';
 import { timeAgo } from '../utils/time.js';
 import { formatEventDate } from '../utils/eventDate.js';
 import AutoTextarea from './AutoTextarea.jsx';
@@ -213,19 +213,16 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
           <div style={{ flex: 1, fontSize: 16, fontWeight: 700, lineHeight: 1.35 }}>
             <span style={{ color: COLORS.textDim, fontWeight: 400 }}>
               {(() => {
-                const INCIDENT_LBL = { lost_found: 'Lost & Found', overlast: 'Overlast', schade: 'Schade', verdacht: 'Verdachte situatie' };
-                const WORKS_LBL   = { steiger: 'Steiger', werkzaamheden: 'Werkzaamheden', parkeerverbod: 'Parkeerverbod', container: 'Container', kraan: 'Kraan', verhuizing: 'Verhuizing' };
-                const ALGEMEEN_LBL = { gezocht: 'Gezocht', te_leen: 'Te leen', te_koop: 'Te koop', gratis: 'Gratis af te halen', aanbeveling: 'Aanbeveling', vraag: 'Vraag' };
                 let second = null;
                 if (isPackage) {
                   if (post.sub_type === 'gezocht' || post.sub_type === 'search') second = 'Gezocht';
                   else if (post.sub_type === 'bezorgd' || post.sub_type === 'have') second = 'Bezorgd';
                 } else if (isIncident && post.sub_type) {
-                  second = INCIDENT_LBL[post.sub_type] || null;
+                  second = typeLabel('melding', post.sub_type) || null;
                 } else if (isWorks) {
-                  second = WORKS_LBL[post.sub_type] || dateLabel;
+                  second = typeLabel('straatzaken', post.sub_type) || dateLabel;
                 } else if (isAlgemeen && post.sub_type) {
-                  second = ALGEMEEN_LBL[post.sub_type] || null;
+                  second = typeLabel('algemeen', post.sub_type) || null;
                 } else {
                   second = dateLabel || null;
                 }
