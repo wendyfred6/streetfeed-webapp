@@ -112,7 +112,7 @@ export function registerCrudRoutes(router) {
           url: `/?post=${post.id}`,
           postId: post.id,
           category: 'mandatory',
-        }).catch(() => {}));
+        }).catch(err => console.error(`[posts] notifyUser failed for user ${uid} (post ${post.id})`, err)));
       }
 
       // Normale straat-brede broadcast — doelgebruikers hierboven al apart
@@ -127,7 +127,7 @@ export function registerCrudRoutes(router) {
         body: (body || '').substring(0, 100),
         url: `/?post=${post.id}`,
         postId: post.id,
-      }, targetUserIds).catch(() => {});
+      }, targetUserIds).catch(err => console.error(`[posts] notifyStreet failed for post ${post.id} (street ${streetId})`, err));
     })();
 
     res.status(201).json(post);
