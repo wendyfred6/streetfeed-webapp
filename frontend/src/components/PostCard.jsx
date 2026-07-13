@@ -125,7 +125,7 @@ function CarrierBadge({ carrier }) {
 
 // ─── POST CARD ─────────────────────────────────────────────────────────────────
 
-export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, onDelete, canModerate, onEdit, canEdit, autoExpand }) {
+export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, onDelete, canModerate, onEdit, canEdit, autoExpand, onError }) {
   const [expanded, setExpanded] = useState(false);
   const [threadComments, setThreadComments] = useState(null);
   const [commentText, setCommentText] = useState('');
@@ -140,7 +140,10 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
     if (expanded && threadComments === null) {
       api.get(`/streets/1/posts/${post.id}/comments`)
         .then(data => setThreadComments(data))
-        .catch(() => setThreadComments([]));
+        .catch(err => {
+          setThreadComments([]);
+          onError?.(err.message || 'Reacties laden mislukt');
+        });
     }
   }, [expanded]);
 
@@ -153,9 +156,7 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
       setThreadComments(prev => [...(prev || []), { ...comment, author_name: user?.name, author_house: user?.house_number, author_role: user?.role }]);
       setCommentText('');
     } catch (err) {
-      // Swallowed intentionally for now — proper user-facing error surfacing
-      // is tracked in FRE-313 (shared toast/error hook for feed & comments).
-      console.error('[comment] submit failed:', err);
+      onError?.(err.message || 'Reactie versturen mislukt');
     }
     setSendingComment(false);
   };

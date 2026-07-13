@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useAuth } from './hooks/useAuth.jsx';
 import { usePush, notifSupported } from './hooks/usePush.jsx';
+import { useToast } from './hooks/useToast.jsx';
 import { api } from './api/client.js';
 import { t, getLang, setLang } from './i18n/index.js';
 
@@ -8,6 +9,7 @@ import { COLORS, RADIUS, ALPHA, GLASS } from './design/tokens.js';
 import HouseNumberPicker from './components/HouseNumberPicker.jsx';
 import AutoTextarea from './components/AutoTextarea.jsx';
 import PostCard from './components/PostCard.jsx';
+import Toast from './components/Toast.jsx';
 import { CATEGORIES, catLabel, CATEGORY_TREE, typeLabel } from './utils/categories.js';
 import { timeAgo } from './utils/time.js';
 import { formatEventDate, downloadICS, googleCalendarUrl } from './utils/eventDate.js';
@@ -1204,6 +1206,7 @@ function SegmentedControl({ options, value, onChange, label, style }) {
 export default function App() {
   const { user, logout } = useAuth();
   const { permission, subscribed, subscribe } = usePush();
+  const { toast, showToast, dismissToast } = useToast();
   const [tab, setTab] = useState('feed');
   const [filter, setFilter] = useState('all');
   const [posts, setPosts] = useState([]);
@@ -1214,9 +1217,6 @@ export default function App() {
   const [pendingType, setPendingType] = useState(null);
   const [eventDetail, setEventDetail] = useState(null);
   const [joinDetail, setJoinDetail] = useState(null);
-  const [reportedToast, setReportedToast] = useState(false);
-  const [postError, setPostError] = useState('');
-  const [notifToast, setNotifToast] = useState('');
   const [streetInfo, setStreetInfo] = useState(null);
   const [editPost, setEditPost] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -1231,16 +1231,20 @@ export default function App() {
   const canPin = user?.is_super_admin || membership?.role === 'admin';
   const pendingCount = 0; // Fetched in AdminView, badge handled separately
 
+  const showError = useCallback((message) => {
+    showToast(message, { borderColor: COLORS.error, textColor: COLORS.error });
+  }, [showToast]);
+
   const loadPosts = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api.get(`/streets/${STREET_ID}/posts`);
       setPosts(data);
     } catch (e) {
-      console.error('Failed to load posts', e);
+      showError(e.message || 'Feed laden mislukt');
     }
     setLoading(false);
-  }, []);
+  }, [showError]);
 
   useEffect(() => {
     if (tab === 'feed') {
@@ -1314,34 +1318,45 @@ export default function App() {
   }, [deepLinkPostId, posts, loading]);
 
   const handleLike = async (id) => {
-    const { liked } = await api.post(`/streets/${STREET_ID}/posts/${id}/like`);
-    setPosts(ps => ps.map(p => p.id === id ? { ...p, liked, likes: Number(p.likes) + (liked ? 1 : -1) } : p));
+    try {
+      const { liked } = await api.post(`/streets/${STREET_ID}/posts/${id}/like`);
+      setPosts(ps => ps.map(p => p.id === id ? { ...p, liked, likes: Number(p.likes) + (liked ? 1 : -1) } : p));
+    } catch (e) {
+      showError(e.message || 'Vind-ik-leuk mislukt');
+    }
   };
 
   const handleRsvp = async (id, type) => {
-    const { rsvp } = await api.post(`/streets/${STREET_ID}/posts/${id}/rsvp`, { type });
-    setPosts(ps => ps.map(p => {
-      if (p.id !== id) return p;
-      const r = { yes: [...(p.rsvp?.yes||[])], maybe: [...(p.rsvp?.maybe||[])], no: [...(p.rsvp?.no||[])] };
-      if (p.my_rsvp) r[p.my_rsvp] = r[p.my_rsvp].filter(n => n !== user.name);
-      if (rsvp) r[rsvp] = [...r[rsvp], user.name];
-      return { ...p, my_rsvp: rsvp, rsvp: r };
-    }));
-    if (eventDetail?.id === id) {
-      setEventDetail(prev => {
-        const r = { yes: [...(prev.rsvp?.yes||[])], maybe: [...(prev.rsvp?.maybe||[])], no: [...(prev.rsvp?.no||[])] };
-        if (prev.my_rsvp) r[prev.my_rsvp] = r[prev.my_rsvp].filter(n => n !== user.name);
+    try {
+      const { rsvp } = await api.post(`/streets/${STREET_ID}/posts/${id}/rsvp`, { type });
+      setPosts(ps => ps.map(p => {
+        if (p.id !== id) return p;
+        const r = { yes: [...(p.rsvp?.yes||[])], maybe: [...(p.rsvp?.maybe||[])], no: [...(p.rsvp?.no||[])] };
+        if (p.my_rsvp) r[p.my_rsvp] = r[p.my_rsvp].filter(n => n !== user.name);
         if (rsvp) r[rsvp] = [...r[rsvp], user.name];
-        return { ...prev, my_rsvp: rsvp, rsvp: r };
-      });
+        return { ...p, my_rsvp: rsvp, rsvp: r };
+      }));
+      if (eventDetail?.id === id) {
+        setEventDetail(prev => {
+          const r = { yes: [...(prev.rsvp?.yes||[])], maybe: [...(prev.rsvp?.maybe||[])], no: [...(prev.rsvp?.no||[])] };
+          if (prev.my_rsvp) r[prev.my_rsvp] = r[prev.my_rsvp].filter(n => n !== user.name);
+          if (rsvp) r[rsvp] = [...r[rsvp], user.name];
+          return { ...prev, my_rsvp: rsvp, rsvp: r };
+        });
+      }
+    } catch (e) {
+      showError(e.message || 'RSVP mislukt');
     }
   };
 
   const handleReport = async (id) => {
-    await api.post(`/streets/${STREET_ID}/posts/${id}/report`);
-    setPosts(ps => ps.map(p => p.id === id ? { ...p, reported: true } : p));
-    setReportedToast(true);
-    setTimeout(() => setReportedToast(false), 2500);
+    try {
+      await api.post(`/streets/${STREET_ID}/posts/${id}/report`);
+      setPosts(ps => ps.map(p => p.id === id ? { ...p, reported: true } : p));
+      showToast(t('reported_toast'), { borderColor: COLORS.error, duration: 2500 });
+    } catch (e) {
+      showError(e.message || 'Melden mislukt');
+    }
   };
 
   const handleDeleteClick = (id) => setDeleteConfirm(id);
@@ -1349,8 +1364,12 @@ export default function App() {
   const handleDeleteConfirmed = async () => {
     const id = deleteConfirm;
     setDeleteConfirm(null);
-    await api.delete(`/streets/${STREET_ID}/posts/${id}`);
-    setPosts(ps => ps.filter(p => p.id !== id));
+    try {
+      await api.delete(`/streets/${STREET_ID}/posts/${id}`);
+      setPosts(ps => ps.filter(p => p.id !== id));
+    } catch (e) {
+      showError(e.message || 'Verwijderen mislukt');
+    }
   };
 
   const handleResolve = async (id, resolved) => {
@@ -1379,8 +1398,7 @@ export default function App() {
         rsvp: { yes: [], maybe: [], no: [] },
       }, ...ps]);
     } catch (e) {
-      setPostError(e.message || 'Bericht plaatsen mislukt');
-      setTimeout(() => setPostError(''), 4000);
+      showError(e.message || 'Bericht plaatsen mislukt');
     }
   };
 
@@ -1389,8 +1407,7 @@ export default function App() {
       const updated = await api.patch(`/streets/${STREET_ID}/posts/${postId}`, data);
       setPosts(ps => ps.map(p => p.id === postId ? { ...p, ...updated } : p));
     } catch (e) {
-      setPostError(e.message || 'Bewerken mislukt');
-      setTimeout(() => setPostError(''), 4000);
+      showError(e.message || 'Bewerken mislukt');
     }
   };
 
@@ -1407,8 +1424,7 @@ export default function App() {
       setPosts(ps => ps.map(updatedPost));
       setJoinDetail(prev => prev?.id === id ? updatedPost(prev) : prev);
     } catch (e) {
-      setPostError(e.message || 'Aanmelden mislukt');
-      setTimeout(() => setPostError(''), 4000);
+      showError(e.message || 'Aanmelden mislukt');
     }
   };
 
@@ -1418,28 +1434,7 @@ export default function App() {
 
   return (
     <div style={s.app}>
-      {reportedToast && (
-        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: COLORS.surface, border: `1px solid ${COLORS.error}`, borderRadius: 10, padding: '10px 20px', fontSize: 13, color: COLORS.text, zIndex: 200, whiteSpace: 'nowrap' }}>
-          {t('reported_toast')}
-        </div>
-      )}
-      {postError && (
-        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: COLORS.surface, border: `1px solid ${COLORS.error}`, borderRadius: 10, padding: '10px 20px', fontSize: 13, color: COLORS.error, zIndex: 200, whiteSpace: 'nowrap' }}>
-          {postError}
-        </div>
-      )}
-      {notifToast && (
-        <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 40px)', maxWidth: 320, background: COLORS.surface, border: `1px solid ${COLORS.accent}`, borderRadius: 10, padding: '14px 36px 14px 16px', fontSize: 13, color: COLORS.text, zIndex: 200, textAlign: 'left', lineHeight: 1.5 }}>
-          {notifToast}
-          <button
-            onClick={() => setNotifToast('')}
-            aria-label="Sluiten"
-            style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', padding: 6, cursor: 'pointer', color: COLORS.textMuted, display: 'flex' }}
-          >
-            <XIcon size={16} weight="bold" />
-          </button>
-        </div>
-      )}
+      <Toast toast={toast} onDismiss={dismissToast} />
 
       <div style={s.header}>
         <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
@@ -1476,8 +1471,8 @@ export default function App() {
               </div>
               <button onClick={async () => {
                 const result = await subscribe();
-                if (result.ok) setNotifToast('Notificaties staan nu aan');
-                else if (result.error) setNotifToast(result.error);
+                if (result.ok) showToast('Notificaties staan nu aan', { dismissible: true, wrap: true, duration: 0 });
+                else if (result.error) showToast(result.error, { dismissible: true, wrap: true, duration: 0 });
               }} style={{ background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 Aanzetten
               </button>
@@ -1497,12 +1492,12 @@ export default function App() {
             : <>
               {pinnedPosts.length > 0 && (
                 <><div style={s.sectionLabel}>{t('pinned')}</div>
-                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onDelete={handleDeleteClick} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} />)}</>
+                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onDelete={handleDeleteClick} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} onError={showError} />)}</>
               )}
               <div style={s.sectionLabel}>{t('recent')}</div>
               {regularPosts.length === 0
                 ? <div style={s.emptyState}>{t('no_posts')}</div>
-                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onDelete={handleDeleteClick} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} />)}
+                : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onDelete={handleDeleteClick} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} onError={showError} />)}
             </>
           }
         </div>
