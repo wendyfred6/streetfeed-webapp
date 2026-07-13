@@ -195,7 +195,7 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
   };
   const dateLabel = getDateLabel();
 
-  const firstName = (post.author_name || '').split(' ')[0] || 'Bewoner';
+  const firstName = (post.author_name || '').split(' ')[0] || t('resident');
 
   return (
     <div id={`post-${post.id}`} style={s.card(post.pinned)}>
@@ -304,12 +304,12 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
           {/* Comments-thread */}
           <div style={{ marginTop: 14, borderTop: `1px solid ${COLORS.border}`, paddingTop: 12 }}>
             {threadComments === null && (
-              <div style={{ fontSize: 12, color: COLORS.textDim, paddingBottom: 8 }}>Reacties laden…</div>
+              <div style={{ fontSize: 12, color: COLORS.textDim, paddingBottom: 8 }}>{t('comments_loading')}</div>
             )}
             {(threadComments || []).map((c, i) => (
               <div key={c.id ?? i} style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textMuted, marginBottom: 2 }}>
-                  {(c.author_name || '').split(' ')[0] || 'Bewoner'}{c.author_house ? ` ${c.author_house}` : ''}
+                  {(c.author_name || '').split(' ')[0] || t('resident')}{c.author_house ? ` ${c.author_house}` : ''}
                 </div>
                 <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.5 }}>{c.body}</div>
               </div>
@@ -320,13 +320,13 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
                   value={commentText}
                   onChange={e => setCommentText(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(e); } }}
-                  placeholder="Reageer…"
+                  placeholder={t('comment_placeholder')}
                   rows={1}
                   style={{ ...s.textarea, flex: 1, padding: '8px 10px', fontSize: 16, minHeight: 'auto', marginBottom: 0 }}
                 />
                 <button onClick={submitComment} disabled={!commentText.trim() || sendingComment}
                   style={{ background: commentText.trim() ? COLORS.accent : COLORS.border, color: commentText.trim() ? '#000' : COLORS.textDim, border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: commentText.trim() ? 'pointer' : 'default', flexShrink: 0, transition: 'background 0.15s' }}>
-                  {sendingComment ? '…' : 'Stuur'}
+                  {sendingComment ? '…' : t('comment_send')}
                 </button>
               </div>
             )}

@@ -148,4 +148,7 @@ export default {
   time_hour_ago: '{n} uur geleden',
   time_yesterday: 'gisteren',
   until: 't/m',
+  comments_loading: 'Reacties laden…',
+  comment_placeholder: 'Reageer…',
+  comment_send: 'Stuur',
 };

@@ -148,4 +148,7 @@ export default {
   time_hour_ago: '{n} hr ago',
   time_yesterday: 'yesterday',
   until: 'until',
+  comments_loading: 'Loading comments…',
+  comment_placeholder: 'Reply…',
+  comment_send: 'Send',
 };
