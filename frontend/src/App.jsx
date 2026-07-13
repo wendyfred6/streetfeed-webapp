@@ -299,7 +299,11 @@ function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, onD
       const comment = await api.post(`/streets/1/posts/${post.id}/comments`, { body: commentText.trim() });
       setThreadComments(prev => [...(prev || []), { ...comment, author_name: user?.name, author_house: user?.house_number, author_role: user?.role }]);
       setCommentText('');
-    } catch {}
+    } catch (err) {
+      // Swallowed intentionally for now — proper user-facing error surfacing
+      // is tracked in FRE-313 (shared toast/error hook for feed & comments).
+      console.error('[comment] submit failed:', err);
+    }
     setSendingComment(false);
   };
 
