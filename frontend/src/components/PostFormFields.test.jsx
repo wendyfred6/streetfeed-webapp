@@ -37,6 +37,27 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
     })));
   });
 
+  it('lostandfound: shows a title + description but no house-number row (FRE-317), and submits the right payload', async () => {
+    const onSubmit = vi.fn();
+    render(
+      <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={onSubmit}
+        streetId={1} user={USER} initialCat="lostandfound" initialType="verloren" />
+    );
+
+    expect(screen.getByText('Titel *')).toBeInTheDocument();
+    expect(screen.queryByText('Van nr. *')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Bijv. Sleutelbos met rood label'), { target: { value: 'Sleutelbos kwijt' } });
+
+    fireEvent.click(screen.getByText('Plaatsen'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      category: 'lostandfound',
+      subType: 'verloren',
+      title: 'Sleutelbos kwijt',
+    })));
+  });
+
   it('bezorging + pakket_gezocht: hides the title input, shows the "own house number" helper text, and can submit immediately', async () => {
     const onSubmit = vi.fn();
     render(
@@ -65,6 +86,13 @@ describe('EditPostSheet (FRE-316 extraction + FRE-311-style sub_type drift fix)'
     };
     render(<EditPostSheet post={post} onClose={vi.fn()} onSave={vi.fn()} streetId={1} />);
     expect(screen.getByText('Huisnummer geadresseerde')).toBeInTheDocument();
+  });
+
+  it('lostandfound: shows title + description only, no house row (FRE-317)', () => {
+    const post = { id: 3, category: 'lostandfound', sub_type: 'gevonden', title: 'Zwarte want gevonden', body: '' };
+    render(<EditPostSheet post={post} onClose={vi.fn()} onSave={vi.fn()} streetId={1} />);
+    expect(screen.getByText('Titel')).toBeInTheDocument();
+    expect(screen.queryByText('Van nr.')).not.toBeInTheDocument();
   });
 
   it('straatzaken: shows the van/tot house row, date range, and link field', () => {

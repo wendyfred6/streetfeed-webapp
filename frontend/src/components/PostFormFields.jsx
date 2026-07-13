@@ -25,7 +25,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     photoPreview, setPhotoPreview, setPhotoKey, uploading, setUploading,
   } = form;
 
-  const { isBezorging, isStraatzaken, isMelding, isEvenement, isAlgemeen, isGezocht, isBezorgd, hasDateRange, hasTimeRange, hasLink } =
+  const { isBezorging, isStraatzaken, isMelding, isEvenement, isAlgemeen, isLostAndFound, isGezocht, isBezorgd, hasDateRange, hasTimeRange, hasLink } =
     postCategoryFlags(category, subType);
 
   const autoTitle = isGezocht
@@ -46,7 +46,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     </div>
   );
 
-  const houseRow = !isBezorging && !isAlgemeen && (
+  const houseRow = !isBezorging && !isAlgemeen && !isLostAndFound && (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
       <div>
         <label style={s.label}>Van nr.{isCreate ? ' *' : ''}</label>
@@ -115,7 +115,9 @@ export default function PostFormFields({ mode, category, subType, form, streetId
       ? 'Bijv. Straatborrel Kerst'
       : isStraatzaken
         ? 'Bijv. Vervanging gasleiding'
-        : 'Bijv. Tweedehands bank te koop';
+        : isLostAndFound
+          ? (subType === 'verloren' ? 'Bijv. Sleutelbos met rood label' : subType === 'gevonden' ? 'Bijv. Zwarte want bij de brievenbus' : 'Bijv. Verloren of gevonden voorwerp')
+          : 'Bijv. Tweedehands bank te koop';
 
   const titleField = !(isCreate && isBezorging) && (
     <>
@@ -179,6 +181,12 @@ export default function PostFormFields({ mode, category, subType, form, streetId
         </>
       )}
       {isAlgemeen && (
+        <>
+          {titleField}
+          {bodyField}
+        </>
+      )}
+      {isLostAndFound && (
         <>
           {titleField}
           {bodyField}

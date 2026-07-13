@@ -14,6 +14,7 @@ export function postCategoryFlags(category, subType) {
   const isMelding     = category === 'melding'      || category === 'incident';
   const isEvenement   = category === 'evenement'    || category === 'event';
   const isAlgemeen    = category === 'algemeen';
+  const isLostAndFound = category === 'lostandfound';
 
   const isGezocht = isBezorging && ['pakket_gezocht', 'gezocht', 'search'].includes(subType);
   const isBezorgd = isBezorging && ['pakket_aangenomen', 'bezorgd', 'have'].includes(subType);
@@ -22,5 +23,5 @@ export function postCategoryFlags(category, subType) {
   const hasTimeRange = isStraatzaken;
   const hasLink      = ['straatzaken', 'works', 'blockage', 'container', 'waste'].includes(category);
 
-  return { isBezorging, isStraatzaken, isMelding, isEvenement, isAlgemeen, isGezocht, isBezorgd, hasDateRange, hasTimeRange, hasLink };
+  return { isBezorging, isStraatzaken, isMelding, isEvenement, isAlgemeen, isLostAndFound, isGezocht, isBezorgd, hasDateRange, hasTimeRange, hasLink };
 }
