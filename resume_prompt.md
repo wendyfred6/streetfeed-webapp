@@ -22,11 +22,13 @@ Streetfeed is a hyper-local street PWA for Reyer Anslostraat, Amsterdam (~111 ho
 | M6 — Pilot Readiness | Cross-cutting polish that doesn't attach to one feature: docs, Dockerfile hardening, migration tooling, final accessibility/i18n sweep, legal/privacy, acceptance test |
 | Post-Pilot Backlog | Filed, not scheduled: Events & RSVP, Streets view, Hall of Fame, full moderation/role management, RDW live lookup, other non-essential polish |
 
-**Active milestone: M2 — Feed & Comments.**
+**Active milestone: M3 — New Post.**
 
 M0 — Foundation & Safety is complete (all 9 issues Done, retro filed as FRE-343). Notably: the R2-vs-local-disk and docker-compose-consolidation decisions are both resolved (see `docs/DECISIONS.md`), async error handling is fixed, rate limiting is added, ESLint+Vitest+CI gate exist in both packages, and Cloudflare Tunnel is confirmed reachable. Two follow-ups spun out to M6 (FRE-341 photo retention, FRE-342 dependency bumps).
 
 M1 — Auth, Onboarding & Approval is complete (all 9 issues Done, retro filed as FRE-344). Notably: AuthPage/OnboardingPage duplicate registration flows are reconciled and the FRE-295 user-enumeration oracle is closed (FRE-301); the admin approval queue is actually wired end-to-end for the first time — new registrations land pending instead of auto-approving, and a real bug in the pending-queue endpoint (returned membership id instead of user id, making approve/reject silently no-op) is fixed (FRE-304); the onboarding wizard is synced to Figma including removing its back button (FRE-303, FRE-302); onboarding/auth pages have real i18n coverage and a way to pick English before login (FRE-305); accessibility pass done on onboarding/auth forms (FRE-306); iOS home-screen tip added to the magic-link email (FRE-307); hardcoded super-admin grant moved out of schema.sql (FRE-308); and a real CI smoke test now covers the registration→approval→login critical path against a live Postgres (FRE-309, first CI infra change of the project — added a postgres service container to `test-backend`).
+
+M2 — Feed & Comments is complete (all 6 issues Done, retro filed as FRE-349). Notably: `PostCard` (and its embedded comment thread) is extracted out of `App.jsx` into `components/PostCard.jsx`, with shared helpers split into `utils/{categories,time,eventDate}.js` and `components/AutoTextarea.jsx` to avoid a circular import — `App.jsx` drops from 2149 to ~1660 lines (FRE-310); the post-card expand/collapse gesture gets `role="button"`/keyboard support (FRE-314, bundled into FRE-310's commit); the four drifting category/type-label sources (`catLabel`/`LEGACY_LABELS`, `PICKER_DATA`, `TYPE_META`/`typeLabel`, PostCard's per-render inline maps) are consolidated into one `CATEGORY_TREE` in `utils/categories.js`, incidentally fixing a real bug where `lostandfound` sub-types had no label at all (FRE-311); comment thread strings are routed through `t()` (FRE-312); a shared `useToast`/`Toast` hook replaces three duplicated fixed-position toast divs and is applied to feed/comment error states, including PostCard's previously-silent comment load/submit failures (FRE-313, with FRE-348 filed to M6 for the remaining secondary-view swallowed catches); and an `App.smoke.test.jsx` covers the feed-load → expand → comment-post flow end to end (FRE-315).
 
 **Post-M1 production incident (found by Wendy's own Product Owner smoke test on streetfeed.nl right after the M1 redeploy, both now resolved):**
 - **FRE-345** — magic link requests 500'd in production. Root cause: the `RESEND_API_KEY` in the Portainer stack was invalid (a copy-paste error from setup). Pure config fix via Portainer, no code change — see the issue for the full Portainer navigation trail (it's non-obvious: the stack's "Environment variables" form doesn't show existing values when reopened, so it looked empty even though `POSTGRES_PASSWORD`/etc. had compose-file-level defaults keeping things running). Verified fixed live in production.
@@ -35,9 +37,9 @@ M1 — Auth, Onboarding & Approval is complete (all 9 issues Done, retro filed a
 
 ## What to do this session
 
-1. Fetch M2's open issues from Linear (project "Streetfeed v1.0", milestone "M2 — Feed & Comments"). Work them one at a time.
+1. Fetch M3's open issues from Linear (project "Streetfeed v1.0", milestone "M3 — New Post"). Work them one at a time.
 2. Update each issue's status in Linear as you go (don't batch status updates to the end).
-3. When every M2 issue is closed: file one `Retro: M2 — Feed & Comments` issue in that milestone using this template:
+3. When every M3 issue is closed: file one `Retro: M3 — New Post` issue in that milestone using this template:
    ```
    - What went well
    - What took longer than expected / was harder than it looked
@@ -45,7 +47,7 @@ M1 — Auth, Onboarding & Approval is complete (all 9 issues Done, retro filed a
    - Follow-up issues filed as a result (links)
    - Issues closed / commits or PRs merged (links)
    ```
-4. Edit this file: change "Active milestone" to **M3 — New Post**, and move this line's target in step 1 forward accordingly. Then stop and tell the user to `/clear`.
+4. Edit this file: change "Active milestone" to **M4 — Notifications**, and move this line's target in step 1 forward accordingly. Then stop and tell the user to `/clear`.
 
 ## Workflow notes learned during M0 (worth keeping)
 
@@ -62,6 +64,16 @@ M1 — Auth, Onboarding & Approval is complete (all 9 issues Done, retro filed a
 - Figma has more than one page relevant to this project — the "🌸 Streetfeed Pattern Library v0.1" page covers the Category Picker/New Post Sheet system; a separate "🌸 Streetfeed Onboarding v0.1" page (node `251:2740`) covers registration/login and is M1's actual source of truth. If a Figma-sync issue's frames aren't where you expect, ask before assuming they don't exist — see `project-figma-design-system.md`.
 - When Figma and code genuinely conflict for a security- or architecture-relevant reason (not just taste), stop and ask rather than picking a side — Wendy explicitly wants this per her own instruction, and it surfaced a real case in FRE-301/FRE-302 (Figma's "unknown email" interstitial vs. the enumeration-oracle fix).
 - CI's `test-backend` job now has a real `postgres` service container (added for FRE-309's smoke test). If M2 needs more integration-style tests, this is already available — no new CI plumbing needed, just point `DATABASE_URL` at `localhost:5432`.
+
+## Workflow notes learned during M2 (worth keeping)
+
+- No Docker/Postgres needed for frontend-only milestones — `npm run build`/`lint`/`test` plus ad-hoc React Testing Library renders (mocking `api`/`useAuth` with `vi.mock`) were enough to verify every M2 issue, including the accessibility fix (`fireEvent.keyDown(header, { key: 'Enter' })`).
+- This sandbox has no browser-driving tool (no Playwright, no chromium-cli) and no project skill for launching the frontend — confirmed by checking `.claude/skills/*/SKILL.md` (only `verify`, which is backend/Postgres-focused) and searching for `chromium-cli`/`playwright` on the machine. Ad-hoc RTL renders substitute for a real visual check in this environment; if that changes, `/run-skill-generator` would be worth running to capture a real one.
+- When extracting a component that depends on module-level helpers also used elsewhere (e.g. `PostCard` needing `catLabel`/`timeAgo`/`formatEventDate` that `App.jsx` also uses), move the helpers to a shared `utils/` module rather than importing them back from the extraction target — avoids a circular import between the two files.
+- `useCallback`/`useEffect` dependency arrays are evaluated at the *call site's position in render order*, not "whatever's in scope by the end of the function." Defining a memoized helper (`showError`) after another `useCallback` that lists it as a dependency is a real temporal-dead-zone bug, not just a lint nit — order these definitions the same way the dependencies actually resolve.
+- Jest-dom matchers (`toBeInTheDocument`, etc.) aren't globally wired into this project's Vitest config — each test file needs its own `import '@testing-library/jest-dom/vitest'`.
+- jsdom doesn't implement `scrollTo` (element or window) — any component test that mounts something calling it (this app's `SegmentedControl`/App on mount) needs `window.scrollTo = vi.fn()` / `Element.prototype.scrollTo = vi.fn()` in the test, not an app-side fix.
+- When a "consolidate N drifting sources" issue turns up entries that exist in one source but not another, don't assume it's automatically a bug to fix by adding the missing entry everywhere — check which source is the current design intent (here, the Figma-driven `PICKER_DATA` tree) before deciding whether a gap is "stale/legacy" (keep for backward-compat label lookup only) or "actually broken" (fix for real, as with the `lostandfound` case).
 
 ## Background
 
