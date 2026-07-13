@@ -14,11 +14,12 @@ export const FIELD_INPUT = {
   boxSizing: 'border-box',
 };
 
+// Geen textTransform: het gedeelde FieldLabel-component in Figma (node 329:2103)
+// heeft geen uppercase — dat zit alleen op de "STAP X VAN 4"-sectietitel.
 export const FIELD_LABEL = {
   fontSize: 10,
   fontWeight: 600,
   letterSpacing: 0,
-  textTransform: 'uppercase',
   color: COLORS.textDim,
   lineHeight: 'normal',
 };

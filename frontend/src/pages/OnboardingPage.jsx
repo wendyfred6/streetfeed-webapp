@@ -38,7 +38,9 @@ const s = {
     flexDirection: 'column',
     gap: 32,
   },
-  stepLabel: FIELD_LABEL,
+  // Uppercase hoort hier wél bij (het is de "STAP X VAN 4"-sectietitel, niet
+  // het gedeelde FieldLabel-component — zie onboardingStyles.js).
+  stepLabel: { ...FIELD_LABEL, textTransform: 'uppercase' },
   titleGroup: { display: 'flex', flexDirection: 'column', gap: 16 },
   title: { fontSize: 24, fontWeight: 700, color: COLORS.text, lineHeight: '28px' },
   sub: { fontSize: 16, color: COLORS.textMuted, lineHeight: '24px' },
@@ -56,7 +58,7 @@ const s = {
     height: 48,
     padding: '4px 16px',
     fontSize: 16,
-    fontWeight: 700,
+    fontWeight: 500,
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -73,7 +75,7 @@ const s = {
     height: 48,
     padding: '4px 16px',
     fontSize: 16,
-    fontWeight: 700,
+    fontWeight: 500,
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -89,7 +91,7 @@ const s = {
   error: { color: COLORS.error, fontSize: 13, lineHeight: 1.4 },
   inputFieldsGroup: { display: 'flex', flexDirection: 'column', gap: 24 },
   previewGroup: { display: 'flex', flexDirection: 'column', gap: 8 },
-  previewLabel: { fontSize: 10, fontWeight: 600, letterSpacing: 0, textTransform: 'uppercase', color: COLORS.textDim, lineHeight: 'normal' },
+  previewLabel: { fontSize: 10, fontWeight: 600, letterSpacing: 0, color: COLORS.textDim, lineHeight: 'normal' },
   previewName: { fontSize: 14, fontWeight: 700, color: COLORS.text, lineHeight: '20px' },
   noMailGroup: { display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', color: COLORS.textMuted, fontSize: 12, lineHeight: '18px' },
 };
@@ -337,7 +339,7 @@ export default function OnboardingPage() {
           {error && <div style={s.error}>{error}</div>}
           <div style={s.inputFieldsGroup}>
             <div style={s.fieldGroup}>
-              <label style={s.label}>Voornaam</label>
+              <label style={s.label}>Naam</label>
               <input
                 style={s.input}
                 type="text"
@@ -350,7 +352,7 @@ export default function OnboardingPage() {
               />
             </div>
             <div style={s.previewGroup}>
-              <div style={s.previewLabel}>Zo zien buren je in de feed</div>
+              <div style={s.previewLabel}>Zo zien de buren je in Streetfeed</div>
               <div style={s.previewName}>{firstName.trim() || '…'} {houseNumber}</div>
             </div>
           </div>
