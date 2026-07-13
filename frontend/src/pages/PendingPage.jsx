@@ -18,7 +18,7 @@ export default function PendingPage({ status = 'pending' }) {
 
   return (
     <div style={s.page}>
-      <div style={s.card}>
+      <div role="status" style={s.card}>
         <div style={s.title}>{t(rejected ? 'rejected_title' : 'pending_title')}</div>
         <div style={s.body}>{t(rejected ? 'rejected_body' : 'pending_body')}</div>
         <button style={s.logoutBtn} onClick={logout}>{t('logout')}</button>

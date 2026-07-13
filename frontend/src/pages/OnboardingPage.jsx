@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { COLORS, RADIUS } from '../design/tokens.js';
@@ -44,6 +44,7 @@ const s = {
   titleGroup: { display: 'flex', flexDirection: 'column', gap: 16 },
   title: { fontSize: 24, fontWeight: 700, color: COLORS.text, lineHeight: '28px' },
   sub: { fontSize: 16, color: COLORS.textMuted, lineHeight: '24px' },
+  form: { display: 'flex', flexDirection: 'column', gap: 32 },
   fieldGroup: FIELD_GROUP,
   label: { ...FIELD_LABEL, display: 'block' },
   input: FIELD_INPUT,
@@ -99,6 +100,18 @@ const s = {
 export default function OnboardingPage() {
   const location = useLocation();
   const [step, setStep] = useState('login');
+
+  // Verplaatst focus naar de titel bij stappen zonder autoFocus-veld, zodat
+  // schermlezers de nieuwe stap aankondigen — anders blijft focus stil op een
+  // element dat net uit de DOM is verdwenen. Stappen mét een tekstveld
+  // (login/address/name) autofocussen dat veld al, wat hier voorrang krijgt
+  // boven het aankondigen van de titel (FRE-306).
+  const titleRef = useRef(null);
+  useEffect(() => {
+    if (step === 'confirm' || step === 'huisnummer' || step === 'sent') {
+      titleRef.current?.focus();
+    }
+  }, [step]);
 
   const [postcode, setPostcode] = useState('');
   const [validatedAddress, setValidatedAddress] = useState(null);
@@ -197,33 +210,36 @@ export default function OnboardingPage() {
               <div style={s.title}>Inloggen</div>
               <div style={s.sub}>We sturen je een Magic Link, geen wachtwoord nodig.</div>
             </div>
-            {error && <div style={s.error}>{error}</div>}
-            <div style={s.fieldGroup}>
-              <label style={s.label}>E-mail adres</label>
-              <input
-                style={s.input}
-                type="email"
-                placeholder="E-mail"
-                value={email}
-                onChange={e => { setEmail(e.target.value); setError(''); }}
+            {error && <div role="alert" style={s.error}>{error}</div>}
+            <form style={s.form} onSubmit={e => { e.preventDefault(); handleLoginSubmit(); }}>
+              <div style={s.fieldGroup}>
+                <label htmlFor="onboarding-email" style={s.label}>E-mail adres</label>
+                <input
+                  id="onboarding-email"
+                  style={s.input}
+                  type="email"
+                  placeholder="E-mail"
+                  value={email}
+                  onChange={e => { setEmail(e.target.value); setError(''); }}
 
-                autoFocus
-                autoComplete="email"
-              />
-            </div>
-            <div style={s.ctaGroup}>
-              <button
-                style={{ ...s.btn, ...(!canSendLogin || loading ? s.btnDisabled : {}) }}
-                onClick={handleLoginSubmit}
-                disabled={!canSendLogin || loading}
-              >
-                {loading ? 'Versturen…' : 'Stuur Magic Link'}
-              </button>
-              <button style={s.standaloneLink} onClick={() => { setError(''); setStep('address'); }}>
-                Nieuw hier? Account aanmaken
-                <CaretRightIcon size={8} weight="regular" />
-              </button>
-            </div>
+                  autoFocus
+                  autoComplete="email"
+                />
+              </div>
+              <div style={s.ctaGroup}>
+                <button
+                  type="submit"
+                  style={{ ...s.btn, ...(!canSendLogin || loading ? s.btnDisabled : {}) }}
+                  disabled={!canSendLogin || loading}
+                >
+                  {loading ? 'Versturen…' : 'Stuur Magic Link'}
+                </button>
+                <button type="button" style={s.standaloneLink} onClick={() => { setError(''); setStep('address'); }}>
+                  Nieuw hier? Account aanmaken
+                  <CaretRightIcon size={8} weight="regular" />
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -241,30 +257,33 @@ export default function OnboardingPage() {
             <div style={s.title}>Waar woon je?</div>
             <div style={s.sub}>Streetfeed bepaalt automatisch welke straat bij jouw postcode hoort.</div>
           </div>
-          {error && <div style={s.error}>{error}</div>}
-          <div style={s.fieldGroup}>
-            <label style={s.label}>Postcode</label>
-            <input
-              style={s.input}
-              type="text"
-              placeholder="Bijv. 1234 AB"
-              value={postcode}
-              onChange={handlePostcodeChange}
+          {error && <div role="alert" style={s.error}>{error}</div>}
+          <form style={s.form} onSubmit={e => { e.preventDefault(); handlePostcodeSubmit(); }}>
+            <div style={s.fieldGroup}>
+              <label htmlFor="onboarding-postcode" style={s.label}>Postcode</label>
+              <input
+                id="onboarding-postcode"
+                style={s.input}
+                type="text"
+                placeholder="Bijv. 1234 AB"
+                value={postcode}
+                onChange={handlePostcodeChange}
 
-              maxLength={7}
-              autoComplete="postal-code"
-              autoFocus
-            />
-          </div>
-          <div style={s.ctaGroup}>
-            <button
-              style={{ ...s.btn, ...(!isValidPostcode || loading ? s.btnDisabled : {}) }}
-              onClick={handlePostcodeSubmit}
-              disabled={!isValidPostcode || loading}
-            >
-              {loading ? 'Straat opzoeken…' : 'Volgende'}
-            </button>
-          </div>
+                maxLength={7}
+                autoComplete="postal-code"
+                autoFocus
+              />
+            </div>
+            <div style={s.ctaGroup}>
+              <button
+                type="submit"
+                style={{ ...s.btn, ...(!isValidPostcode || loading ? s.btnDisabled : {}) }}
+                disabled={!isValidPostcode || loading}
+              >
+                {loading ? 'Straat opzoeken…' : 'Volgende'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     );
@@ -278,14 +297,14 @@ export default function OnboardingPage() {
         <div style={s.card}>
           <div style={s.stepLabel}>Stap 2 van 4</div>
           <div style={s.titleGroup}>
-            <div style={s.title}>Welkom in de {validatedAddress.streetName}</div>
+            <div ref={titleRef} tabIndex={-1} style={s.title}>Welkom in de {validatedAddress.streetName}</div>
             <div style={s.sub}>We hebben je straat gevonden. Is dit correct?</div>
           </div>
           <div style={s.ctaGroup}>
-            <button style={s.btn} onClick={() => setStep('huisnummer')}>
+            <button type="button" style={s.btn} onClick={() => setStep('huisnummer')}>
               Dit klopt
             </button>
-            <button style={s.btnOutline} onClick={() => { setValidatedAddress(null); setStep('address'); }}>
+            <button type="button" style={s.btnOutline} onClick={() => { setValidatedAddress(null); setStep('address'); }}>
               Dit klopt niet
             </button>
           </div>
@@ -302,7 +321,7 @@ export default function OnboardingPage() {
         <div style={s.card}>
           <div style={s.stepLabel}>Stap 3 van 4</div>
           <div style={s.titleGroup}>
-            <div style={s.title}>Wat is je huisnummer?</div>
+            <div ref={titleRef} tabIndex={-1} style={s.title}>Wat is je huisnummer?</div>
             <div style={s.sub}>Kies je huisnummer en toevoeging in de straat.</div>
           </div>
           <HouseNumberPicker
@@ -313,6 +332,7 @@ export default function OnboardingPage() {
           />
           <div style={s.ctaGroup}>
             <button
+              type="button"
               style={{ ...s.btn, ...(!houseNumber ? s.btnDisabled : {}) }}
               onClick={() => setStep('name')}
               disabled={!houseNumber}
@@ -336,35 +356,38 @@ export default function OnboardingPage() {
             <div style={s.title}>Hoe mogen buren je herkennen?</div>
             <div style={s.sub}>Alleen je voornaam en huisnummer zijn zichtbaar.</div>
           </div>
-          {error && <div style={s.error}>{error}</div>}
-          <div style={s.inputFieldsGroup}>
-            <div style={s.fieldGroup}>
-              <label style={s.label}>Naam</label>
-              <input
-                style={s.input}
-                type="text"
-                placeholder="Voornaam"
-                value={firstName}
-                onChange={e => setFirstName(e.target.value)}
+          {error && <div role="alert" style={s.error}>{error}</div>}
+          <form style={s.form} onSubmit={e => { e.preventDefault(); handleCreateAccount(); }}>
+            <div style={s.inputFieldsGroup}>
+              <div style={s.fieldGroup}>
+                <label htmlFor="onboarding-firstname" style={s.label}>Naam</label>
+                <input
+                  id="onboarding-firstname"
+                  style={s.input}
+                  type="text"
+                  placeholder="Voornaam"
+                  value={firstName}
+                  onChange={e => setFirstName(e.target.value)}
 
-                autoFocus
-                autoComplete="given-name"
-              />
+                  autoFocus
+                  autoComplete="given-name"
+                />
+              </div>
+              <div style={s.previewGroup}>
+                <div style={s.previewLabel}>Zo zien de buren je in Streetfeed</div>
+                <div style={s.previewName}>{firstName.trim() || '…'} {houseNumber}</div>
+              </div>
             </div>
-            <div style={s.previewGroup}>
-              <div style={s.previewLabel}>Zo zien de buren je in Streetfeed</div>
-              <div style={s.previewName}>{firstName.trim() || '…'} {houseNumber}</div>
+            <div style={s.ctaGroup}>
+              <button
+                type="submit"
+                style={{ ...s.btn, ...(!firstName.trim() || loading ? s.btnDisabled : {}) }}
+                disabled={!firstName.trim() || loading}
+              >
+                {loading ? 'Versturen…' : 'Stuur Magic Link'}
+              </button>
             </div>
-          </div>
-          <div style={s.ctaGroup}>
-            <button
-              style={{ ...s.btn, ...(!firstName.trim() || loading ? s.btnDisabled : {}) }}
-              onClick={handleCreateAccount}
-              disabled={!firstName.trim() || loading}
-            >
-              {loading ? 'Versturen…' : 'Stuur Magic Link'}
-            </button>
-          </div>
+          </form>
         </div>
       </div>
     );
@@ -377,7 +400,7 @@ export default function OnboardingPage() {
       <div style={s.page}>
         <div style={{ ...s.card, textAlign: 'center' }}>
           <div style={s.titleGroup}>
-            <div style={s.title}>Check je e-mail</div>
+            <div ref={titleRef} tabIndex={-1} style={s.title}>Check je e-mail</div>
             <div style={s.sub}>
               We hebben een Magic Link gestuurd naar{' '}
               <strong style={{ color: COLORS.text }}>{email}</strong>.{' '}
@@ -389,6 +412,7 @@ export default function OnboardingPage() {
             <span>
               Check je spam of{' '}
               <button
+                type="button"
                 style={{ background: 'none', border: 'none', color: COLORS.accent, fontSize: 12, lineHeight: '18px', cursor: 'pointer', padding: 0, display: 'inline' }}
                 onClick={() => { setStep('login'); setError(''); }}
               >

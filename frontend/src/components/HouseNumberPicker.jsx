@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 
 import { COLORS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL } from '../design/onboardingStyles.js';
@@ -35,6 +35,8 @@ function groupAddresses(flat) {
 }
 
 export default function HouseNumberPicker({ streetId, value, onChange, showSuffix = true, showLabels = false, style = {} }) {
+  const numId = useId();
+  const sufId = useId();
   const [num, setNum] = useState('');
   const [suf, setSuf] = useState('');
   const [addresses, setAddresses] = useState([]);
@@ -76,9 +78,10 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
   return (
     <div style={{ display: 'flex', gap: 8, ...style }}>
       <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
-        {showLabels && <div style={FIELD_LABEL}>Huisnummer</div>}
+        {showLabels && <label htmlFor={numId} style={FIELD_LABEL}>Huisnummer</label>}
         <div style={{ position: 'relative' }}>
           <select
+            id={numId}
             value={num}
             onChange={e => handleNum(e.target.value)}
 
@@ -95,12 +98,13 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
 
       {showSuffix && suffixes.length > 1 && (
         <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
-          {showLabels && <div style={FIELD_LABEL}>Toevoeging</div>}
+          {showLabels && <label htmlFor={sufId} style={FIELD_LABEL}>Toevoeging</label>}
           <div style={{ position: 'relative' }}>
             <select
+              id={sufId}
               value={suf}
               onChange={e => handleSuf(e.target.value)}
-  
+
               style={selectStyle}
             >
               <option value="">Kies</option>

@@ -39,7 +39,7 @@ export default function AuthPage() {
   return (
     <div style={s.page}>
       <div style={s.card}>
-        <div style={s.success}>
+        <div role="status" style={s.success}>
           <div style={s.successTitle}>Even inloggen…</div>
           <div style={s.successBody}>Je link wordt gecontroleerd.</div>
         </div>
