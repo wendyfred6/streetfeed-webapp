@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useAuth } from '../hooks/useAuth.jsx';
+import { t } from '../i18n/index.js';
 import { COLORS, RADIUS, GLASS } from '../design/tokens.js';
 
 const s = {
@@ -30,8 +31,8 @@ export default function AuthPage() {
       .catch((err) => {
         const code = err?.data?.error;
         const authError = code === 'expired'
-          ? 'De link is verlopen. Vraag een nieuwe aan.'
-          : 'Verificatie mislukt. Probeer opnieuw.';
+          ? t('auth_link_expired')
+          : t('auth_verify_failed');
         navigate('/onboarding', { replace: true, state: { authError } });
       });
   }, []);
@@ -40,8 +41,8 @@ export default function AuthPage() {
     <div style={s.page}>
       <div style={s.card}>
         <div role="status" style={s.success}>
-          <div style={s.successTitle}>Even inloggen…</div>
-          <div style={s.successBody}>Je link wordt gecontroleerd.</div>
+          <div style={s.successTitle}>{t('auth_verifying_title')}</div>
+          <div style={s.successBody}>{t('auth_verifying_body')}</div>
         </div>
       </div>
     </div>

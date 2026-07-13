@@ -3,6 +3,7 @@ import { useState, useEffect, useId } from 'react';
 import { COLORS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL } from '../design/onboardingStyles.js';
 import { api } from '../api/client.js';
+import { t } from '../i18n/index.js';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 
 const selectStyle = {
@@ -78,7 +79,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
   return (
     <div style={{ display: 'flex', gap: 8, ...style }}>
       <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
-        {showLabels && <label htmlFor={numId} style={FIELD_LABEL}>Huisnummer</label>}
+        {showLabels && <label htmlFor={numId} style={FIELD_LABEL}>{t('house_number_label')}</label>}
         <div style={{ position: 'relative' }}>
           <select
             id={numId}
@@ -88,7 +89,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
             disabled={loading}
             style={{ ...selectStyle, opacity: loading ? 0.6 : 1 }}
           >
-            <option value="">{loading ? 'Laden…' : 'Kies'}</option>
+            <option value="">{loading ? t('house_number_loading') : t('house_number_choose')}</option>
             {numbers.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
           <CaretDownIcon size={12} color={COLORS.textMuted} weight="regular"
@@ -98,7 +99,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
 
       {showSuffix && suffixes.length > 1 && (
         <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
-          {showLabels && <label htmlFor={sufId} style={FIELD_LABEL}>Toevoeging</label>}
+          {showLabels && <label htmlFor={sufId} style={FIELD_LABEL}>{t('house_suffix_label')}</label>}
           <div style={{ position: 'relative' }}>
             <select
               id={sufId}
@@ -107,9 +108,9 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
 
               style={selectStyle}
             >
-              <option value="">Kies</option>
+              <option value="">{t('house_number_choose')}</option>
               {suffixes.map(s => (
-                <option key={s} value={s}>{s === 'hs' ? 'hs (begane grond)' : s}</option>
+                <option key={s} value={s}>{s === 'hs' ? t('house_number_ground_floor') : s}</option>
               ))}
             </select>
             <CaretDownIcon size={12} color={COLORS.textMuted} weight="regular"

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { COLORS, RADIUS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL, FIELD_GROUP } from '../design/onboardingStyles.js';
+import { t, getLang, setLang } from '../i18n/index.js';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 
@@ -95,6 +96,12 @@ const s = {
   previewLabel: { fontSize: 10, fontWeight: 600, letterSpacing: 0, color: COLORS.textDim, lineHeight: 'normal' },
   previewName: { fontSize: 14, fontWeight: 700, color: COLORS.text, lineHeight: '20px' },
   noMailGroup: { display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', color: COLORS.textMuted, fontSize: 12, lineHeight: '18px' },
+  langToggle: { display: 'flex', gap: 12, marginTop: 8 },
+  langOption: (active) => ({
+    background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+    fontSize: 12, fontWeight: active ? 700 : 400,
+    color: active ? COLORS.text : COLORS.textMuted,
+  }),
 };
 
 export default function OnboardingPage() {
@@ -119,6 +126,12 @@ export default function OnboardingPage() {
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
 
+  // De taaltoggle in ProfileView is pas bereikbaar na inloggen — voor een
+  // nieuwe bewoner die nog geen account heeft is dit de enige plek waar
+  // de taal vóór het inloggen gezet kan worden (FRE-305).
+  const [lang, setLangState] = useState(getLang());
+  const switchLang = (l) => { setLang(l); setLangState(l); };
+
   const [loading, setLoading] = useState(false);
   // Alleen de eigen /auth-verificatie mag hier een fout injecteren; herbezoeken van
   // deze pagina zonder navigatiestatus toont geen stale error.
@@ -136,7 +149,7 @@ export default function OnboardingPage() {
       await api.post('/auth/request', { email: email.trim() });
       setStep('sent');
     } catch (err) {
-      setError(err.message || 'Er ging iets mis');
+      setError(err.message || t('onboarding_generic_error'));
     } finally {
       setLoading(false);
     }
@@ -166,14 +179,14 @@ export default function OnboardingPage() {
     } catch (err) {
       if (err.status === 404) {
         if (err.data?.streetName) {
-          setError(`${err.data.streetName} is nog niet beschikbaar in Streetfeed.`);
+          setError(t('onboarding_postcode_err_unavailable', { streetName: err.data.streetName }));
         } else {
-          setError('Deze postcode is niet gevonden. Controleer hem nog eens.');
+          setError(t('onboarding_postcode_err_not_found'));
         }
       } else if (err.status === 502) {
-        setError('De adressenservice is tijdelijk niet bereikbaar. Probeer het opnieuw.');
+        setError(t('onboarding_postcode_err_service_down'));
       } else {
-        setError(err.message || 'Er ging iets mis');
+        setError(err.message || t('onboarding_generic_error'));
       }
     } finally {
       setLoading(false);
@@ -192,7 +205,7 @@ export default function OnboardingPage() {
       });
       setStep('sent');
     } catch (err) {
-      setError(err.message || 'Er ging iets mis');
+      setError(err.message || t('onboarding_generic_error'));
     } finally {
       setLoading(false);
     }
@@ -207,18 +220,18 @@ export default function OnboardingPage() {
           <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
           <div style={s.card}>
             <div style={s.titleGroup}>
-              <div style={s.title}>Inloggen</div>
-              <div style={s.sub}>We sturen je een Magic Link, geen wachtwoord nodig.</div>
+              <div style={s.title}>{t('onboarding_login_title')}</div>
+              <div style={s.sub}>{t('onboarding_login_subtitle')}</div>
             </div>
             {error && <div role="alert" style={s.error}>{error}</div>}
             <form style={s.form} onSubmit={e => { e.preventDefault(); handleLoginSubmit(); }}>
               <div style={s.fieldGroup}>
-                <label htmlFor="onboarding-email" style={s.label}>E-mail adres</label>
+                <label htmlFor="onboarding-email" style={s.label}>{t('onboarding_email_label')}</label>
                 <input
                   id="onboarding-email"
                   style={s.input}
                   type="email"
-                  placeholder="E-mail"
+                  placeholder={t('onboarding_email_placeholder')}
                   value={email}
                   onChange={e => { setEmail(e.target.value); setError(''); }}
 
@@ -232,14 +245,18 @@ export default function OnboardingPage() {
                   style={{ ...s.btn, ...(!canSendLogin || loading ? s.btnDisabled : {}) }}
                   disabled={!canSendLogin || loading}
                 >
-                  {loading ? 'Versturen…' : 'Stuur Magic Link'}
+                  {loading ? t('onboarding_sending') : t('onboarding_send_magic_link')}
                 </button>
                 <button type="button" style={s.standaloneLink} onClick={() => { setError(''); setStep('address'); }}>
-                  Nieuw hier? Account aanmaken
+                  {t('onboarding_new_here')}
                   <CaretRightIcon size={8} weight="regular" />
                 </button>
               </div>
             </form>
+            <div style={s.langToggle}>
+              <button type="button" style={s.langOption(lang === 'nl')} onClick={() => switchLang('nl')}>Nederlands</button>
+              <button type="button" style={s.langOption(lang === 'en')} onClick={() => switchLang('en')}>English</button>
+            </div>
           </div>
         </div>
       </div>
@@ -252,20 +269,20 @@ export default function OnboardingPage() {
     return (
       <div style={s.page}>
         <div style={s.card}>
-          <div style={s.stepLabel}>Stap 1 van 4</div>
+          <div style={s.stepLabel}>{t('onboarding_step', { step: 1, total: 4 })}</div>
           <div style={s.titleGroup}>
-            <div style={s.title}>Waar woon je?</div>
-            <div style={s.sub}>Streetfeed bepaalt automatisch welke straat bij jouw postcode hoort.</div>
+            <div style={s.title}>{t('onboarding_address_title')}</div>
+            <div style={s.sub}>{t('onboarding_address_sub')}</div>
           </div>
           {error && <div role="alert" style={s.error}>{error}</div>}
           <form style={s.form} onSubmit={e => { e.preventDefault(); handlePostcodeSubmit(); }}>
             <div style={s.fieldGroup}>
-              <label htmlFor="onboarding-postcode" style={s.label}>Postcode</label>
+              <label htmlFor="onboarding-postcode" style={s.label}>{t('onboarding_postcode_label')}</label>
               <input
                 id="onboarding-postcode"
                 style={s.input}
                 type="text"
-                placeholder="Bijv. 1234 AB"
+                placeholder={t('onboarding_postcode_placeholder')}
                 value={postcode}
                 onChange={handlePostcodeChange}
 
@@ -280,7 +297,7 @@ export default function OnboardingPage() {
                 style={{ ...s.btn, ...(!isValidPostcode || loading ? s.btnDisabled : {}) }}
                 disabled={!isValidPostcode || loading}
               >
-                {loading ? 'Straat opzoeken…' : 'Volgende'}
+                {loading ? t('onboarding_resolving_street') : t('onboarding_next')}
               </button>
             </div>
           </form>
@@ -295,17 +312,17 @@ export default function OnboardingPage() {
     return (
       <div style={s.page}>
         <div style={s.card}>
-          <div style={s.stepLabel}>Stap 2 van 4</div>
+          <div style={s.stepLabel}>{t('onboarding_step', { step: 2, total: 4 })}</div>
           <div style={s.titleGroup}>
-            <div ref={titleRef} tabIndex={-1} style={s.title}>Welkom in de {validatedAddress.streetName}</div>
-            <div style={s.sub}>We hebben je straat gevonden. Is dit correct?</div>
+            <div ref={titleRef} tabIndex={-1} style={s.title}>{t('onboarding_confirm_title', { streetName: validatedAddress.streetName })}</div>
+            <div style={s.sub}>{t('onboarding_confirm_sub')}</div>
           </div>
           <div style={s.ctaGroup}>
             <button type="button" style={s.btn} onClick={() => setStep('huisnummer')}>
-              Dit klopt
+              {t('onboarding_confirm_yes')}
             </button>
             <button type="button" style={s.btnOutline} onClick={() => { setValidatedAddress(null); setStep('address'); }}>
-              Dit klopt niet
+              {t('onboarding_confirm_no')}
             </button>
           </div>
         </div>
@@ -319,10 +336,10 @@ export default function OnboardingPage() {
     return (
       <div style={s.page}>
         <div style={s.card}>
-          <div style={s.stepLabel}>Stap 3 van 4</div>
+          <div style={s.stepLabel}>{t('onboarding_step', { step: 3, total: 4 })}</div>
           <div style={s.titleGroup}>
-            <div ref={titleRef} tabIndex={-1} style={s.title}>Wat is je huisnummer?</div>
-            <div style={s.sub}>Kies je huisnummer en toevoeging in de straat.</div>
+            <div ref={titleRef} tabIndex={-1} style={s.title}>{t('onboarding_house_title')}</div>
+            <div style={s.sub}>{t('onboarding_house_sub')}</div>
           </div>
           <HouseNumberPicker
             streetId={validatedAddress.streetId}
@@ -337,7 +354,7 @@ export default function OnboardingPage() {
               onClick={() => setStep('name')}
               disabled={!houseNumber}
             >
-              Volgende
+              {t('onboarding_next')}
             </button>
           </div>
         </div>
@@ -351,21 +368,21 @@ export default function OnboardingPage() {
     return (
       <div style={s.page}>
         <div style={s.card}>
-          <div style={s.stepLabel}>Stap 4 van 4</div>
+          <div style={s.stepLabel}>{t('onboarding_step', { step: 4, total: 4 })}</div>
           <div style={s.titleGroup}>
-            <div style={s.title}>Hoe mogen buren je herkennen?</div>
-            <div style={s.sub}>Alleen je voornaam en huisnummer zijn zichtbaar.</div>
+            <div style={s.title}>{t('onboarding_name_title')}</div>
+            <div style={s.sub}>{t('onboarding_name_sub')}</div>
           </div>
           {error && <div role="alert" style={s.error}>{error}</div>}
           <form style={s.form} onSubmit={e => { e.preventDefault(); handleCreateAccount(); }}>
             <div style={s.inputFieldsGroup}>
               <div style={s.fieldGroup}>
-                <label htmlFor="onboarding-firstname" style={s.label}>Naam</label>
+                <label htmlFor="onboarding-firstname" style={s.label}>{t('onboarding_name_label')}</label>
                 <input
                   id="onboarding-firstname"
                   style={s.input}
                   type="text"
-                  placeholder="Voornaam"
+                  placeholder={t('onboarding_name_placeholder')}
                   value={firstName}
                   onChange={e => setFirstName(e.target.value)}
 
@@ -374,7 +391,7 @@ export default function OnboardingPage() {
                 />
               </div>
               <div style={s.previewGroup}>
-                <div style={s.previewLabel}>Zo zien de buren je in Streetfeed</div>
+                <div style={s.previewLabel}>{t('onboarding_name_preview_label')}</div>
                 <div style={s.previewName}>{firstName.trim() || '…'} {houseNumber}</div>
               </div>
             </div>
@@ -384,7 +401,7 @@ export default function OnboardingPage() {
                 style={{ ...s.btn, ...(!firstName.trim() || loading ? s.btnDisabled : {}) }}
                 disabled={!firstName.trim() || loading}
               >
-                {loading ? 'Versturen…' : 'Stuur Magic Link'}
+                {loading ? t('onboarding_sending') : t('onboarding_send_magic_link')}
               </button>
             </div>
           </form>
@@ -400,23 +417,23 @@ export default function OnboardingPage() {
       <div style={s.page}>
         <div style={{ ...s.card, textAlign: 'center' }}>
           <div style={s.titleGroup}>
-            <div ref={titleRef} tabIndex={-1} style={s.title}>Check je e-mail</div>
+            <div ref={titleRef} tabIndex={-1} style={s.title}>{t('onboarding_check_email_title')}</div>
             <div style={s.sub}>
-              We hebben een Magic Link gestuurd naar{' '}
+              {t('onboarding_check_email_prefix')}{' '}
               <strong style={{ color: COLORS.text }}>{email}</strong>.{' '}
-              Klik op de link in je e-mail om in te loggen.
+              {t('onboarding_check_email_suffix')}
             </div>
           </div>
           <div style={s.noMailGroup}>
-            <span>Geen mail ontvangen?</span>
+            <span>{t('onboarding_no_mail_q')}</span>
             <span>
-              Check je spam of{' '}
+              {t('onboarding_no_mail_body')}{' '}
               <button
                 type="button"
                 style={{ background: 'none', border: 'none', color: COLORS.accent, fontSize: 12, lineHeight: '18px', cursor: 'pointer', padding: 0, display: 'inline' }}
                 onClick={() => { setStep('login'); setError(''); }}
               >
-                probeer opnieuw
+                {t('onboarding_try_again')}
               </button>
               .
             </span>
