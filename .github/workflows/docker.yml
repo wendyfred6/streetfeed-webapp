@@ -18,6 +18,11 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: backend/package-lock.json
+      # Older npm CLIs (seen: 11.8.0) mishandle optional platform-specific
+      # dependencies in package-lock.json (e.g. esbuild's @esbuild/* binaries),
+      # causing `npm ci` to hard-fail with EBADPLATFORM instead of skipping
+      # them. Pin a version confirmed to install cleanly.
+      - run: npm install -g npm@11.18.0
       - run: npm ci
         working-directory: backend
       - run: npm run lint
@@ -34,6 +39,8 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      # See the comment in test-backend above — same npm CLI lockfile bug.
+      - run: npm install -g npm@11.18.0
       - run: npm ci
         working-directory: frontend
       - run: npm run lint
