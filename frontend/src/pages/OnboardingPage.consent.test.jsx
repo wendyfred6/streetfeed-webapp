@@ -21,11 +21,55 @@ vi.mock('../api/client.js', () => ({
   },
 }));
 
+describe('FRE-243 PO smoke test blocker: "Nieuw hier?" requires an email first', () => {
+  it('blocks navigation to the registration wizard and shows a validation error when the email field is empty', async () => {
+    render(<MemoryRouter><OnboardingPage /></MemoryRouter>);
+
+    fireEvent.click(screen.getByText(/nieuw hier|new here/i));
+
+    // Must NOT have navigated to the postcode step
+    expect(screen.queryByLabelText(/postcode/i)).not.toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent(/e-mailadres/i);
+  });
+
+  it('proceeds to the registration wizard once a valid email is entered, and actually sends it', async () => {
+    const { api } = await import('../api/client.js');
+    render(<MemoryRouter><OnboardingPage /></MemoryRouter>);
+
+    const emailInput = screen.getByLabelText(/e-mail/i);
+    fireEvent.change(emailInput, { target: { value: 'resident@example.com' } });
+    fireEvent.click(screen.getByText(/nieuw hier|new here/i));
+
+    expect(await screen.findByLabelText(/postcode/i)).toBeInTheDocument();
+
+    // Drive the rest of the wizard and confirm the email actually reaches
+    // the backend — a mock that always resolves ok wouldn't have caught
+    // the original bug (the request went out with an empty email and the
+    // real backend rejected it; this mock can't distinguish that unless we
+    // assert on what was actually sent).
+    fireEvent.change(screen.getByLabelText(/postcode/i), { target: { value: '1000AA' } });
+    fireEvent.click(screen.getByRole('button', { name: /volgende|next/i }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Dit klopt' }));
+    fireEvent.change(await screen.findByLabelText(/huisnummer/i), { target: { value: '52' } });
+    fireEvent.click(screen.getByRole('button', { name: /volgende|next/i }));
+    fireEvent.change(await screen.findByLabelText(/naam|name/i), { target: { value: 'Testy' } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: /magic link/i }));
+
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/auth/request', expect.objectContaining({
+      email: 'resident@example.com',
+    })));
+  });
+});
+
 describe('FRE-234 verification: onboarding consent checkbox', () => {
   it('gates registration submission on the terms checkbox, and lets the user preview both documents first', async () => {
     render(<MemoryRouter><OnboardingPage /></MemoryRouter>);
 
-    // Step 0: go to "new here" (registration) flow
+    // Step 0: enter an email, then go to "new here" (registration) flow —
+    // required since FRE-243's smoke test found "Nieuw hier?" didn't work
+    // at all without one.
+    fireEvent.change(screen.getByLabelText(/e-mail/i), { target: { value: 'resident2@example.com' } });
     fireEvent.click(screen.getByText(/nieuw hier|new here/i));
 
     // Step 1: postcode

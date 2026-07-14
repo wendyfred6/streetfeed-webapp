@@ -120,6 +120,7 @@ export default {
   onboarding_login_subtitle: 'We sturen je een Magic Link, geen wachtwoord nodig.',
   onboarding_email_label: 'E-mail adres',
   onboarding_email_placeholder: 'E-mail',
+  onboarding_email_required_first: 'Vul eerst je e-mailadres in',
   onboarding_sending: 'Versturen…',
   onboarding_send_magic_link: 'Stuur Magic Link',
   onboarding_new_here: 'Nieuw hier? Account aanmaken',

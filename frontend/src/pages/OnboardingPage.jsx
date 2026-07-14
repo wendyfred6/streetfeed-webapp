@@ -250,7 +250,20 @@ export default function OnboardingPage() {
                 >
                   {loading ? t('onboarding_sending') : t('onboarding_send_magic_link')}
                 </button>
-                <button type="button" style={s.standaloneLink} onClick={() => { setError(''); setStep('address'); }}>
+                <button type="button" style={s.standaloneLink} onClick={() => {
+                  // FRE-243 PO smoke test blocker: this used to navigate to
+                  // the registration wizard unconditionally — none of its
+                  // steps (postcode/confirm/huisnummer/name) collect an
+                  // email, so a user who clicked straight through without
+                  // filling in the field above only found out at the very
+                  // last step, via a raw backend "Email required" error.
+                  if (!canSendLogin) {
+                    setError(t('onboarding_email_required_first'));
+                    return;
+                  }
+                  setError('');
+                  setStep('address');
+                }}>
                   {t('onboarding_new_here')}
                   <CaretRightIcon size={8} weight="regular" />
                 </button>

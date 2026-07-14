@@ -120,6 +120,7 @@ export default {
   onboarding_login_subtitle: 'We\'ll send you a Magic Link, no password needed.',
   onboarding_email_label: 'Email address',
   onboarding_email_placeholder: 'Email',
+  onboarding_email_required_first: 'Enter your email address first',
   onboarding_sending: 'Sending…',
   onboarding_send_magic_link: 'Send Magic Link',
   onboarding_new_here: 'New here? Create an account',
