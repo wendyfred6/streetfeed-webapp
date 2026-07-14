@@ -13,6 +13,7 @@ import uploadRoutes from './routes/upload.js';
 import pushRoutes from './routes/push.js';
 import bagRoutes from './routes/bag.js';
 import notificationsRoutes from './routes/notifications.js';
+import diagnosticsRoutes from './routes/diagnostics.js';
 import { runMigrations } from './db/index.js';
 import { runPhotoRetention } from './services/retention.js';
 
@@ -36,6 +37,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/bag', bagRoutes);
 app.use('/api/notifications', notificationsRoutes);
+app.use('/api/diagnostics', diagnosticsRoutes);
 
 app.get('/api/health', (_, res) => res.json({ ok: true, ts: new Date() }));
 

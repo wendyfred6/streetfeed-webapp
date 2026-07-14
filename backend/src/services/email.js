@@ -8,6 +8,14 @@ if (!resend && !smtpReady) {
   console.warn('[email] Geen RESEND_API_KEY of SMTP geconfigureerd — e-mails worden niet verstuurd');
 }
 
+// FRE-352: a required-but-blank env var (this and VAPID_*, per FRE-345/FRE-324)
+// doesn't stop the app from booting, it just silently degrades a feature — the
+// startup console.warn above is easy to miss in Portainer. /api/diagnostics
+// exposes this same check so it's verifiable without digging through logs.
+export function emailStatus() {
+  return { configured: !!(resend || smtpReady), provider: resend ? 'resend' : smtpReady ? 'smtp' : null };
+}
+
 function nodemailerTransport() {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,

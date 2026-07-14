@@ -13,6 +13,11 @@ if (vapidReady) {
   console.warn('[push] VAPID keys not set — push notifications disabled');
 }
 
+// See the matching comment in services/email.js (FRE-352).
+export function pushStatus() {
+  return { configured: !!vapidReady };
+}
+
 export async function sendPushToStreet(streetId, category, payload, excludeUserIds = []) {
   if (!vapidReady) return;
   // Find all subscribed users in the street who have this category enabled
