@@ -52,20 +52,27 @@ function AttendanceToggle({ post, onRsvp }) {
   );
 }
 
-const MELDING_LINKS = {
-  overlast: [{ label: 'Overlast melden bij Gemeente Amsterdam', url: 'https://meldingen.amsterdam.nl/', color: COLORS.blue }],
-  schade: [
-    { label: 'Aangifte doen bij politie', url: 'https://www.politie.nl/aangifte-of-melding-doen', color: COLORS.error },
-    { label: 'Schade melden Waarborgfonds', url: 'https://www.svn.nl/', color: COLORS.blue },
-  ],
-  verdacht: [
-    { label: 'Bel 0900-8844 (politie non-spoed)', url: 'tel:09008844', color: COLORS.error },
-    { label: 'Meld Misdaad Anoniem', url: 'https://www.meldmisdaadanoniem.nl', color: COLORS.blue },
-  ],
-};
+// URLs are genuinely Amsterdam/Dutch-specific government services (meldingen.amsterdam.nl,
+// politie.nl, svn.nl, the national police non-emergency line) — correct as-is for this
+// pilot's only street/city. Labels are translated via t(), but the underlying URLs would
+// need a real per-city lookup (streets.city already exists in the schema) before this could
+// support a second city; not worth building for zero additional cities today (FRE-339).
+function meldingLinks() {
+  return {
+    overlast: [{ label: t('melding_link_overlast'), url: 'https://meldingen.amsterdam.nl/', color: COLORS.blue }],
+    schade: [
+      { label: t('melding_link_aangifte'), url: 'https://www.politie.nl/aangifte-of-melding-doen', color: COLORS.error },
+      { label: t('melding_link_waarborgfonds'), url: 'https://www.svn.nl/', color: COLORS.blue },
+    ],
+    verdacht: [
+      { label: t('melding_link_politie_bel'), url: 'tel:09008844', color: COLORS.error },
+      { label: t('melding_link_meldmisdaad'), url: 'https://www.meldmisdaadanoniem.nl', color: COLORS.blue },
+    ],
+  };
+}
 
 function MeldingLinks({ post }) {
-  const links = MELDING_LINKS[post.sub_type] || [];
+  const links = meldingLinks()[post.sub_type] || [];
   if (!links.length) return null;
   return (
     <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -287,24 +294,24 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
           {/* Acties */}
           <div style={{ ...s.cardMeta, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
             <div style={s.cardMetaLeft}>
-              <button style={{ ...s.actionBtn, gap: 5, color: post.liked ? COLORS.interactionLike : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>
+              <button style={{ ...s.actionBtn, gap: 5, color: post.liked ? COLORS.interactionLike : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }} aria-label={t('like')}>
                 <HeartIcon size={14} weight={post.liked ? 'fill' : 'regular'} style={{ display: 'block', flexShrink: 0 }} />
                 <span>{Number(post.likes)}</span>
               </button>
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
               {canEdit && (
-                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onEdit(post); }} title="Bewerken">
+                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onEdit(post); }} title={t('edit')} aria-label={t('edit')}>
                   <PencilSimpleIcon size={13} weight="regular" />
                 </button>
               )}
               {canEdit ? (
-                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onDelete(post.id); }} title={t('delete')}>
+                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onDelete(post.id); }} title={t('delete')} aria-label={t('delete')}>
                   <TrashIcon size={13} weight="regular" />
                 </button>
               ) : (
                 <button style={{ ...s.actionBtn, color: post.reported ? COLORS.error : COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('report')}>
-                  {post.reported ? 'Gemeld' : t('report')}
+                  {post.reported ? t('reported_label') : t('report')}
                 </button>
               )}
             </div>

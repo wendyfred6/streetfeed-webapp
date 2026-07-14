@@ -30,7 +30,7 @@ export default function EditPostSheet({ post, onClose, onSave, streetId }) {
     <SheetOverlay closing={closing}>
         <div style={s.sheetHandle} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <div style={s.sheetTitle}>Bericht bewerken</div>
+          <div style={s.sheetTitle}>{t('edit_post_title')}</div>
           <CatBadge cat={post.category} />
         </div>
 
@@ -51,7 +51,7 @@ export default function EditPostSheet({ post, onClose, onSave, streetId }) {
           });
           close();
         }}>
-          Opslaan
+          {t('save')}
         </button>
         <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
     </SheetOverlay>

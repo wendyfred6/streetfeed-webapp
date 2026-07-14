@@ -145,10 +145,10 @@ function AdminView({ streetId, user, memberCount, households, onError }) {
 
   useEffect(() => {
     if (subTab === 'queue') {
-      api.get(`/streets/${streetId}/pending`).then(setPending).catch(e => onError(e.message || 'Aanvragen laden mislukt'));
+      api.get(`/streets/${streetId}/pending`).then(setPending).catch(e => onError(e.message || t('generic_error')));
     }
     if (subTab === 'members') {
-      api.get(`/streets/${streetId}/members`).then(setMembers).catch(e => onError(e.message || 'Leden laden mislukt'));
+      api.get(`/streets/${streetId}/members`).then(setMembers).catch(e => onError(e.message || t('generic_error')));
     }
   }, [subTab, streetId, onError]);
 
@@ -171,7 +171,7 @@ function AdminView({ streetId, user, memberCount, households, onError }) {
     <>
       <div style={{ display: 'flex', gap: 6, padding: '12px 12px 0' }}>
         {[[['queue', t('requests')], ['members', t('residents_tab')], ['manage', t('manage_tab')]]].flat().map(([id, label]) => (
-          <div key={id} style={s.filterChip(subTab === id)} onClick={() => setSubTab(id)}>{label}</div>
+          <button key={id} type="button" style={s.filterChip(subTab === id)} aria-pressed={subTab === id} onClick={() => setSubTab(id)}>{label}</button>
         ))}
       </div>
 
@@ -244,30 +244,43 @@ function NotificationInboxSheet({ onClose, onOpenPost, onError }) {
   useEffect(() => {
     api.get('/notifications').then(setItems).catch(e => {
       setItems([]);
-      onError(e.message || 'Notificaties laden mislukt');
+      onError(e.message || t('generic_error'));
     });
-    api.post('/notifications/read-all').catch(e => onError(e.message || 'Alles als gelezen markeren mislukt'));
+    api.post('/notifications/read-all').catch(e => onError(e.message || t('generic_error')));
   }, [onError]);
 
   return (
     <SheetOverlay closing={closing} onOverlayClick={close}>
       <div style={s.sheetHandle} />
-      <div style={s.sheetTitle}>Notificaties</div>
+      <div style={s.sheetTitle}>{t('notifications')}</div>
       {items === null ? (
         <div style={s.emptyState}>{t('loading')}</div>
       ) : items.length === 0 ? (
-        <div style={s.emptyState}>Nog geen notificaties</div>
+        <div style={s.emptyState}>{t('no_notifications_yet')}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16, maxHeight: '60vh', overflowY: 'auto' }}>
-          {items.map(item => (
-            <div key={item.id}
-              onClick={() => { if (item.post_id) { onOpenPost(item.post_id); close(); } }}
-              style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.50)', borderRadius: RADIUS.lg, padding: '12px 14px', cursor: item.post_id ? 'pointer' : 'default' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.text }}>{item.title}</div>
-              {item.body && <div style={{ fontSize: 13, color: COLORS.textMuted, marginTop: 2 }}>{item.body}</div>}
-              <div style={{ fontSize: 11, color: COLORS.textDim, marginTop: 4 }}>{timeAgo(item.created_at)}</div>
-            </div>
-          ))}
+          {items.map(item => {
+            const itemStyle = { display: 'block', width: '100%', textAlign: 'left', fontFamily: 'inherit', background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.50)', borderRadius: RADIUS.lg, padding: '12px 14px' };
+            const content = (
+              <>
+                <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.text }}>{item.title}</div>
+                {item.body && <div style={{ fontSize: 13, color: COLORS.textMuted, marginTop: 2 }}>{item.body}</div>}
+                <div style={{ fontSize: 11, color: COLORS.textDim, marginTop: 4 }}>{timeAgo(item.created_at)}</div>
+              </>
+            );
+            // Only items with a post_id are actually navigable — those become
+            // a real button (keyboard/screen-reader accessible for free);
+            // the rest stay a plain, non-interactive div.
+            return item.post_id ? (
+              <button key={item.id} type="button" onClick={() => { onOpenPost(item.post_id); close(); }} style={{ ...itemStyle, cursor: 'pointer' }}>
+                {content}
+              </button>
+            ) : (
+              <div key={item.id} style={itemStyle}>
+                {content}
+              </div>
+            );
+          })}
         </div>
       )}
       <button style={s.cancelBtn} onClick={close}>{t('cancel')}</button>
@@ -288,7 +301,7 @@ function ProfileView({ user, onLogout, canModerate, streetId, streetName, member
 
   useEffect(() => {
     api.get('/push/settings').then(data => setNotifs(prev => ({ ...Object.fromEntries(Object.keys(CATEGORIES).map(k => [k, true])), ...data })))
-      .catch(e => onError(e.message || 'Instellingen laden mislukt'));
+      .catch(e => onError(e.message || t('generic_error')));
   }, [onError]);
 
   const toggleNotif = async (key) => {
@@ -299,7 +312,7 @@ function ProfileView({ user, onLogout, canModerate, streetId, streetName, member
     // showing the flipped state even though the server never got it.
     await api.patch('/push/settings', { settings: { [key]: next[key] } }).catch(e => {
       setNotifs(prev);
-      onError(e.message || 'Instelling opslaan mislukt');
+      onError(e.message || t('generic_error'));
     });
   };
 
@@ -350,12 +363,12 @@ function ProfileView({ user, onLogout, canModerate, streetId, streetName, member
           <>
             <button style={{ ...s.submitBtn, marginBottom: 12 }} onClick={async () => {
               const result = await subscribe();
-              setSubscribeMsg(result.ok ? 'Notificaties staan nu aan' : (result.error || ''));
+              setSubscribeMsg(result.ok ? t('notifications_enabled_toast') : (result.error || ''));
             }}>{t('enable_notifications')}</button>
             {subscribeMsg && (
               <div style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, fontSize: 12, color: COLORS.textMuted, marginBottom: 8, lineHeight: 1.5 }}>
                 <span>{subscribeMsg}</span>
-                <button onClick={() => setSubscribeMsg('')} style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', color: COLORS.textDim, flexShrink: 0 }}>
+                <button onClick={() => setSubscribeMsg('')} style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', color: COLORS.textDim, flexShrink: 0 }} aria-label={t('close')}>
                   <XIcon size={14} weight="bold" />
                 </button>
               </div>
@@ -405,21 +418,25 @@ function HallOfFameView({ streetId, onError }) {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    api.get(`/streets/${streetId}/hall-of-fame`).then(setData).catch(e => onError(e.message || 'Hall of Fame laden mislukt'));
+    api.get(`/streets/${streetId}/hall-of-fame`).then(setData).catch(e => onError(e.message || t('generic_error')));
   }, [streetId, onError]);
 
   if (!data) return <div style={s.feed}><div style={s.emptyState}>{t('loading')}</div></div>;
 
+  // title.label comes from the backend (/streets/:id/hall-of-fame) — the
+  // backend has no locale awareness at all (frontend-only i18n), so these
+  // specific labels can't follow the language switch yet. Out of scope for
+  // FRE-339 (frontend sweep); would need the API to accept/return a locale.
   const monthStats = [
-    { label: 'pakketten bezorgd', value: data.thisMonth.packagesDelivered },
-    { label: 'spullen uitgeleend', value: data.thisMonth.itemsLent },
-    { label: 'evenementen georganiseerd', value: data.thisMonth.eventsOrganized },
-    { label: 'aanbevelingen geplaatst', value: data.thisMonth.recommendationsPosted },
+    { label: t('stat_packages_delivered'), value: data.thisMonth.packagesDelivered },
+    { label: t('stat_items_lent'), value: data.thisMonth.itemsLent },
+    { label: t('stat_events_organized'), value: data.thisMonth.eventsOrganized },
+    { label: t('stat_recommendations_posted'), value: data.thisMonth.recommendationsPosted },
   ];
 
   return (
     <div style={s.feed}>
-      <div style={s.sectionLabel}>Hall of Fame</div>
+      <div style={s.sectionLabel}>{t('hall_of_fame_title')}</div>
       {data.titles.map(title => (
         <div key={title.key} style={{ ...s.streetCard, cursor: 'default', display: 'flex', alignItems: 'center', gap: 12 }}>
           <TrophyIcon size={26} weight="duotone" color={COLORS.accent} style={{ flexShrink: 0 }} />
@@ -431,13 +448,13 @@ function HallOfFameView({ streetId, onError }) {
                 <span style={{ fontSize: 13, fontWeight: 400, color: COLORS.textMuted }}> · {title.winner.count}x</span>
               </div>
             ) : (
-              <div style={{ fontSize: 14, color: COLORS.textDim, marginTop: 2 }}>Nog niemand — wees de eerste!</div>
+              <div style={{ fontSize: 14, color: COLORS.textDim, marginTop: 2 }}>{t('hall_of_fame_no_winner')}</div>
             )}
           </div>
         </div>
       ))}
 
-      <div style={s.sectionLabel}>Deze maand</div>
+      <div style={s.sectionLabel}>{t('hall_of_fame_this_month')}</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 12px' }}>
         {monthStats.map(stat => (
           <div key={stat.label} style={{ ...s.streetCard, margin: 0, cursor: 'default', textAlign: 'center' }}>
@@ -454,7 +471,7 @@ function StreetsView({ user, onError }) {
   const [streets, setStreets] = useState([]);
 
   useEffect(() => {
-    api.get('/streets').then(setStreets).catch(e => onError(e.message || 'Straten laden mislukt'));
+    api.get('/streets').then(setStreets).catch(e => onError(e.message || t('generic_error')));
   }, [onError]);
 
   return (
@@ -467,8 +484,8 @@ function StreetsView({ user, onError }) {
             <span>{st.members} {t('members')}</span>
           </div>
           <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
-            {st.role === 'admin' && <span style={s.badge(COLORS.accent)}>admin</span>}
-            {st.role === 'moderator' && <span style={s.badge(COLORS.purple)}>mod</span>}
+            {st.role === 'admin' && <span style={s.badge(COLORS.accent)}>{t('admin_short')}</span>}
+            {st.role === 'moderator' && <span style={s.badge(COLORS.purple)}>{t('moderator_short')}</span>}
           </div>
         </div>
       ))}
@@ -518,7 +535,7 @@ export default function App() {
       const data = await api.get(`/streets/${STREET_ID}/posts`);
       setPosts(data);
     } catch (e) {
-      showError(e.message || 'Feed laden mislukt');
+      showError(e.message || t('generic_error'));
     }
     setLoading(false);
   }, [showError]);
@@ -541,7 +558,7 @@ export default function App() {
   }, [eventDetail, joinDetail, editPost, loadPosts, tab]);
 
   useEffect(() => {
-    api.get(`/streets/${STREET_ID}`).then(setStreetInfo).catch(e => showError(e.message || 'Straatgegevens laden mislukt'));
+    api.get(`/streets/${STREET_ID}`).then(setStreetInfo).catch(e => showError(e.message || t('generic_error')));
   }, [showError]);
 
   // Register service worker
@@ -602,7 +619,7 @@ export default function App() {
       const { liked } = await api.post(`/streets/${STREET_ID}/posts/${id}/like`);
       setPosts(ps => ps.map(p => p.id === id ? { ...p, liked, likes: Number(p.likes) + (liked ? 1 : -1) } : p));
     } catch (e) {
-      showError(e.message || 'Vind-ik-leuk mislukt');
+      showError(e.message || t('generic_error'));
     }
   };
 
@@ -625,7 +642,7 @@ export default function App() {
         });
       }
     } catch (e) {
-      showError(e.message || 'RSVP mislukt');
+      showError(e.message || t('generic_error'));
     }
   };
 
@@ -635,7 +652,7 @@ export default function App() {
       setPosts(ps => ps.map(p => p.id === id ? { ...p, reported: true } : p));
       showToast(t('reported_toast'), { borderColor: COLORS.error, duration: 2500 });
     } catch (e) {
-      showError(e.message || 'Melden mislukt');
+      showError(e.message || t('generic_error'));
     }
   };
 
@@ -648,7 +665,7 @@ export default function App() {
       await api.delete(`/streets/${STREET_ID}/posts/${id}`);
       setPosts(ps => ps.filter(p => p.id !== id));
     } catch (e) {
-      showError(e.message || 'Verwijderen mislukt');
+      showError(e.message || t('generic_error'));
     }
   };
 
@@ -678,7 +695,7 @@ export default function App() {
         rsvp: { yes: [], maybe: [], no: [] },
       }, ...ps]);
     } catch (e) {
-      showError(e.message || 'Bericht plaatsen mislukt');
+      showError(e.message || t('generic_error'));
     }
   };
 
@@ -687,7 +704,7 @@ export default function App() {
       const updated = await api.patch(`/streets/${STREET_ID}/posts/${postId}`, data);
       setPosts(ps => ps.map(p => p.id === postId ? { ...p, ...updated } : p));
     } catch (e) {
-      showError(e.message || 'Bewerken mislukt');
+      showError(e.message || t('generic_error'));
     }
   };
 
@@ -704,7 +721,7 @@ export default function App() {
       setPosts(ps => ps.map(updatedPost));
       setJoinDetail(prev => prev?.id === id ? updatedPost(prev) : prev);
     } catch (e) {
-      showError(e.message || 'Aanmelden mislukt');
+      showError(e.message || t('generic_error'));
     }
   };
 
@@ -746,15 +763,15 @@ export default function App() {
           {notifSupported && !subscribed && permission !== 'denied' && (
             <div style={{ margin: '12px 12px 0', background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 2 }}>Blijf op de hoogte</div>
-                <div style={{ fontSize: 12, color: COLORS.textMuted, lineHeight: 1.4 }}>Ontvang een melding bij nieuwe berichten in de straat</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 2 }}>{t('notifications_banner_title')}</div>
+                <div style={{ fontSize: 12, color: COLORS.textMuted, lineHeight: 1.4 }}>{t('notifications_banner_body')}</div>
               </div>
               <button onClick={async () => {
                 const result = await subscribe();
-                if (result.ok) showToast('Notificaties staan nu aan', { dismissible: true, wrap: true, duration: 0 });
+                if (result.ok) showToast(t('notifications_enabled_toast'), { dismissible: true, wrap: true, duration: 0 });
                 else if (result.error) showToast(result.error, { dismissible: true, wrap: true, duration: 0 });
               }} style={{ background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                Aanzetten
+                {t('notifications_banner_cta')}
               </button>
             </div>
           )}
@@ -793,7 +810,7 @@ export default function App() {
         <div style={s.tabBar}>
           {[
             { id: 'feed', label: t('feed'), icon: HouseIcon },
-            { id: 'hof', label: 'Hall of Fame', icon: TrophyIcon },
+            { id: 'hof', label: t('hall_of_fame_title'), icon: TrophyIcon },
           ].map(tab_ => {
             const active = tab === tab_.id;
             const TabIcon = tab_.icon;
