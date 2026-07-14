@@ -4,6 +4,20 @@ Short entries for decisions worth not re-litigating. Newest first.
 
 ---
 
+## 2026-07-14 — node-pg-migrate replaces re-running schema.sql on every boot
+
+**Decision:** `backend/src/db/schema.sql` is deleted. `backend/migrations/` now holds tracked, timestamped migration files, applied via `node-pg-migrate`'s programmatic `runner()` from `runMigrations()` (`backend/src/db/index.js`), same call site and call pattern as before (still invoked once at boot, before the HTTP server starts listening). Applied migrations are recorded in a `pgmigrations` table, so each migration only ever runs once per database.
+
+The entire previous `schema.sql` (188 lines, all idempotent `CREATE TABLE IF NOT EXISTS` / `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` / `ON CONFLICT DO NOTHING` statements, accumulated migration-comment-by-migration-comment over M0–M3) became one baseline migration (`1720900000000_baseline.js`), byte-for-byte the same SQL, unedited. Every future schema change is a new migration file — the baseline is never touched again.
+
+**Why:** `runMigrations()` used to just re-run all of `schema.sql` on every container start — no version tracking, no rollback, and nothing preventing a future non-idempotent statement from silently re-corrupting data on redeploy (the original problem statement, FRE-330). Squashing the existing idempotent history into one baseline migration, rather than splitting it into one migration per historical `-- Migratie:` comment, means adopting the tool requires no manual reconciliation step against the already-migrated production database: the baseline is a no-op there (every statement in it already matches production's actual state) and a real bootstrap on a fresh database (CI, local dev). Confirmed locally against a fresh Postgres — first boot applies the baseline and logs `MIGRATION 1720900000000_baseline (UP)`; second boot logs `No migrations to run!` instead of re-executing DDL.
+
+**Also changed:** `backend/Dockerfile` now `COPY`s `migrations/` alongside `src/` (needed at runtime, not just build time). `.claude/skills/verify/SKILL.md`'s local-Postgres recipe dropped its manual `psql -f schema.sql` step — the backend now applies its own schema on boot, same as it will in any real environment.
+
+**Revisit when:** a schema change needs an actual rollback (`down()` migrations are stubbed as errors on the baseline and unused so far — this project has never needed one) or multiple developers start writing migrations concurrently on divergent branches (`checkOrder` is left at its default `true`, which will start rejecting out-of-order timestamps at that point — that's the intended behavior, not a bug to work around).
+
+---
+
 ## 2026-07-13 — Milestone branches: main only moves at milestone boundaries
 
 **Decision:** Starting with M4, each milestone is developed on its own branch (`feature/m<N>-<short-name>`, e.g. `feature/m4-notifications`) instead of directly on `main`. Individual issues are committed and pushed to that branch, verified against CI on the branch, exactly as before. `main` only receives a milestone at the end, via the gate below.
