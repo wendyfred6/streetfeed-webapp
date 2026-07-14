@@ -15,7 +15,6 @@ import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
 import { ChatCircleIcon } from '@phosphor-icons/react/dist/csr/ChatCircle';
 import { UsersThreeIcon } from '@phosphor-icons/react/dist/csr/UsersThree';
-import { PackageIcon } from '@phosphor-icons/react/dist/csr/Package';
 
 // ─── STYLES (local to PostCard) ────────────────────────────────────────────────
 
@@ -84,42 +83,6 @@ function MeldingLinks({ post }) {
         </a>
       ))}
     </div>
-  );
-}
-
-// ─── CARRIER BADGE ─────────────────────────────────────────────────────────────
-// (legacy weergave voor oudere posts die nog een carrier-waarde hebben)
-
-const CARRIER_COLORS = {
-  'PostNL':   { bg: '#FF6600', color: '#fff' },
-  'DHL':      { bg: '#FFCC00', color: '#CC0605' },
-  'DPD':      { bg: '#414042', color: '#DC0032' },
-  'GLS':      { bg: '#009900', color: '#fff' },
-  'FedEx':    { bg: '#4D148C', color: '#FF6600' },
-  'UPS':      { bg: '#351C15', color: '#FFB500' },
-  'Bol.com':  { bg: '#0000A4', color: '#fff' },
-  'Coolblue': { bg: '#003878', color: '#fff' },
-  'Amazon':   { bg: '#FF9900', color: '#000' },
-};
-
-function CarrierBadge({ carrier }) {
-  const style = CARRIER_COLORS[carrier];
-  if (!style) {
-    return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, ...s.badge(COLORS.blue), fontSize: 11, padding: '3px 8px' }}>
-        <PackageIcon size={11} color={COLORS.blue} weight="regular" />{carrier}
-      </span>
-    );
-  }
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      background: style.bg, color: style.color,
-      borderRadius: 4, fontSize: 10, fontWeight: 800,
-      padding: '3px 8px', letterSpacing: '0.3px',
-    }}>
-      <PackageIcon size={11} color={style.color} weight="regular" />{carrier}
-    </span>
   );
 }
 
@@ -279,11 +242,6 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
               style={{ width: '100%', borderRadius: 8, marginTop: 8, objectFit: 'cover', maxHeight: 240 }}
               onError={e => e.target.style.display = 'none'}
             />
-          )}
-          {post.carrier && (
-            <div style={{ marginTop: 8 }}>
-              <CarrierBadge carrier={post.carrier} />
-            </div>
           )}
           {post.link && (
             <a href={post.link} target="_blank" rel="noopener noreferrer"

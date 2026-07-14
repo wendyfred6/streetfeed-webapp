@@ -1,6 +1,6 @@
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import sharp from 'sharp';
 import convertHeic from 'heic-convert';
 
@@ -33,13 +33,13 @@ export async function saveFile(buffer, contentType) {
       .resize({ width: 1600, withoutEnlargement: true })
       .jpeg({ quality: 78 })
       .toBuffer();
-    const key = `${uuidv4()}.jpg`;
+    const key = `${randomUUID()}.jpg`;
     await writeFile(join(UPLOAD_DIR, key), resized);
     return key;
   } catch {
     // sharp kan dit formaat niet verwerken — origineel opslaan
     const ext = extFromMime(contentType);
-    const key = `${uuidv4()}.${ext}`;
+    const key = `${randomUUID()}.${ext}`;
     await writeFile(join(UPLOAD_DIR, key), buffer);
     return key;
   }
