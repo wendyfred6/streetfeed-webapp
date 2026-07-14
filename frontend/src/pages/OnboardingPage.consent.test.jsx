@@ -1,14 +1,14 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { MemoryRouter } from 'react-router-dom';
 import OnboardingPage from './OnboardingPage.jsx';
 
-// FRE-234: registration ("akkoord vereist") must not complete without the
-// terms/privacy checkbox — and residents need to be able to actually read
-// both documents before agreeing, not just take it on faith. Drives the
-// whole registration wizard (no prior test coverage existed for it at all)
-// since the consent gate lives on its final step.
+// FRE-361: the old flow let a first-time resident submit just an email on
+// what looked like the only entry point, silently hitting the backend's
+// anti-enumeration short-circuit (no token, no email sent) with no way to
+// tell. Root entry point is now an explicit choice screen instead of a
+// primary button + easy-to-miss secondary link.
 
 vi.mock('../api/client.js', () => ({
   api: {
@@ -21,33 +21,59 @@ vi.mock('../api/client.js', () => ({
   },
 }));
 
-describe('FRE-243 PO smoke test blocker: "Nieuw hier?" requires an email first', () => {
-  it('blocks navigation to the registration wizard and shows a validation error when the email field is empty', async () => {
-    render(<MemoryRouter><OnboardingPage /></MemoryRouter>);
-
-    fireEvent.click(screen.getByText(/nieuw hier|new here/i));
-
-    // Must NOT have navigated to the postcode step
-    expect(screen.queryByLabelText(/postcode/i)).not.toBeInTheDocument();
-    expect(await screen.findByRole('alert')).toHaveTextContent(/e-mailadres/i);
+describe('FRE-361: root choice screen', () => {
+  beforeEach(async () => {
+    const { api } = await import('../api/client.js');
+    api.post.mockClear();
   });
 
-  it('proceeds to the registration wizard once a valid email is entered, and actually sends it', async () => {
+  it('offers both an existing-account and a new-resident path, with no default action', async () => {
+    render(<MemoryRouter><OnboardingPage /></MemoryRouter>);
+
+    expect(screen.getByRole('button', { name: /magic link/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /account aanmaken|create account/i })).toBeInTheDocument();
+    // Neither path's own screen (email field) exists yet — the choice must
+    // be made first.
+    expect(screen.queryByLabelText(/e-mail/i)).not.toBeInTheDocument();
+  });
+
+  it('existing-account path shows login copy and sends only the email', async () => {
     const { api } = await import('../api/client.js');
     render(<MemoryRouter><OnboardingPage /></MemoryRouter>);
 
-    const emailInput = screen.getByLabelText(/e-mail/i);
+    fireEvent.click(screen.getByRole('button', { name: /magic link/i }));
+
+    const emailInput = await screen.findByLabelText(/e-mail/i);
+    fireEvent.change(emailInput, { target: { value: 'existing@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: /stuur magic link|send magic link/i }));
+
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/auth/request', { email: 'existing@example.com' }));
+  });
+
+  it('new-resident path shows account-creation copy (not login) and does not call the API yet', async () => {
+    const { api } = await import('../api/client.js');
+    render(<MemoryRouter><OnboardingPage /></MemoryRouter>);
+
+    fireEvent.click(screen.getByRole('button', { name: /account aanmaken|create account/i }));
+
+    const emailInput = await screen.findByLabelText(/e-mail/i);
+    expect(screen.queryByRole('button', { name: /stuur magic link|send magic link/i })).not.toBeInTheDocument();
     fireEvent.change(emailInput, { target: { value: 'resident@example.com' } });
-    fireEvent.click(screen.getByText(/nieuw hier|new here/i));
+    fireEvent.click(screen.getByRole('button', { name: /volgende|next/i }));
 
     expect(await screen.findByLabelText(/postcode/i)).toBeInTheDocument();
+    expect(api.post).not.toHaveBeenCalled();
+  });
 
-    // Drive the rest of the wizard and confirm the email actually reaches
-    // the backend — a mock that always resolves ok wouldn't have caught
-    // the original bug (the request went out with an empty email and the
-    // real backend rejected it; this mock can't distinguish that unless we
-    // assert on what was actually sent).
-    fireEvent.change(screen.getByLabelText(/postcode/i), { target: { value: '1000AA' } });
+  it('drives the full registration wizard from the choice screen and actually sends the collected email', async () => {
+    const { api } = await import('../api/client.js');
+    render(<MemoryRouter><OnboardingPage /></MemoryRouter>);
+
+    fireEvent.click(screen.getByRole('button', { name: /account aanmaken|create account/i }));
+    fireEvent.change(await screen.findByLabelText(/e-mail/i), { target: { value: 'resident@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: /volgende|next/i }));
+
+    fireEvent.change(await screen.findByLabelText(/postcode/i), { target: { value: '1000AA' } });
     fireEvent.click(screen.getByRole('button', { name: /volgende|next/i }));
     fireEvent.click(await screen.findByRole('button', { name: 'Dit klopt' }));
     fireEvent.change(await screen.findByLabelText(/huisnummer/i), { target: { value: '52' } });
@@ -66,11 +92,10 @@ describe('FRE-234 verification: onboarding consent checkbox', () => {
   it('gates registration submission on the terms checkbox, and lets the user preview both documents first', async () => {
     render(<MemoryRouter><OnboardingPage /></MemoryRouter>);
 
-    // Step 0: enter an email, then go to "new here" (registration) flow —
-    // required since FRE-243's smoke test found "Nieuw hier?" didn't work
-    // at all without one.
-    fireEvent.change(screen.getByLabelText(/e-mail/i), { target: { value: 'resident2@example.com' } });
-    fireEvent.click(screen.getByText(/nieuw hier|new here/i));
+    // Step 0: choose the new-resident path, then enter an email
+    fireEvent.click(screen.getByRole('button', { name: /account aanmaken|create account/i }));
+    fireEvent.change(await screen.findByLabelText(/e-mail/i), { target: { value: 'resident2@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: /volgende|next/i }));
 
     // Step 1: postcode
     const postcodeInput = await screen.findByLabelText(/postcode/i);

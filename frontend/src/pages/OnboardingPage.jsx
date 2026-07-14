@@ -4,7 +4,6 @@ import { api } from '../api/client.js';
 import { COLORS, RADIUS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL, FIELD_GROUP } from '../design/onboardingStyles.js';
 import { t, getLang, setLang } from '../i18n/index.js';
-import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 import LegalSheet from '../components/LegalSheet.jsx';
 
@@ -52,6 +51,9 @@ const s = {
   input: FIELD_INPUT,
   inputAccent: { ...FIELD_INPUT, border: `1px solid ${COLORS.accent}` },
   ctaGroup: { display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' },
+  choiceGroup: { display: 'flex', flexDirection: 'column', gap: 28 },
+  choiceSection: { display: 'flex', flexDirection: 'column', gap: 12 },
+  choiceLabel: { fontSize: 15, color: COLORS.textMuted, fontWeight: 500 },
   btn: {
     width: '100%',
     background: COLORS.accent,
@@ -107,16 +109,20 @@ const s = {
 
 export default function OnboardingPage() {
   const location = useLocation();
-  const [step, setStep] = useState('login');
+  const [step, setStep] = useState('choice');
+  // Root entry point (FRE-361) — the user declares login-vs-register intent
+  // here, before any input, instead of the old "primary button + small
+  // secondary link" layout a first-time resident could miss entirely.
+  const [intent, setIntent] = useState(null); // 'login' | 'register'
 
   // Verplaatst focus naar de titel bij stappen zonder autoFocus-veld, zodat
   // schermlezers de nieuwe stap aankondigen — anders blijft focus stil op een
   // element dat net uit de DOM is verdwenen. Stappen mét een tekstveld
-  // (login/address/name) autofocussen dat veld al, wat hier voorrang krijgt
+  // (email/address/name) autofocussen dat veld al, wat hier voorrang krijgt
   // boven het aankondigen van de titel (FRE-306).
   const titleRef = useRef(null);
   useEffect(() => {
-    if (step === 'confirm' || step === 'huisnummer' || step === 'sent') {
+    if (step === 'choice' || step === 'confirm' || step === 'huisnummer' || step === 'sent') {
       titleRef.current?.focus();
     }
   }, [step]);
@@ -141,6 +147,13 @@ export default function OnboardingPage() {
   const [error, setError] = useState(location.state?.authError || '');
 
   const canSendLogin = email.includes('@') && email.includes('.');
+
+  // Registratie-intent: alleen lokaal doorschakelen naar de wizard, geen
+  // API-call — die volgt pas bij handleCreateAccount op de laatste stap.
+  const handleContinueToRegistration = () => {
+    setError('');
+    setStep('address');
+  };
 
   // Of dit e-mailadres al een account heeft, wordt hier bewust niet meer aan de
   // backend-respons afgelezen (dat was een user-enumeration oracle — FRE-301/FRE-295).
@@ -214,20 +227,56 @@ export default function OnboardingPage() {
     }
   };
 
-  // ── INLOGGEN ──────────────────────────────────────────────────────────────
+  // ── KEUZE (root entry point, FRE-361) ────────────────────────────────────
 
-  if (step === 'login') {
+  if (step === 'choice') {
     return (
       <div style={s.page}>
         <div style={s.loginWrapper}>
           <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
           <div style={s.card}>
             <div style={s.titleGroup}>
-              <div style={s.title}>{t('onboarding_login_title')}</div>
-              <div style={s.sub}>{t('onboarding_login_subtitle')}</div>
+              <div ref={titleRef} tabIndex={-1} style={s.title}>{t('onboarding_choice_title')}</div>
+            </div>
+            <div style={s.choiceGroup}>
+              <div style={s.choiceSection}>
+                <div style={s.choiceLabel}>{t('onboarding_choice_existing_label')}</div>
+                <button type="button" style={s.btn} onClick={() => { setIntent('login'); setStep('login'); }}>
+                  {t('onboarding_choice_login_cta')}
+                </button>
+              </div>
+              <div style={s.choiceSection}>
+                <div style={s.choiceLabel}>{t('onboarding_choice_new_label')}</div>
+                <button type="button" style={s.btnOutline} onClick={() => { setIntent('register'); setStep('login'); }}>
+                  {t('onboarding_choice_register_cta')}
+                </button>
+              </div>
+            </div>
+            <div style={s.langToggle}>
+              <button type="button" style={s.langOption(lang === 'nl')} onClick={() => switchLang('nl')}>Nederlands</button>
+              <button type="button" style={s.langOption(lang === 'en')} onClick={() => switchLang('en')}>English</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── E-MAILADRES (gedeeld door beide intents) ─────────────────────────────
+
+  if (step === 'login') {
+    const isRegisterIntent = intent === 'register';
+    return (
+      <div style={s.page}>
+        <div style={s.loginWrapper}>
+          <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
+          <div style={s.card}>
+            <div style={s.titleGroup}>
+              <div style={s.title}>{isRegisterIntent ? t('onboarding_choice_register_cta') : t('onboarding_login_title')}</div>
+              <div style={s.sub}>{isRegisterIntent ? t('onboarding_register_subtitle') : t('onboarding_login_subtitle')}</div>
             </div>
             {error && <div role="alert" style={s.error}>{error}</div>}
-            <form style={s.form} onSubmit={e => { e.preventDefault(); handleLoginSubmit(); }}>
+            <form style={s.form} onSubmit={e => { e.preventDefault(); isRegisterIntent ? handleContinueToRegistration() : handleLoginSubmit(); }}>
               <div style={s.fieldGroup}>
                 <label htmlFor="onboarding-email" style={s.label}>{t('onboarding_email_label')}</label>
                 <input
@@ -245,27 +294,10 @@ export default function OnboardingPage() {
               <div style={s.ctaGroup}>
                 <button
                   type="submit"
-                  style={{ ...s.btn, ...(!canSendLogin || loading ? s.btnDisabled : {}) }}
-                  disabled={!canSendLogin || loading}
+                  style={{ ...s.btn, ...(!canSendLogin || (!isRegisterIntent && loading) ? s.btnDisabled : {}) }}
+                  disabled={!canSendLogin || (!isRegisterIntent && loading)}
                 >
-                  {loading ? t('onboarding_sending') : t('onboarding_send_magic_link')}
-                </button>
-                <button type="button" style={s.standaloneLink} onClick={() => {
-                  // FRE-243 PO smoke test blocker: this used to navigate to
-                  // the registration wizard unconditionally — none of its
-                  // steps (postcode/confirm/huisnummer/name) collect an
-                  // email, so a user who clicked straight through without
-                  // filling in the field above only found out at the very
-                  // last step, via a raw backend "Email required" error.
-                  if (!canSendLogin) {
-                    setError(t('onboarding_email_required_first'));
-                    return;
-                  }
-                  setError('');
-                  setStep('address');
-                }}>
-                  {t('onboarding_new_here')}
-                  <CaretRightIcon size={8} weight="regular" />
+                  {isRegisterIntent ? t('onboarding_next') : (loading ? t('onboarding_sending') : t('onboarding_send_magic_link'))}
                 </button>
               </div>
             </form>
