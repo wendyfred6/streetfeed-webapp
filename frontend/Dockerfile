@@ -1,6 +1,10 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
+# node:20-alpine's bundled npm mishandles stray optional platform deps in
+# this lockfile (EBADPLATFORM instead of skipping them) — same bug CI works
+# around by pinning npm; see docs/DECISIONS.md.
+RUN npm install -g npm@11.18.0
 RUN npm ci
 COPY . .
 ARG VITE_API_URL
