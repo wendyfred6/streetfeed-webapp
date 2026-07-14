@@ -44,48 +44,51 @@ beforeAll(async () => {
   // Idempotency: a fresh CI Postgres service container never has this data,
   // but a local re-run against a warm DB would otherwise hit a duplicate
   // email constraint on the second run.
-  await query('DELETE FROM users WHERE email = $1', ['smoke-push@example.com']);
+  await query('DELETE FROM users WHERE email = ANY($1)', [['smoke-push-poster@example.com', 'smoke-push-subscriber@example.com']]);
 }, 30000);
 
 afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
-async function seedResidentWithBrokenSubscription() {
+async function seedResident(email, name) {
   const { rows } = await query(
     `INSERT INTO users (email, name, house_number) VALUES ($1, $2, $3) RETURNING id`,
-    ['smoke-push@example.com', 'Smoke Push', '20']
+    [email, name, '20']
   );
   const userId = rows[0].id;
   await query(
     `INSERT INTO memberships (user_id, street_id, role, status) VALUES ($1, 1, 'resident', 'approved')`,
     [userId]
   );
-  await query(
-    `INSERT INTO push_subscriptions (user_id, subscription) VALUES ($1, $2)`,
-    [userId, JSON.stringify(BROKEN_SUBSCRIPTION)]
-  );
-  const token = 'smoke-push-session-token';
+  const token = `smoke-push-session-${userId}`;
   await query(
     `INSERT INTO sessions (user_id, token, expires_at) VALUES ($1, $2, NOW() + interval '1 day')`,
     [userId, token]
   );
-  return `session=${token}`;
+  return { userId, cookie: `session=${token}` };
 }
 
 describe('M4 DoD: a new post triggers a push send, delivery failure is logged not dropped', () => {
   it('logs a failed push delivery instead of swallowing it', async () => {
-    const cookie = await seedResidentWithBrokenSubscription();
+    // Two separate residents — notifyStreet excludes the post's own author
+    // from the broadcast (FRE-243), so the broken subscription has to
+    // belong to a *different* street member than the one posting, or no
+    // push attempt happens at all and this test would hang waiting for a
+    // console.error that never comes.
+    const poster = await seedResident('smoke-push-poster@example.com', 'Smoke Poster');
+    const subscriber = await seedResident('smoke-push-subscriber@example.com', 'Smoke Subscriber');
+    await query(
+      `INSERT INTO push_subscriptions (user_id, subscription) VALUES ($1, $2)`,
+      [subscriber.userId, JSON.stringify(BROKEN_SUBSCRIPTION)]
+    );
+
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     try {
-      // 'algemeen' (general) posts don't exclude the poster from the
-      // street-wide notifyStreet broadcast (only the delivered-package
-      // path builds an exclude list), so this one post is enough to
-      // trigger a push attempt against the poster's own broken subscription.
       const res = await fetch(`${BASE_URL}/streets/1/posts`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Cookie: cookie },
+        headers: { 'Content-Type': 'application/json', Cookie: poster.cookie },
         body: JSON.stringify({ category: 'algemeen', title: 'Smoke test push post' }),
       });
       expect(res.status).toBe(201);

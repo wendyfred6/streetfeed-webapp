@@ -116,7 +116,9 @@ export function registerCrudRoutes(router) {
       }
 
       // Normale straat-brede broadcast — doelgebruikers hierboven al apart
-      // bediend, dus uitgesloten om dubbele notificaties te voorkomen
+      // bediend (uitgesloten om dubbele notificaties te voorkomen), en de
+      // auteur zelf ook (FRE-243: niemand hoeft een melding te krijgen over
+      // het eigen bericht dat ze net plaatsten)
       notifyStreet(streetId, category, isSearchPackage ? {
         title,
         body: 'Weet jij waar dit pakket is?',
@@ -127,7 +129,7 @@ export function registerCrudRoutes(router) {
         body: (body || '').substring(0, 100),
         url: `/?post=${post.id}`,
         postId: post.id,
-      }, targetUserIds).catch(err => console.error(`[posts] notifyStreet failed for post ${post.id} (street ${streetId})`, err));
+      }, [...targetUserIds, req.user.user_id]).catch(err => console.error(`[posts] notifyStreet failed for post ${post.id} (street ${streetId})`, err));
     })();
 
     res.status(201).json(post);
