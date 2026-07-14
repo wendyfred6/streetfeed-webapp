@@ -395,6 +395,13 @@ function ProfileView({ user, onLogout, canModerate, streetId, streetName, member
         </div>
       </div>
 
+      <div style={s.sectionLabel}>{t('terms_title')}</div>
+      <div style={{ padding: '0 12px' }}>
+        <div style={{ ...s.adminCard, fontSize: 12, color: COLORS.textMuted, lineHeight: 1.7 }}>
+          {t('terms_body').map(item => <div key={item} style={{ padding: '3px 0' }}>{item}</div>)}
+        </div>
+      </div>
+
       <div style={s.sectionLabel}>{t('privacy_title')}</div>
       <div style={{ padding: '0 12px' }}>
         <div style={{ ...s.adminCard, fontSize: 12, color: COLORS.textMuted, lineHeight: 1.7 }}>

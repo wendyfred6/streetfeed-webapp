@@ -6,6 +6,7 @@ import { FIELD_INPUT, FIELD_LABEL, FIELD_GROUP } from '../design/onboardingStyle
 import { t, getLang, setLang } from '../i18n/index.js';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
+import LegalSheet from '../components/LegalSheet.jsx';
 
 const s = {
   page: {
@@ -125,6 +126,8 @@ export default function OnboardingPage() {
   const [houseNumber, setHouseNumber] = useState('');
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [legalSheet, setLegalSheet] = useState(null); // null | 'terms' | 'privacy'
 
   // De taaltoggle in ProfileView is pas bereikbaar na inloggen — voor een
   // nieuwe bewoner die nog geen account heeft is dit de enige plek waar
@@ -395,17 +398,42 @@ export default function OnboardingPage() {
                 <div style={s.previewName}>{firstName.trim() || '…'} {houseNumber}</div>
               </div>
             </div>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: COLORS.textMuted, margin: '4px 0 8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={e => setTermsAccepted(e.target.checked)}
+                style={{ marginTop: 2, flexShrink: 0 }}
+              />
+              <span>
+                {t('terms_agree_prefix')}{' '}
+                <button type="button" onClick={() => setLegalSheet('terms')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.accent, textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }}>
+                  {t('terms_title')}
+                </button>{' '}
+                {t('terms_agree_and')}{' '}
+                <button type="button" onClick={() => setLegalSheet('privacy')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.accent, textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }}>
+                  {t('privacy_policy_link_label')}
+                </button>
+              </span>
+            </label>
             <div style={s.ctaGroup}>
               <button
                 type="submit"
-                style={{ ...s.btn, ...(!firstName.trim() || loading ? s.btnDisabled : {}) }}
-                disabled={!firstName.trim() || loading}
+                style={{ ...s.btn, ...(!firstName.trim() || !termsAccepted || loading ? s.btnDisabled : {}) }}
+                disabled={!firstName.trim() || !termsAccepted || loading}
               >
                 {loading ? t('onboarding_sending') : t('onboarding_send_magic_link')}
               </button>
             </div>
           </form>
         </div>
+        {legalSheet && (
+          <LegalSheet
+            titleKey={legalSheet === 'terms' ? 'terms_title' : 'privacy_title'}
+            bodyKey={legalSheet === 'terms' ? 'terms_body' : 'privacy_body'}
+            onClose={() => setLegalSheet(null)}
+          />
+        )}
       </div>
     );
   }
