@@ -14,6 +14,7 @@ import pushRoutes from './routes/push.js';
 import bagRoutes from './routes/bag.js';
 import notificationsRoutes from './routes/notifications.js';
 import { runMigrations } from './db/index.js';
+import { runPhotoRetention } from './services/retention.js';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || '/data/photos';
 
@@ -46,6 +47,8 @@ app.use((err, req, res, next) => {
 
 export { app };
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 // Exported so tests can await startup and get a handle to close the server
 // (see smoke.test.js) — runtime behavior when run directly is unchanged.
 export default runMigrations()
@@ -55,4 +58,13 @@ export default runMigrations()
       resolve(server);
     });
   }))
+  .then((server) => {
+    runPhotoRetention().catch(err => console.error('[retention] initial run failed:', err));
+    // unref() so this timer alone never keeps the process alive (relevant
+    // for tests, which boot this same default export and expect a clean exit).
+    setInterval(() => {
+      runPhotoRetention().catch(err => console.error('[retention] scheduled run failed:', err));
+    }, DAY_MS).unref();
+    return server;
+  })
   .catch(err => { console.error('Startup failed:', err); process.exit(1); });
