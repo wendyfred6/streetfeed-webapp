@@ -1,5 +1,32 @@
 # Streetfeed v1.0 — resume prompt
 
+## Project Closure — Streetfeed v1.0
+
+Streetfeed v1.0 has successfully completed its planned development cycle.
+
+### Final Status
+
+- ✅ M1–M6 completed
+- ✅ All milestone issues closed
+- ✅ Acceptance gate passed (FRE-243)
+- ✅ Branch merged to `main`
+- ✅ CI green
+- ✅ Production deployment successful
+- ✅ Production smoke test completed successfully
+- ✅ Pilot Readiness achieved
+
+This concludes the original v1.0 implementation plan.
+
+### Current State
+
+There is no active implementation milestone.
+
+Do **not** assume a next milestone or begin new implementation work automatically. Future work (Pilot Learnings, Public Beta, v1.1, or another direction) will be defined explicitly by Wendy and documented in Linear before implementation begins.
+
+This document now serves as the historical completion record for the Streetfeed v1.0 development cycle. Everything below this point is that historical record, kept as-is.
+
+---
+
 Read this cold, with no prior conversation context, and you should be able to pick up exactly where the last session left off.
 
 ## What this project is
