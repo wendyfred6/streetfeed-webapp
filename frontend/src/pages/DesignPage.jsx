@@ -1,7 +1,9 @@
-import { useState, useRef, useLayoutEffect } from 'react';
+import { useState } from 'react';
 import { COLORS, RADIUS, FONT, GLASS, BG_GRADIENT } from '../design/tokens.js';
-import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import Switch from '../components/Switch.jsx';
+import SegmentedControl from '../components/SegmentedControl.jsx';
+import CatBadge from '../components/CatBadge.jsx';
+import Chevron from '../components/Chevron.jsx';
 
 const CAT_OPTIONS = [
   { key: 'bezorging',   label: 'Bezorging' },
@@ -86,61 +88,7 @@ function BtnSmall({ children, color }) {
   );
 }
 
-// ── Segmented Control ────────────────────────────────────────────────────────
-
-function SegmentedControl({ options, value, onChange, label }) {
-  const itemRefs = useRef({});
-  const [capsule, setCapsule] = useState({ left: 0, width: 60 });
-
-  useLayoutEffect(() => {
-    const item = itemRefs.current[value];
-    if (!item) return;
-    setCapsule({ left: item.offsetLeft, width: item.offsetWidth });
-  }, [value]);
-
-  return (
-    <div style={{ padding: '4px 0 8px' }}>
-      {label && (
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.accent, marginBottom: 6 }}>{label}</div>
-      )}
-      <div style={{
-        position: 'relative', display: 'flex',
-        background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-        borderRadius: RADIUS.pill, padding: 4, overflowX: 'auto', scrollbarWidth: 'none',
-      }}>
-        <div style={{
-          position: 'absolute', top: 4, left: 4 + capsule.left, height: 'calc(100% - 8px)', width: capsule.width,
-          background: 'rgba(255,255,255,0.92)', borderRadius: RADIUS.pill,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.10)',
-          transition: 'left 0.35s cubic-bezier(0.34,1.56,0.64,1), width 0.35s cubic-bezier(0.34,1.56,0.64,1)',
-          pointerEvents: 'none',
-        }} />
-        {options.map(({ key, label: optLabel }) => (
-          <div key={key} ref={el => { itemRefs.current[key] = el; }} onClick={() => onChange(key)}
-            style={{
-              position: 'relative', zIndex: 1, padding: '7px 12px', minHeight: 34,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 13, fontWeight: value === key ? 700 : 500,
-              color: value === key ? COLORS.accent : COLORS.textMuted,
-              cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none', flexShrink: 0, transition: 'color 0.25s',
-            }}>
-            {optLabel}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ── Badges ───────────────────────────────────────────────────────────────────
-
-function CatBadge({ label }) {
-  return (
-    <span style={{ display: 'inline-block', background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: RADIUS.pill, fontSize: 11, fontWeight: 600, color: COLORS.textMuted, padding: '2px 8px', whiteSpace: 'nowrap' }}>
-      {label}
-    </span>
-  );
-}
 
 function AccentBadge({ label, color }) {
   return (
@@ -159,15 +107,6 @@ function Toggle({ on, onClick, label = 'Toggle' }) {
   );
 }
 
-// ── Chevron ──────────────────────────────────────────────────────────────────
-
-function Chevron({ rotate = 0, color }) {
-  return (
-    <CaretDownIcon size={18} color={color || COLORS.textMuted} weight="regular"
-      style={{ transition: 'transform 0.2s', transform: `rotate(${rotate}deg)` }} />
-  );
-}
-
 // ── Kaart ─────────────────────────────────────────────────────────────────────
 
 function CardExample({ pinned }) {
@@ -180,7 +119,7 @@ function CardExample({ pinned }) {
       borderRadius: RADIUS.lg, padding: '12px 14px',
     }}>
       <div style={{ display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-        <CatBadge label="Pakket" />
+        <CatBadge cat="Pakket" />
         {pinned && (
           <span style={{ fontSize: 10, fontWeight: 700, color: COLORS.accent, background: `${COLORS.accent}12`, border: `1px solid ${COLORS.accent}30`, borderRadius: RADIUS.pill, padding: '2px 8px' }}>Pinned</span>
         )}
@@ -302,8 +241,8 @@ export default function DesignPage() {
       <Section title="Badges">
         <div style={s.meta}>Categorie-badges — neutraal frosted glass</div>
         <div style={s.row}>
-          {CAT_OPTIONS.map(({ label }) => <CatBadge key={label} label={label} />)}
-          <CatBadge label="Gezocht" />
+          {CAT_OPTIONS.map(({ label }) => <CatBadge key={label} cat={label} />)}
+          <CatBadge cat="Gezocht" />
         </div>
         <div style={{ ...s.meta, marginTop: 4 }}>Speciale badges — gekleurd</div>
         <div style={s.row}>
@@ -333,7 +272,7 @@ export default function DesignPage() {
             <option>PostNL</option>
             <option>DHL</option>
           </select>
-          <CaretDownIcon size={14} color={COLORS.textDim} weight="regular" style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+          <Chevron size={14} color={COLORS.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
         </div>
       </Section>
 

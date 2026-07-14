@@ -8,8 +8,8 @@ import { timeAgo } from '../utils/time.js';
 import { formatEventDate } from '../utils/eventDate.js';
 import AutoTextarea from './AutoTextarea.jsx';
 import Switch from './Switch.jsx';
+import Chevron from './Chevron.jsx';
 
-import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { HeartIcon } from '@phosphor-icons/react/dist/csr/Heart';
 import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
@@ -28,13 +28,6 @@ const s = {
   textarea: { width: '100%', ...GLASS.input, border: `1px solid ${COLORS.borderTertiary}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', resize: 'none', minHeight: 80, marginBottom: 10 },
   badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}18`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 11, fontWeight: 700, padding: '2px 7px' }),
 };
-
-function Chevron({ size = 14, color, rotate = 0, style }) {
-  return (
-    <CaretDownIcon size={size} color={color || COLORS.textMuted} weight="regular"
-      style={{ flexShrink: 0, pointerEvents: 'none', transition: 'transform 0.2s', transform: `rotate(${rotate}deg)`, ...style }} />
-  );
-}
 
 // ─── RSVP BAR ──────────────────────────────────────────────────────────────────
 
