@@ -1,5 +1,16 @@
 # Streetfeed — Claude Code Briefing
 
+> **Note (2026-07-14, FRE-334):** this is the original project briefing,
+> kept for product/history context. It is no longer current in two ways:
+> the "UI Reference" / "preserve the design language" section below
+> describes the initial JSX prototype (dark theme, accent `#E8FF47`),
+> which was superseded by the Figma-driven design system early in the
+> project — the actual source of truth is now
+> `frontend/src/design/tokens.js` (light theme, accent `#FF0066`). The
+> prototype file itself (`streetfeed.jsx`) was dead code (never imported)
+> and has been deleted. See `resume_prompt.md` at the repo root for the
+> current milestone-based plan this briefing predates.
+
 ## What is Streetfeed?
 Streetfeed is a hyper-local street communication platform. Think Nextdoor, but for a single street — structured, private, and actually useful. No more WhatsApp chaos where important messages drown in noise.
 
@@ -142,6 +153,7 @@ A fully working React prototype (JSX) is attached. Use it as the UI foundation �
 - Streets overview
 
 **Please preserve the design language** — dark theme, accent color `#E8FF47`, DM Sans font.
+*(Superseded — see the note at the top of this file. Current design system: `frontend/src/design/tokens.js`, light theme, accent `#FF0066`.)*
 
 ---
 
