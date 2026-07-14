@@ -138,19 +138,19 @@ function JoinDetailSheet({ post, onClose, onJoin }) {
 
 // ─── ADMIN VIEW ────────────────────────────────────────────────────────────────
 
-function AdminView({ streetId, user, memberCount, households }) {
+function AdminView({ streetId, user, memberCount, households, onError }) {
   const [subTab, setSubTab] = useState('queue');
   const [pending, setPending] = useState([]);
   const [members, setMembers] = useState([]);
 
   useEffect(() => {
     if (subTab === 'queue') {
-      api.get(`/streets/${streetId}/pending`).then(setPending).catch(() => {});
+      api.get(`/streets/${streetId}/pending`).then(setPending).catch(e => onError(e.message || 'Aanvragen laden mislukt'));
     }
     if (subTab === 'members') {
-      api.get(`/streets/${streetId}/members`).then(setMembers).catch(() => {});
+      api.get(`/streets/${streetId}/members`).then(setMembers).catch(e => onError(e.message || 'Leden laden mislukt'));
     }
-  }, [subTab, streetId]);
+  }, [subTab, streetId, onError]);
 
   const approve = async (userId) => {
     await api.post(`/streets/${streetId}/pending/${userId}/approve`);
@@ -236,15 +236,18 @@ function AdminView({ streetId, user, memberCount, households }) {
 
 // ─── NOTIFICATIE-INBOX ─────────────────────────────────────────────────────────
 
-function NotificationInboxSheet({ onClose, onOpenPost }) {
+function NotificationInboxSheet({ onClose, onOpenPost, onError }) {
   const [closing, setClosing] = useState(false);
   const [items, setItems] = useState(null);
   const close = () => { setClosing(true); setTimeout(onClose, 270); };
 
   useEffect(() => {
-    api.get('/notifications').then(setItems).catch(() => setItems([]));
-    api.post('/notifications/read-all').catch(() => {});
-  }, []);
+    api.get('/notifications').then(setItems).catch(e => {
+      setItems([]);
+      onError(e.message || 'Notificaties laden mislukt');
+    });
+    api.post('/notifications/read-all').catch(e => onError(e.message || 'Alles als gelezen markeren mislukt'));
+  }, [onError]);
 
   return (
     <SheetOverlay closing={closing} onOverlayClick={close}>
@@ -276,7 +279,7 @@ function NotificationInboxSheet({ onClose, onOpenPost }) {
 // Consolideert wat eerder losse tabs waren (Mijn straten, Beheer,
 // Instellingen) — de bottom nav houdt alleen Feed + Hall of Fame over.
 
-function ProfileView({ user, onLogout, canModerate, streetId, streetName, memberCount, households }) {
+function ProfileView({ user, onLogout, canModerate, streetId, streetName, memberCount, households, onError }) {
   const [lang, setLangState] = useState(getLang());
   const [notifs, setNotifs] = useState({});
   const [subscribeMsg, setSubscribeMsg] = useState('');
@@ -284,13 +287,20 @@ function ProfileView({ user, onLogout, canModerate, streetId, streetName, member
   const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
 
   useEffect(() => {
-    api.get('/push/settings').then(data => setNotifs(prev => ({ ...Object.fromEntries(Object.keys(CATEGORIES).map(k => [k, true])), ...data }))).catch(() => {});
-  }, []);
+    api.get('/push/settings').then(data => setNotifs(prev => ({ ...Object.fromEntries(Object.keys(CATEGORIES).map(k => [k, true])), ...data })))
+      .catch(e => onError(e.message || 'Instellingen laden mislukt'));
+  }, [onError]);
 
   const toggleNotif = async (key) => {
+    const prev = notifs;
     const next = { ...notifs, [key]: !notifs[key] };
     setNotifs(next);
-    await api.patch('/push/settings', { settings: { [key]: next[key] } }).catch(() => {});
+    // Optimistic update rolled back on failure — otherwise the toggle keeps
+    // showing the flipped state even though the server never got it.
+    await api.patch('/push/settings', { settings: { [key]: next[key] } }).catch(e => {
+      setNotifs(prev);
+      onError(e.message || 'Instelling opslaan mislukt');
+    });
   };
 
   const switchLang = (l) => {
@@ -321,13 +331,13 @@ function ProfileView({ user, onLogout, canModerate, streetId, streetName, member
 
       <div style={s.sectionLabel}>{t('your_streets')}</div>
       <div style={{ padding: '0 12px' }}>
-        <StreetsView user={user} />
+        <StreetsView user={user} onError={onError} />
       </div>
 
       {canModerate && (
         <>
           <div style={s.sectionLabel}>{t('admin')}</div>
-          <AdminView streetId={streetId} user={user} memberCount={memberCount} households={households} />
+          <AdminView streetId={streetId} user={user} memberCount={memberCount} households={households} onError={onError} />
         </>
       )}
 
@@ -391,12 +401,12 @@ function ProfileView({ user, onLogout, canModerate, streetId, streetName, member
 
 // ─── HALL OF FAME ──────────────────────────────────────────────────────────────
 
-function HallOfFameView({ streetId }) {
+function HallOfFameView({ streetId, onError }) {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    api.get(`/streets/${streetId}/hall-of-fame`).then(setData).catch(() => {});
-  }, [streetId]);
+    api.get(`/streets/${streetId}/hall-of-fame`).then(setData).catch(e => onError(e.message || 'Hall of Fame laden mislukt'));
+  }, [streetId, onError]);
 
   if (!data) return <div style={s.feed}><div style={s.emptyState}>{t('loading')}</div></div>;
 
@@ -440,12 +450,12 @@ function HallOfFameView({ streetId }) {
   );
 }
 
-function StreetsView({ user }) {
+function StreetsView({ user, onError }) {
   const [streets, setStreets] = useState([]);
 
   useEffect(() => {
-    api.get('/streets').then(setStreets).catch(() => {});
-  }, []);
+    api.get('/streets').then(setStreets).catch(e => onError(e.message || 'Straten laden mislukt'));
+  }, [onError]);
 
   return (
     <>
@@ -531,8 +541,8 @@ export default function App() {
   }, [eventDetail, joinDetail, editPost, loadPosts, tab]);
 
   useEffect(() => {
-    api.get(`/streets/${STREET_ID}`).then(setStreetInfo).catch(() => {});
-  }, []);
+    api.get(`/streets/${STREET_ID}`).then(setStreetInfo).catch(e => showError(e.message || 'Straatgegevens laden mislukt'));
+  }, [showError]);
 
   // Register service worker
   useEffect(() => {
@@ -541,9 +551,12 @@ export default function App() {
     }
   }, []);
 
-  // Notificatie-inbox is de bron van waarheid — onafhankelijk van push
+  // Notificatie-inbox is de bron van waarheid — onafhankelijk van push.
+  // Just a badge count — a toast for this would be more annoying than useful,
+  // logged only (FRE-348's own suggested judgment call for low-stakes fetches).
   useEffect(() => {
-    api.get('/notifications/unread-count').then(d => setUnreadCount(d.count)).catch(() => {});
+    api.get('/notifications/unread-count').then(d => setUnreadCount(d.count))
+      .catch(err => console.error('[app] unread-count fetch failed', err));
   }, []);
 
   // Deep link vanuit een notificatie: ?post=<id> direct naar de juiste post
@@ -770,10 +783,10 @@ export default function App() {
         </div>
       )}
 
-      {tab === 'hof' && <HallOfFameView streetId={STREET_ID} />}
+      {tab === 'hof' && <HallOfFameView streetId={STREET_ID} onError={showError} />}
       {tab === 'profile' && (
         <ProfileView user={user} onLogout={logout} canModerate={canModerate} streetId={STREET_ID}
-          streetName={streetInfo?.name} memberCount={streetInfo?.members || 0} households={streetInfo?.households || 0} />
+          streetName={streetInfo?.name} memberCount={streetInfo?.members || 0} households={streetInfo?.households || 0} onError={showError} />
       )}
 
       <div style={s.bottomBar}>
@@ -818,6 +831,7 @@ export default function App() {
         <NotificationInboxSheet
           onClose={() => { setShowNotifInbox(false); setUnreadCount(0); }}
           onOpenPost={(postId) => handleDeepLink(`/?post=${postId}`)}
+          onError={showError}
         />
       )}
       {eventDetail && (
