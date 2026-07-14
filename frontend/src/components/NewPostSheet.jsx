@@ -18,8 +18,8 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
   const { isBezorging, isStraatzaken, isMelding, isEvenement, isGezocht } = postCategoryFlags(initialCat, initialType);
 
   const autoTitle = isGezocht
-    ? (user?.house_number ? `Pakket gezocht voor nr. ${user.house_number}` : 'Pakket gezocht')
-    : startHouse.trim() ? `Pakket aangenomen voor nr. ${startHouse.trim()}` : '';
+    ? (user?.house_number ? t('package_search_title_house', { houseNumber: user.house_number }) : t('package_search_title'))
+    : startHouse.trim() ? t('package_delivered_title_house', { houseNumber: startHouse.trim() }) : '';
 
   const canSubmit = !uploading && (isBezorging
     ? (isGezocht || !!startHouse.trim())
@@ -83,7 +83,7 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
         {/* Header */}
         <div style={{ marginBottom: 20, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={back} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', flexShrink: 0 }} aria-label="Terug">
+            <button onClick={back} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', flexShrink: 0 }} aria-label={t('back')}>
               <ArrowCircleLeftIcon size={40} weight="regular" color={COLORS.text} />
             </button>
             <div>

@@ -14,7 +14,10 @@ router.post('/request', authRequestLimiter, async (req, res) => {
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   const normalizedEmail = email.toLowerCase().trim();
-  const genericResponse = { ok: true, message: 'Magische link verstuurd — check je e-mail' };
+  // Doesn't claim delivery succeeded (FRE-347) — matches the frontend's own
+  // "if an account exists..." copy, and stays true whether or not the email
+  // send below actually goes through.
+  const genericResponse = { ok: true, message: 'Als er een account bestaat, ontvang je binnen enkele minuten een magic link' };
 
   // De frontend laat de gebruiker zelf kiezen tussen inloggen en account aanmaken
   // (OnboardingPage) in plaats van dat op te maken uit deze respons — anders is de
@@ -54,12 +57,26 @@ router.post('/request', authRequestLimiter, async (req, res) => {
   const token = randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
+  // Kept even if the email send below fails (FRE-347) — it's inert without
+  // the token value ever reaching the user, expires naturally in 15 minutes
+  // like any other, and rolling it back would need a transaction around
+  // this whole handler for no real benefit at this pilot's volume.
   await query(
     'INSERT INTO auth_tokens (email, token, expires_at) VALUES ($1, $2, $3)',
     [normalizedEmail, token, expiresAt]
   );
 
-  await sendMagicLink(normalizedEmail, user.name, token);
+  // A provider failure here (invalid/expired key, outage, network blip — see
+  // FRE-345) must not 500 the whole request: the DB side effects above already
+  // committed, and the user-facing response stays identical either way so it
+  // can't become a delivery-status oracle. The failure is still loud in logs
+  // for whoever's on call (this pilot: Wendy, via the same log-watching that
+  // caught FRE-345 in the first place).
+  try {
+    await sendMagicLink(normalizedEmail, user.name, token);
+  } catch (err) {
+    console.error(`[auth] sendMagicLink failed for ${normalizedEmail}:`, err);
+  }
 
   res.json(genericResponse);
 });

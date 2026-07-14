@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import App from './App.jsx';
+import { setLang } from './i18n/index.js';
 
 // jsdom doesn't implement scrollTo — App/SegmentedControl call it on mount.
 window.scrollTo = vi.fn();
@@ -23,6 +24,7 @@ vi.mock('./hooks/useAuth.jsx', () => ({
 // (remounts) the same way they'd survive a real page reload — via the
 // server, not localStorage.
 let pushSettings = {};
+let patchShouldFail = false;
 
 vi.mock('./api/client.js', () => ({
   api: {
@@ -36,7 +38,10 @@ vi.mock('./api/client.js', () => ({
     }),
     post: vi.fn(() => Promise.resolve(null)),
     patch: vi.fn((path, body) => {
-      if (path === '/push/settings') Object.assign(pushSettings, body.settings);
+      if (path === '/push/settings') {
+        if (patchShouldFail) return Promise.reject(new Error('Netwerkfout'));
+        Object.assign(pushSettings, body.settings);
+      }
       return Promise.resolve(null);
     }),
     delete: vi.fn(() => Promise.resolve(null)),
@@ -46,7 +51,12 @@ vi.mock('./api/client.js', () => ({
 describe('Profile & Settings smoke test (M5 DoD)', () => {
   beforeEach(() => {
     pushSettings = {};
+    patchShouldFail = false;
     localStorage.removeItem('lang');
+    // i18n/index.js's currentLang is a module-level singleton that only
+    // updates via setLang() — clearing localStorage alone doesn't reset it,
+    // so a language switch in one test leaks into whichever test runs next.
+    setLang('nl');
   });
 
   it('loads profile with correct data, and a notification toggle persists after reload', async () => {
@@ -87,5 +97,22 @@ describe('Profile & Settings smoke test (M5 DoD)', () => {
     render(<App />);
     fireEvent.click(screen.getByLabelText('Profiel'));
     expect(await screen.findByText('Address')).toBeInTheDocument();
+  });
+
+  // FRE-348: this used to be a bare .catch(() => {}) — the toggle stayed
+  // visually flipped even when the server never got the change.
+  it('reverts the toggle and surfaces an error toast when the settings patch fails', async () => {
+    patchShouldFail = true;
+    render(<App />);
+    fireEvent.click(screen.getByLabelText('Profiel'));
+
+    const bezorgingSwitch = await screen.findByRole('switch', { name: 'Bezorging' });
+    expect(bezorgingSwitch).toHaveAttribute('aria-checked', 'true');
+    fireEvent.click(bezorgingSwitch);
+
+    // Rolls back to the pre-toggle state once the patch rejects, rather than
+    // silently keeping a change the server never received.
+    await waitFor(() => expect(bezorgingSwitch).toHaveAttribute('aria-checked', 'true'));
+    expect(await screen.findByText('Netwerkfout')).toBeInTheDocument();
   });
 });

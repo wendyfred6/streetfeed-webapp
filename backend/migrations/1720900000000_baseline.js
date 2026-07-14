@@ -1,5 +1,17 @@
--- Streetfeed database schema
+// Baseline migration — captures the schema exactly as it existed under the
+// old "re-run schema.sql on every start" approach (see FRE-330). All
+// statements are the same idempotent CREATE ... IF NOT EXISTS / ALTER TABLE
+// ... ADD COLUMN IF NOT EXISTS / ON CONFLICT DO NOTHING forms that let this
+// run safely a) as a real bootstrap on a fresh database, and b) as a no-op
+// against the already-migrated production database, so adopting node-pg-migrate
+// doesn't require a manual one-time reconciliation step in production.
+// Every future schema change is a new migration file — this one is never
+// edited again.
 
+export const shorthands = undefined;
+
+export async function up(pgm) {
+  pgm.sql(`
 CREATE TABLE IF NOT EXISTS streets (
   id        SERIAL PRIMARY KEY,
   name      TEXT NOT NULL,
@@ -63,7 +75,6 @@ CREATE TABLE IF NOT EXISTS posts (
   created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Migratie: voeg ontbrekende kolommen toe aan bestaande posts tabel
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS link       TEXT;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS carrier    TEXT;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS allow_join BOOLEAN NOT NULL DEFAULT FALSE;
@@ -116,18 +127,14 @@ CREATE TABLE IF NOT EXISTS notification_prefs (
   UNIQUE(user_id, category)
 );
 
--- Seed: first street
 INSERT INTO streets (name, households) VALUES ('Reyer Anslostraat', 111)
   ON CONFLICT DO NOTHING;
 
--- Migratie: startdatum voor blokkades en containers
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS start_date DATE;
 
--- Migratie: starttijd en eindtijd voor werkzaamheden
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS start_time TEXT;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS end_time TEXT;
 
--- Migratie: joins tabel voor aanmeldknop
 CREATE TABLE IF NOT EXISTS joins (
   id         SERIAL PRIMARY KEY,
   post_id    INT REFERENCES posts(id) ON DELETE CASCADE,
@@ -136,40 +143,30 @@ CREATE TABLE IF NOT EXISTS joins (
   UNIQUE (post_id, user_id)
 );
 
--- Migratie: locatie en sub-type voor berichten
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS location TEXT;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS sub_type TEXT;
 
--- Migratie: stad per straat (voor BAG API lookup)
 ALTER TABLE streets ADD COLUMN IF NOT EXISTS city TEXT NOT NULL DEFAULT 'Amsterdam';
 
--- Migratie: opgehaald/gevonden status voor bezorgingberichten
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS resolved BOOLEAN NOT NULL DEFAULT false;
 
--- Migratie: hernoem categorieën naar nieuwe namen
 UPDATE posts SET category = 'bezorging'   WHERE category = 'package';
 UPDATE posts SET category = 'straatzaken' WHERE category IN ('works', 'blockage', 'container', 'waste');
 UPDATE posts SET category = 'melding'     WHERE category = 'incident';
 UPDATE posts SET category = 'evenement'   WHERE category = 'event';
 UPDATE posts SET category = 'melding'     WHERE category = 'general';
 
--- Migratie: hernoem notification_prefs categorieën
 UPDATE notification_prefs SET category = 'bezorging'   WHERE category = 'package';
 UPDATE notification_prefs SET category = 'straatzaken' WHERE category IN ('works', 'blockage', 'container', 'waste');
 UPDATE notification_prefs SET category = 'melding'     WHERE category = 'incident';
 UPDATE notification_prefs SET category = 'evenement'   WHERE category = 'event';
 DELETE FROM notification_prefs                         WHERE category = 'general';
 
--- Migratie: geen admin-goedkeuring in MVP — alle pending memberships activeren
 UPDATE memberships SET status = 'approved' WHERE status = 'pending';
 
--- Migratie: Van/Tot huisnummers (vervangt location voor adresbereik)
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS start_house TEXT;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS end_house TEXT;
 
--- Migratie: notificatie-inbox — de bron van waarheid, los van push.
--- Push is een extra afleverkanaal en kan stilletjes falen (geen
--- subscriptie, browserbeperking); deze tabel blijft altijd compleet.
 CREATE TABLE IF NOT EXISTS notifications (
   id         SERIAL PRIMARY KEY,
   user_id    INT REFERENCES users(id) ON DELETE CASCADE,
@@ -184,5 +181,10 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications(user_id, created_at DESC);
 
--- Migratie: kenteken/RDW-lookup nooit gebouwd — kolom nooit in gebruik geweest, verwijderen
 ALTER TABLE posts DROP COLUMN IF EXISTS license_plate;
+  `);
+}
+
+export async function down() {
+  throw new Error('Baseline migration has no down — it represents the pre-migration-tool production schema.');
+}

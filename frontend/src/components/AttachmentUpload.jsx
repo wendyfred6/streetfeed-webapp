@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { COLORS } from '../design/tokens.js';
 import { api } from '../api/client.js';
+import { t } from '../i18n/index.js';
 import ActionMenu from './ActionMenu.jsx';
 
 export default function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, documentName, uploading, onUploading, onError }) {
@@ -21,7 +22,7 @@ export default function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, ph
       onPhotoUploaded(URL.createObjectURL(file), key);
     } catch (err) {
       onPhotoUploaded(null, null);
-      onError?.(err.message || 'Foto uploaden mislukt');
+      onError?.(err.message || t('attachment_upload_failed'));
     } finally {
       onUploading?.(false);
     }
@@ -33,7 +34,7 @@ export default function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, ph
     <>
       <button type="button" onClick={() => setShowMenu(true)}
         style={{ width: '100%', background: COLORS.bg, border: `1px solid ${hasAttachment ? COLORS.accent : COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: hasAttachment ? COLORS.accent : COLORS.textMuted, cursor: 'pointer', marginBottom: 4 }}>
-        {uploading ? 'Uploaden…' : hasAttachment ? (documentName || 'Foto gekozen') : 'Bijlage toevoegen'}
+        {uploading ? t('attachment_uploading') : hasAttachment ? (documentName || t('attachment_photo_chosen')) : t('attachment_add')}
       </button>
       {photoPreview && <img src={photoPreview} alt="" style={{ width: '100%', borderRadius: 8, marginBottom: 10, objectFit: 'cover', maxHeight: 160 }} />}
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handlePhoto} />
@@ -44,9 +45,9 @@ export default function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, ph
         <ActionMenu
           onClose={() => setShowMenu(false)}
           items={[
-            { label: 'Foto maken', action: () => { setShowMenu(false); cameraRef.current?.click(); } },
-            { label: 'Kies foto', action: () => { setShowMenu(false); photoRef.current?.click(); } },
-            { label: 'Kies bestand', action: () => { setShowMenu(false); docRef.current?.click(); } },
+            { label: t('attachment_take_photo'), action: () => { setShowMenu(false); cameraRef.current?.click(); } },
+            { label: t('attachment_choose_photo'), action: () => { setShowMenu(false); photoRef.current?.click(); } },
+            { label: t('attachment_choose_file'), action: () => { setShowMenu(false); docRef.current?.click(); } },
           ]}
         />
       )}

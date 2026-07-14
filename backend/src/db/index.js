@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { readFileSync } from 'fs';
+import { runner } from 'node-pg-migrate';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -12,18 +12,26 @@ if (process.env.PGPASSWORD === undefined) {
   process.env.PGPASSWORD = '';
 }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://streetfeed:@db:5432/streetfeed',
-  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
-});
+const connectionString = process.env.DATABASE_URL || 'postgresql://streetfeed:@db:5432/streetfeed';
+const ssl = process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false;
+
+const pool = new Pool({ connectionString, ssl });
 
 export const query = (text, params) => pool.query(text, params);
 
+// Tracked migrations (backend/migrations) replace the old "re-run schema.sql
+// on every start" approach — see FRE-330. Each migration only runs once,
+// recorded in the `pgmigrations` table, so a non-idempotent change can no
+// longer silently re-run against data that already has it applied.
 export async function runMigrations() {
   const __dir = dirname(fileURLToPath(import.meta.url));
-  const sql = readFileSync(join(__dir, 'schema.sql'), 'utf8');
-  await pool.query(sql);
-  console.log('Database schema applied');
+  await runner({
+    databaseUrl: { connectionString, ssl },
+    dir: join(__dir, '..', '..', 'migrations'),
+    direction: 'up',
+    migrationsTable: 'pgmigrations',
+  });
+  console.log('Database migrations applied');
 }
 
 export default pool;

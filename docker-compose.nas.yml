@@ -12,10 +12,22 @@
 
 version: '3.9'
 
+# FRE-351: Docker's default json-file log driver has no size cap, so a
+# restart: unless-stopped service's logs grow unbounded over the life of the
+# NAS. Applied to every service below via YAML anchor rather than repeating
+# it four times. 10m x 3 files = 30MB max per service — plenty for reading
+# recent logs in Portainer, nowhere near a real disk concern at pilot scale.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_DB: streetfeed
       POSTGRES_USER: ${POSTGRES_USER:-streetfeed}
@@ -31,6 +43,7 @@ services:
   backend:
     image: ghcr.io/wendyfred6/streetfeed-backend:latest
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       db:
         condition: service_healthy
@@ -52,6 +65,7 @@ services:
   frontend:
     image: ghcr.io/wendyfred6/streetfeed-frontend:latest
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "8080:80"          # Synology reverse proxy wijst hiernaartoe
     depends_on:
@@ -60,6 +74,7 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
+    logging: *default-logging
     command: tunnel --no-autoupdate run
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}

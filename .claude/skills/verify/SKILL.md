@@ -20,8 +20,10 @@ initdb -D "$PGDATA" -U streetfeed --auth=trust -E UTF8 --locale=en_US.UTF-8
 pg_ctl -D "$PGDATA" -o "-p 5433 -k /tmp/sf-verify-sock" -l /tmp/sf-verify-pg.log start
 
 createdb -h 127.0.0.1 -p 5433 -U streetfeed streetfeed
-psql -h 127.0.0.1 -p 5433 -U streetfeed -d streetfeed -f backend/src/db/schema.sql
-# schema.sql seeds one row in `streets` (id=1, Reyer Anslostraat) automatically.
+# No manual schema step needed — since FRE-330, runMigrations() (called at
+# backend boot) applies backend/migrations/ via node-pg-migrate itself,
+# tracked in a `pgmigrations` table. The baseline migration seeds one row in
+# `streets` (id=1, Reyer Anslostraat) automatically.
 ```
 
 Backend has no email service configured locally (no RESEND_API_KEY/SMTP_*) —

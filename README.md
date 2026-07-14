@@ -93,8 +93,16 @@ which builds and pushes `ghcr.io/wendyfred6/streetfeed-frontend` and
 TLS is terminated by **Cloudflare Tunnel** (the `cloudflared` service in
 `docker-compose.nas.yml`), not by a Synology DSM reverse proxy or local
 certificates. DNS for `streetfeed.nl` points at Cloudflare's nameservers;
-Cloudflare Universal SSL handles the certificate. `nginx/nginx.conf` in this
-repo is unused/orphaned — no service runs it.
+Cloudflare Universal SSL handles the certificate.
+
+### 3b. Verify env vars actually took effect
+
+Portainer's stack env-var form doesn't show existing values when reopened, so
+a blank/wrong `RESEND_API_KEY` or `VAPID_*` won't error anywhere — it just
+silently disables that one feature (this bit the pilot twice: FRE-345, FRE-324).
+After deploying, check `GET /api/diagnostics` (super-admin session required)
+to confirm email/push are actually configured, rather than assuming the
+Portainer form saved what you typed.
 
 ### 4. Auto-restart after reboot
 
@@ -108,9 +116,10 @@ Photos are stored on local disk inside the backend container, at `/data/photos`
 `docker-compose.nas.yml` — this volume is required, without it uploaded photos
 are lost on every redeploy.
 
-Retention/auto-deletion per category (packages: 7d, incidents: 30d, etc., per
-the briefing) is not yet implemented — tracked as a follow-up, not required
-for the pilot.
+Retention/auto-deletion runs automatically per category (`backend/src/services/retention.js`):
+bezorging 7d, straatzaken 14d (or 3 days after its end date, if set),
+melding/algemeen/lostandfound/evenement 30d. Only the photo is deleted — the
+post itself stays.
 
 Cloudflare R2 was the original plan (see `docs/DECISIONS.md`) but was dropped
 for the pilot in favor of local disk: simpler, already fully implemented
@@ -127,28 +136,39 @@ instance.
                   │   streetfeed.nl (HTTPS)      │
                   └─────────────┬───────────────┘
                                 │
-                    ┌───────────▼───────────┐
-                    │     nginx (proxy)     │  :443
-                    └──────┬────────────────┘
-                           │
-          ┌────────────────▼──────────────────┐
-          │          frontend (Nginx)          │  :80
-          │    React SPA + service worker     │
-          └────────────────┬──────────────────┘
-                           │ /api/*
-          ┌────────────────▼──────────────────┐
-          │          backend (Node.js)         │  :3001
-          │   Express API — auth, posts, push  │
-          └────────────────┬──────────────────┘
-                           │
-          ┌────────────────▼──────────────────┐
-          │         PostgreSQL 16              │  :5432
-          │         (Docker volume)            │
-          └───────────────────────────────────┘
+                  ┌─────────────▼───────────────┐
+                  │   Cloudflare Tunnel           │
+                  │   (cloudflared service —      │
+                  │    terminates TLS; no local   │
+                  │    nginx reverse proxy exists) │
+                  └─────────────┬───────────────┘
+                                │
+          ┌─────────────────────▼───────────────────┐
+          │          frontend (Nginx)                 │  :80
+          │  React SPA + service worker                │
+          │  also reverse-proxies /api/* → backend     │
+          │  (see frontend/nginx.conf)                 │
+          └─────────────────────┬───────────────────┘
+                                │ /api/*
+          ┌─────────────────────▼───────────────────┐
+          │          backend (Node.js)                │  :3001
+          │   Express API — auth, posts, push          │
+          └─────────────────────┬───────────────────┘
+                                │
+          ┌─────────────────────▼───────────────────┐
+          │         PostgreSQL 16                      │  :5432
+          │         (Docker volume)                    │
+          └────────────────────────────────────────┘
 
 External services:
   - Resend (or SMTP) — magic link email
 ```
+
+There is no standalone nginx reverse-proxy container in production — the
+`nginx/nginx.conf` file some older docs referenced was dead/orphaned and has
+since been removed. The frontend container's own nginx (`frontend/nginx.conf`)
+is the only nginx that runs, and it both serves the SPA and proxies `/api/*`
+straight to the backend service.
 
 ---
 

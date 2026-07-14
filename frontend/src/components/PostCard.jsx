@@ -8,14 +8,13 @@ import { timeAgo } from '../utils/time.js';
 import { formatEventDate } from '../utils/eventDate.js';
 import AutoTextarea from './AutoTextarea.jsx';
 import Switch from './Switch.jsx';
+import Chevron from './Chevron.jsx';
 
-import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { HeartIcon } from '@phosphor-icons/react/dist/csr/Heart';
 import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
 import { ChatCircleIcon } from '@phosphor-icons/react/dist/csr/ChatCircle';
 import { UsersThreeIcon } from '@phosphor-icons/react/dist/csr/UsersThree';
-import { PackageIcon } from '@phosphor-icons/react/dist/csr/Package';
 
 // ─── STYLES (local to PostCard) ────────────────────────────────────────────────
 
@@ -29,13 +28,6 @@ const s = {
   textarea: { width: '100%', ...GLASS.input, border: `1px solid ${COLORS.borderTertiary}`, borderRadius: RADIUS.md, padding: '10px 12px', color: COLORS.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', resize: 'none', minHeight: 80, marginBottom: 10 },
   badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}18`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 11, fontWeight: 700, padding: '2px 7px' }),
 };
-
-function Chevron({ size = 14, color, rotate = 0, style }) {
-  return (
-    <CaretDownIcon size={size} color={color || COLORS.textMuted} weight="regular"
-      style={{ flexShrink: 0, pointerEvents: 'none', transition: 'transform 0.2s', transform: `rotate(${rotate}deg)`, ...style }} />
-  );
-}
 
 // ─── RSVP BAR ──────────────────────────────────────────────────────────────────
 
@@ -60,20 +52,27 @@ function AttendanceToggle({ post, onRsvp }) {
   );
 }
 
-const MELDING_LINKS = {
-  overlast: [{ label: 'Overlast melden bij Gemeente Amsterdam', url: 'https://meldingen.amsterdam.nl/', color: COLORS.blue }],
-  schade: [
-    { label: 'Aangifte doen bij politie', url: 'https://www.politie.nl/aangifte-of-melding-doen', color: COLORS.error },
-    { label: 'Schade melden Waarborgfonds', url: 'https://www.svn.nl/', color: COLORS.blue },
-  ],
-  verdacht: [
-    { label: 'Bel 0900-8844 (politie non-spoed)', url: 'tel:09008844', color: COLORS.error },
-    { label: 'Meld Misdaad Anoniem', url: 'https://www.meldmisdaadanoniem.nl', color: COLORS.blue },
-  ],
-};
+// URLs are genuinely Amsterdam/Dutch-specific government services (meldingen.amsterdam.nl,
+// politie.nl, svn.nl, the national police non-emergency line) — correct as-is for this
+// pilot's only street/city. Labels are translated via t(), but the underlying URLs would
+// need a real per-city lookup (streets.city already exists in the schema) before this could
+// support a second city; not worth building for zero additional cities today (FRE-339).
+function meldingLinks() {
+  return {
+    overlast: [{ label: t('melding_link_overlast'), url: 'https://meldingen.amsterdam.nl/', color: COLORS.blue }],
+    schade: [
+      { label: t('melding_link_aangifte'), url: 'https://www.politie.nl/aangifte-of-melding-doen', color: COLORS.error },
+      { label: t('melding_link_waarborgfonds'), url: 'https://www.svn.nl/', color: COLORS.blue },
+    ],
+    verdacht: [
+      { label: t('melding_link_politie_bel'), url: 'tel:09008844', color: COLORS.error },
+      { label: t('melding_link_meldmisdaad'), url: 'https://www.meldmisdaadanoniem.nl', color: COLORS.blue },
+    ],
+  };
+}
 
 function MeldingLinks({ post }) {
-  const links = MELDING_LINKS[post.sub_type] || [];
+  const links = meldingLinks()[post.sub_type] || [];
   if (!links.length) return null;
   return (
     <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -84,42 +83,6 @@ function MeldingLinks({ post }) {
         </a>
       ))}
     </div>
-  );
-}
-
-// ─── CARRIER BADGE ─────────────────────────────────────────────────────────────
-// (legacy weergave voor oudere posts die nog een carrier-waarde hebben)
-
-const CARRIER_COLORS = {
-  'PostNL':   { bg: '#FF6600', color: '#fff' },
-  'DHL':      { bg: '#FFCC00', color: '#CC0605' },
-  'DPD':      { bg: '#414042', color: '#DC0032' },
-  'GLS':      { bg: '#009900', color: '#fff' },
-  'FedEx':    { bg: '#4D148C', color: '#FF6600' },
-  'UPS':      { bg: '#351C15', color: '#FFB500' },
-  'Bol.com':  { bg: '#0000A4', color: '#fff' },
-  'Coolblue': { bg: '#003878', color: '#fff' },
-  'Amazon':   { bg: '#FF9900', color: '#000' },
-};
-
-function CarrierBadge({ carrier }) {
-  const style = CARRIER_COLORS[carrier];
-  if (!style) {
-    return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, ...s.badge(COLORS.blue), fontSize: 11, padding: '3px 8px' }}>
-        <PackageIcon size={11} color={COLORS.blue} weight="regular" />{carrier}
-      </span>
-    );
-  }
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      background: style.bg, color: style.color,
-      borderRadius: 4, fontSize: 10, fontWeight: 800,
-      padding: '3px 8px', letterSpacing: '0.3px',
-    }}>
-      <PackageIcon size={11} color={style.color} weight="regular" />{carrier}
-    </span>
   );
 }
 
@@ -280,11 +243,6 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
               onError={e => e.target.style.display = 'none'}
             />
           )}
-          {post.carrier && (
-            <div style={{ marginTop: 8 }}>
-              <CarrierBadge carrier={post.carrier} />
-            </div>
-          )}
           {post.link && (
             <a href={post.link} target="_blank" rel="noopener noreferrer"
               style={{ display: 'block', marginTop: 8, fontSize: 12, color: COLORS.blue, textDecoration: 'underline', wordBreak: 'break-all' }}>
@@ -336,24 +294,24 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
           {/* Acties */}
           <div style={{ ...s.cardMeta, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.border}` }}>
             <div style={s.cardMetaLeft}>
-              <button style={{ ...s.actionBtn, gap: 5, color: post.liked ? COLORS.interactionLike : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }}>
+              <button style={{ ...s.actionBtn, gap: 5, color: post.liked ? COLORS.interactionLike : COLORS.textDim }} onClick={e => { e.stopPropagation(); onLike(post.id); }} aria-label={t('like')}>
                 <HeartIcon size={14} weight={post.liked ? 'fill' : 'regular'} style={{ display: 'block', flexShrink: 0 }} />
                 <span>{Number(post.likes)}</span>
               </button>
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
               {canEdit && (
-                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onEdit(post); }} title="Bewerken">
+                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onEdit(post); }} title={t('edit')} aria-label={t('edit')}>
                   <PencilSimpleIcon size={13} weight="regular" />
                 </button>
               )}
               {canEdit ? (
-                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onDelete(post.id); }} title={t('delete')}>
+                <button style={{ ...s.actionBtn, color: COLORS.textDim }} onClick={e => { e.stopPropagation(); onDelete(post.id); }} title={t('delete')} aria-label={t('delete')}>
                   <TrashIcon size={13} weight="regular" />
                 </button>
               ) : (
                 <button style={{ ...s.actionBtn, color: post.reported ? COLORS.error : COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('report')}>
-                  {post.reported ? 'Gemeld' : t('report')}
+                  {post.reported ? t('reported_label') : t('report')}
                 </button>
               )}
             </div>

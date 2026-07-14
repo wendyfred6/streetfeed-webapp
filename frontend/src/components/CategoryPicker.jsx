@@ -38,11 +38,13 @@ export default function CategoryPicker({ onClose, onSelect }) {
 
   const rowStyle = {
     display: 'flex', alignItems: 'center', gap: 14,
+    width: '100%', textAlign: 'left',
     background: 'rgba(255,255,255,0.65)',
     border: '1px solid rgba(255,255,255,0.55)',
     borderRadius: RADIUS.lg,
     padding: '14px 16px',
     cursor: 'pointer',
+    fontFamily: 'inherit',
   };
 
   return (
@@ -98,14 +100,14 @@ export default function CategoryPicker({ onClose, onSelect }) {
           {currentItems.map(item => {
             const Icon = item.icon;
             return (
-              <div key={item.key} onClick={() => handleRow(item)} className="tap-feedback" style={rowStyle}>
+              <button key={item.key} type="button" onClick={() => handleRow(item)} className="tap-feedback" style={rowStyle}>
                 <Icon size={28} weight="regular" color={COLORS.text} style={{ flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{item.label}</div>
                   {item.sub && <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sub}</div>}
                 </div>
                 {item.types && <CaretRightIcon size={16} weight="bold" color={COLORS.textDim} />}
-              </div>
+              </button>
             );
           })}
         </div>

@@ -6,7 +6,8 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "migrate:create": "node-pg-migrate create --migration-file-language js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
@@ -17,11 +18,11 @@
     "express-rate-limit": "^7.4.0",
     "heic-convert": "^2.1.0",
     "multer": "^1.4.5-lts.1",
-    "nodemailer": "^6.9.8",
+    "node-pg-migrate": "^8.0.4",
+    "nodemailer": "^9.0.3",
     "pg": "^8.11.3",
     "resend": "^3.0.0",
     "sharp": "^0.35.1",
-    "uuid": "^9.0.0",
     "web-push": "^3.6.6",
     "zod": "^4.4.3"
   },

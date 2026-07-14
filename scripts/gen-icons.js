@@ -2,9 +2,14 @@
 // Generates icon-192.png and icon-512.png for the Streetfeed PWA.
 // Pure Node.js — no dependencies beyond built-in zlib.
 //
-// Design: three rounded pill-shaped bars on a dark background.
-//   Dark bg  #0F0F0F  → RGB(15, 15, 15)
-//   Accent   #E8FF47  → RGB(232, 255, 71)
+// Design: three rounded pill-shaped bars, unchanged since the original
+// version — only recolored for the light-theme redesign (FRE-356; no
+// dedicated app-icon frame exists in Figma's design system, confirmed by
+// checking it first, so this keeps the existing bar motif rather than
+// inventing a new concept, same "recolor, don't redesign" scope FRE-335
+// used for the manifest/meta tags).
+//   Background #FF0066 (COLORS.accent) → RGB(255, 0, 102)
+//   Bars       #FFFFFF                  → RGB(255, 255, 255)
 //
 // The three bars (varying widths) represent a "feed" of street posts.
 // Safe-zone compliant for maskable icons (important content within 80% circle).
@@ -98,8 +103,8 @@ function pill(px, size, cx, cy, halfW, halfH, r, g, b) {
 
 // ── Icon drawing ───────────────────────────────────────────────────────────────
 function drawIcon(px, size) {
-  const BG = [15, 15, 15];    // #0F0F0F
-  const AC = [232, 255, 71];  // #E8FF47
+  const BG = [255, 0, 102];   // #FF0066 (COLORS.accent)
+  const AC = [255, 255, 255]; // #FFFFFF
 
   // Background fill
   fillRect(px, size, 0, 0, size-1, size-1, ...BG);
