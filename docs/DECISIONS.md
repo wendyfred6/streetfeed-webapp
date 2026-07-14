@@ -76,8 +76,38 @@ Added header comments to both files stating this explicitly.
 
 **Found in the process:** `docker-compose.nas.yml` (the config actually running in production) had no `photos:` volume mounted at all — meaning uploaded photos were being lost on every "Pull and Redeploy" in Portainer, regardless of this decision. Fixed as part of the same change (Linear FRE-292).
 
-**Still open:** Photo retention/auto-deletion per category (packages: 7d, incidents: 30d, etc., per the product briefing) is not implemented for local disk either — R2's dead code had a `RETENTION` schedule that was never wired to anything. Not required for pilot launch; needs a follow-up issue before real user photos accumulate indefinitely.
-
 **Revisit when:** Streetfeed needs multiple backend instances or storage decoupled from the NAS.
 
 [[project-streetfeed-v1-plan]]
+
+---
+
+## 2026-07-13 — RDW/license-plate: strip the dead references, don't build them
+
+**Decision:** RDW (Dutch vehicle registry) live lookup was fully spec'd in the original product briefing, README, and schema (a `posts.license_plate` column) but never actually implemented anywhere in `src/` — no lookup code, no UI, nothing. Rather than build it to match the old spec, dropped the vestigial column (with a real migration for already-deployed databases, not just editing the `CREATE TABLE`), removed the dead demo/i18n fixtures referencing it, and removed the dangling doc mentions in README/the product briefing (FRE-318).
+
+**Why:** the feature was speculative from the start and the product moved on without it — none of the actual post categories (Bezorging/Straatzaken/Melding/Lost & Found/Evenement/Algemeen) need a structured license-plate field, and residents can already mention one in free-text post bodies if they want to (with the usual "you're responsible for what you post" guidance — see FRE-234's Terms of Use). Building live RDW lookup now would be real net-new work with no pilot demand behind it.
+
+**Revisit when:** genuine user demand surfaces for structured vehicle-incident reporting — tracked as a real (not default) feature request in FRE-233, Post-Pilot Backlog, not something to resurrect casually because old docs mentioned it.
+
+[[project-streetfeed-v1-plan]]
+
+---
+
+## 2026-06-28 — iOS Safari input auto-zoom: fixed by matching Figma's 16px spec, not more platform workarounds
+
+**Decision:** Removed `utils/iosZoom.js` (`resetIOSZoom`/`lockIOSZoom`) and every `onBlur` handler and submit-time call wired to it, across four prior commits' worth of platform-specific JavaScript workarounds. The actual fix was `FIELD_INPUT`'s font-size: 12px → 16px, matching Figma's spec.
+
+**Why:** iOS Safari/Chrome auto-zoom on focusing a text input specifically when its font-size is under 16px — a well-known platform behavior, not a bug to route around in JS. The onboarding inputs were built at 12px (diverging from Figma, which specified 16px all along), which is what triggered the zoom in the first place. Four commits went into adding, adjusting, and reverting a zoom-reset workaround before landing on the actual fix: match the spec's font-size and the platform behavior that was being "fixed" never triggers at all.
+
+**Revisit when:** never, as long as onboarding/form inputs stay at 16px+ — if a future redesign drops font-size below that threshold on any real text input, this exact class of bug (and the temptation to reach for a JS zoom-reset workaround again) will resurface. Fix the font-size, not the symptom.
+
+---
+
+## 2026-05-29 — Postgres empty-password connections: fixed via PGPASSWORD, not manual URL parsing
+
+**Decision:** `backend/src/db/index.js` sets `process.env.PGPASSWORD = ''` (only if unset) before constructing the `pg.Pool`, and passes `DATABASE_URL` straight through as `connectionString` — no manual URL parsing.
+
+**Why:** `pg`'s SCRAM-SHA-256 auth requires the password to be a string, but `pg` internally resolves it as `password || process.env.PGPASSWORD`, and JavaScript's `||` treats `''` (a valid empty-string password, which this project's local/dev Postgres uses) as falsy — falling through to `process.env.PGPASSWORD`, which is `undefined` when unset, crashing SCRAM auth. Two prior approaches were tried and reverted before landing here: passing `connectionString` directly (crashed on empty password), then manually parsing `DATABASE_URL` into individual `host`/`port`/`user`/`password`/`database` fields to force the password to a string (worked, but added parsing code and a second way connection details could drift from the URL). Pre-setting `PGPASSWORD=''` fixes the exact same `||` chain at its actual source with one line, so `connectionString` can stay simple.
+
+**Revisit when:** never, unless `pg` changes this internal fallback behavior — this is standalone, dependency-internal logic, not something this project's own connection code should need to route around differently.
