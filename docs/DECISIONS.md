@@ -4,6 +4,18 @@ Short entries for decisions worth not re-litigating. Newest first.
 
 ---
 
+## 2026-07-14 — Backend Dockerfile runs as non-root via a chown-then-drop entrypoint, not a plain USER directive
+
+**Decision:** `backend/Dockerfile` now installs `su-exec`, copies a new `backend/docker-entrypoint.sh`, and sets it as `ENTRYPOINT`. The container still starts as root, but the entrypoint's first and only job is `chown -R node:node "$UPLOAD_DIR"` before it `exec`s `su-exec node "$@"` to drop to the image's built-in non-root `node` user for the actual `node src/index.js` process. `.dockerignore` added to both `backend/` and `frontend/` (the two actual Docker build contexts — a repo-root one would never be read by anything). Both Dockerfiles now `COPY package.json package-lock.json` + `npm ci` instead of `COPY package.json` + `npm install`.
+
+**Why not a plain `USER node` line:** the production `photos` named volume (`docker-compose.nas.yml`, `UPLOAD_DIR=/data/photos`) was created under the old root-running container, so its on-disk ownership is root's. A bare `USER node` would make the very next `Pull and Redeploy` in Portainer fail every photo upload/read/delete with EACCES, silently, until someone thought to check volume permissions — exactly the kind of "looks fine until a real deploy" gap this whole milestone (M6 — Pilot Readiness) exists to close. Chowning at container start, every start, before dropping privileges, fixes both a fresh volume and this repo's actual already-existing one, with no manual one-time step required in Portainer.
+
+**Frontend left as-is on the USER question:** the final `nginx:alpine` stage already drops its worker processes to the non-root `nginx` user by default via the base image's own `nginx.conf` (`user nginx;`) — only the master process stays root, which it needs to bind port 80. No Dockerfile change was needed there; only `npm ci` in the discarded `builder` stage.
+
+**Revisit when:** photo storage moves off a local Docker volume (see the local-disk-vs-R2 decision below) — at that point the chown-on-start step becomes dead weight and can be dropped along with the volume-ownership concern it exists for.
+
+---
+
 ## 2026-07-14 — node-pg-migrate replaces re-running schema.sql on every boot
 
 **Decision:** `backend/src/db/schema.sql` is deleted. `backend/migrations/` now holds tracked, timestamped migration files, applied via `node-pg-migrate`'s programmatic `runner()` from `runMigrations()` (`backend/src/db/index.js`), same call site and call pattern as before (still invoked once at boot, before the HTTP server starts listening). Applied migrations are recorded in a `pgmigrations` table, so each migration only ever runs once per database.
