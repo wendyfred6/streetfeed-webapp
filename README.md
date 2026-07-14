@@ -93,8 +93,7 @@ which builds and pushes `ghcr.io/wendyfred6/streetfeed-frontend` and
 TLS is terminated by **Cloudflare Tunnel** (the `cloudflared` service in
 `docker-compose.nas.yml`), not by a Synology DSM reverse proxy or local
 certificates. DNS for `streetfeed.nl` points at Cloudflare's nameservers;
-Cloudflare Universal SSL handles the certificate. `nginx/nginx.conf` in this
-repo is unused/orphaned — no service runs it.
+Cloudflare Universal SSL handles the certificate.
 
 ### 4. Auto-restart after reboot
 
