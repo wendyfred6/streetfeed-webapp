@@ -420,23 +420,20 @@ export default function OnboardingPage() {
             <div ref={titleRef} tabIndex={-1} style={s.title}>{t('onboarding_check_email_title')}</div>
             <div style={s.sub}>
               {t('onboarding_check_email_prefix')}{' '}
-              <strong style={{ color: COLORS.text }}>{email}</strong>.{' '}
+              <strong style={{ color: COLORS.text }}>{email}</strong>
               {t('onboarding_check_email_suffix')}
             </div>
           </div>
           <div style={s.noMailGroup}>
             <span>{t('onboarding_no_mail_q')}</span>
-            <span>
-              {t('onboarding_no_mail_body')}{' '}
-              <button
-                type="button"
-                style={{ background: 'none', border: 'none', color: COLORS.accent, fontSize: 12, lineHeight: '18px', cursor: 'pointer', padding: 0, display: 'inline' }}
-                onClick={() => { setStep('login'); setError(''); }}
-              >
-                {t('onboarding_try_again')}
-              </button>
-              .
-            </span>
+            <span>{t('onboarding_no_mail_body')}</span>
+            <button
+              type="button"
+              style={{ background: 'none', border: 'none', color: COLORS.accent, fontSize: 12, lineHeight: '18px', cursor: 'pointer', padding: 0 }}
+              onClick={() => { setStep('login'); setError(''); }}
+            >
+              {t('onboarding_try_again')}
+            </button>
           </div>
         </div>
       </div>
