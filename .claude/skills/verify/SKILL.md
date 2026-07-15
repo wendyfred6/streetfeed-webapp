@@ -54,6 +54,17 @@ Then curl `http://localhost:3099/api/...` directly, and inspect state with
 Watch out for `authRequestLimiter` (rate limiting on `/api/auth/request`) —
 rapid-fire probing trips it (429) after a handful of requests within the window.
 
+Testing admin workflows (approval queue, etc.) needs one more manual step —
+this fresh database has no super admin. Since FRE-308, `is_super_admin` is
+never set automatically (see README.md's "First-time super admin setup"); a
+brand-new/throwaway database is no exception. After the account has logged in
+once via magic link (so its `users` row exists):
+
+```bash
+cd backend && DATABASE_URL="postgresql://streetfeed@127.0.0.1:5433/streetfeed" \
+node scripts/grant-super-admin.js <email>
+```
+
 ## Teardown
 
 ```bash

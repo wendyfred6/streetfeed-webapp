@@ -58,6 +58,15 @@ docker-compose exec backend node scripts/grant-super-admin.js wendy@fred6.nl
 `is_super_admin` bypasses per-street membership checks entirely (see
 `middleware/auth.js`), so no separate membership row/role needs to be granted.
 
+**This isn't a one-time setup step — it's a per-database step.** Since FRE-308
+(2026-07-13) removed the old hardcoded grant that used to re-run on every
+schema apply, nothing automatic (re-)grants `is_super_admin` to any account.
+Any time the `users` table is recreated from scratch — a fresh production
+database, a reset/rebuilt local dev database, or a throwaway database used for
+testing — the account in question goes back to `is_super_admin = false` and
+this script needs to be run again before admin workflows (approval queue,
+etc.) can be exercised as that account.
+
 ### Generate VAPID keys for push notifications
 
 ```bash
