@@ -10,7 +10,6 @@ import { s } from './design/appStyles.js';
 import PostCard from './components/PostCard.jsx';
 import Toast from './components/Toast.jsx';
 import CatBadge from './components/CatBadge.jsx';
-import SegmentedControl from './components/SegmentedControl.jsx';
 import SheetOverlay from './components/SheetOverlay.jsx';
 import CategoryPicker from './components/CategoryPicker.jsx';
 import Switch from './components/Switch.jsx';
@@ -510,7 +509,6 @@ export default function App() {
   const { permission, subscribed, subscribe } = usePush();
   const { toast, showToast, dismissToast } = useToast();
   const [tab, setTab] = useState('feed');
-  const [filter, setFilter] = useState('all');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPost, setShowPost] = useState(false);
@@ -596,7 +594,6 @@ export default function App() {
     parsed.searchParams.delete('post');
     window.history.replaceState(null, '', parsed.pathname + (parsed.search || '') + parsed.hash);
     setTab('feed');
-    setFilter('all');
     setDeepLinkPostId(Number(postId));
   }, []);
 
@@ -732,9 +729,11 @@ export default function App() {
     }
   };
 
-  const visiblePosts = filter === 'all' ? posts : posts.filter(p => p.category === filter);
-  const pinnedPosts = visiblePosts.filter(p => p.pinned);
-  const regularPosts = visiblePosts.filter(p => !p.pinned);
+  // Pilot v1: one unified neighbourhood feed, no category filtering — see
+  // "Streetfeed Feed Structure — Pilot v1". Category data/model (CATEGORIES,
+  // post.category) stays intact for a possible future Filter Sheet.
+  const pinnedPosts = posts.filter(p => p.pinned);
+  const regularPosts = posts.filter(p => !p.pinned);
 
   return (
     <div style={s.app}>
@@ -782,15 +781,6 @@ export default function App() {
               </button>
             </div>
           )}
-          <SegmentedControl
-            label="Filter"
-            value={filter}
-            onChange={setFilter}
-            options={[
-              { key: 'all', label: t('all') },
-              ...Object.entries(CATEGORIES).map(([key]) => ({ key, label: catLabel(key) })),
-            ]}
-          />
           {loading
             ? <div style={s.emptyState}>{t('loading')}</div>
             : <>
