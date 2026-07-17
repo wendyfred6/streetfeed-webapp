@@ -38,6 +38,18 @@ input, select, textarea {
   font-family: inherit;
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: rgba(28, 26, 24, 0.40);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Scrollbars verbergen */
 * { scrollbar-width: none; }
 *::-webkit-scrollbar { display: none; }

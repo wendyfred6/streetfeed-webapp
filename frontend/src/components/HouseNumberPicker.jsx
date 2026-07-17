@@ -1,7 +1,7 @@
 import { useState, useEffect, useId } from 'react';
 
 import { COLORS } from '../design/tokens.js';
-import { FIELD_INPUT, FIELD_LABEL } from '../design/onboardingStyles.js';
+import { FIELD_INPUT, FIELD_LABEL } from '../design/fieldStyles.js';
 import { api } from '../api/client.js';
 import { t } from '../i18n/index.js';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
