@@ -148,6 +148,23 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
     })));
   });
 
+  it('DateField: clicking the display actively opens/focuses the underlying native input, not just passive tap-through (FRE-374 interaction fix)', () => {
+    render(
+      <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={vi.fn()}
+        streetId={1} user={USER} initialCat="evenement" initialType={null} />
+    );
+
+    const dateInput = document.querySelector('input[type="date"]');
+    const timeInput = document.querySelector('input[type="time"]');
+    expect(document.activeElement).not.toBe(dateInput);
+
+    fireEvent.click(screen.getAllByText('Kies')[0]);
+    expect(document.activeElement).toBe(dateInput);
+
+    fireEvent.click(screen.getAllByText('Kies')[1]);
+    expect(document.activeElement).toBe(timeInput);
+  });
+
   it('bezorging + pakket_gezocht: hides the title input, shows the "own house number" helper text, and can submit immediately', async () => {
     const onSubmit = vi.fn();
     render(

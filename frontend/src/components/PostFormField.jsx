@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { COLORS, RADIUS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL } from '../design/fieldStyles.js';
 import { formatEventDate } from '../utils/eventDate.js';
@@ -63,16 +64,38 @@ export function TextareaField({ label, error, style, wrapperStyle, ...props }) {
 // the chosen value), but backed by a real native <input type="date"/"time">
 // laid invisibly on top so tapping it opens the platform's own date/time
 // picker — the native picker itself isn't being replaced, only its trigger.
+//
+// The invisible input sitting on top isn't a reliable trigger by itself
+// (confirmed by Wendy's smoke test — visually correct, but tapping did
+// nothing): relying on the browser to hit-test through to a 0-opacity
+// absolutely-positioned control is exactly the kind of thing that silently
+// fails depending on layout/engine quirks. openPicker() is the actual,
+// explicit trigger — imperatively opens the native picker (showPicker(),
+// falling back to focus() where it isn't supported); the overlay staying
+// clickable too is redundant-but-harmless belt-and-suspenders, not the
+// mechanism being relied on.
 export function DateField({ type = 'date', label, value, onChange, placeholder = 'Kies', error, style, wrapperStyle, ...props }) {
+  const inputRef = useRef(null);
   const displayValue = value ? (type === 'date' ? formatEventDate(value) : value) : '';
+
+  const openPicker = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    if (typeof el.showPicker === 'function') {
+      try { el.showPicker(); return; } catch { /* fall through to focus() below */ }
+    }
+    el.focus();
+  };
+
   return (
     <div style={wrapperStyle}>
       {label && <FieldLabel htmlFor={props.id}>{label}</FieldLabel>}
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', cursor: 'pointer' }} onClick={openPicker}>
         <div style={{ ...fieldInput(error), display: 'flex', alignItems: 'center', paddingRight: 40, color: value ? COLORS.text : COLORS.textDim, pointerEvents: 'none', ...style }}>
           {displayValue || placeholder}
         </div>
         <input
+          ref={inputRef}
           type={type}
           value={value}
           onChange={onChange}
