@@ -4,6 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import NewPostSheet from './NewPostSheet.jsx';
 import EditPostSheet from './EditPostSheet.jsx';
 import CategoryPicker from './CategoryPicker.jsx';
+import { CATEGORY_TREE } from '../utils/categories.js';
 
 // HouseNumberPicker (used by houseRow/singleHouseField) fetches addresses via api.
 vi.mock('../api/client.js', () => ({
@@ -37,24 +38,78 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
     })));
   });
 
-  it('lostandfound: shows a title + description but no house-number row (FRE-317), and submits the right payload', async () => {
+  it('lostandfound: shows a title + description but no house-number row (FRE-317), requires Situatie, and submits the chosen type as subType (FRE-368)', async () => {
     const onSubmit = vi.fn();
     render(
       <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={onSubmit}
-        streetId={1} user={USER} initialCat="lostandfound" initialType="verloren" />
+        streetId={1} user={USER} initialCat="lostandfound" initialType={null} />
     );
 
     expect(screen.getByText('Titel *')).toBeInTheDocument();
     expect(screen.queryByText('Van nr. *')).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText('Bijv. Sleutelbos met rood label'), { target: { value: 'Sleutelbos kwijt' } });
+    fireEvent.change(screen.getByPlaceholderText('Bijv. Verloren of gevonden voorwerp'), { target: { value: 'Sleutelbos kwijt' } });
 
+    fireEvent.click(screen.getByText('Plaatsen'));
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    fireEvent.change(document.querySelectorAll('select')[0], { target: { value: 'verloren' } });
     fireEvent.click(screen.getByText('Plaatsen'));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
       category: 'lostandfound',
       subType: 'verloren',
       title: 'Sleutelbos kwijt',
+    })));
+  });
+
+  it('lostandfound + gevonden: requires a pickup location before submitting; verloren does not (FRE-368)', async () => {
+    const onSubmit = vi.fn();
+    render(
+      <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={onSubmit}
+        streetId={1} user={USER} initialCat="lostandfound" initialType={null} />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Bijv. Verloren of gevonden voorwerp'), { target: { value: 'Zwarte want gevonden' } });
+    fireEvent.change(document.querySelectorAll('select')[0], { target: { value: 'gevonden' } });
+
+    expect(screen.getByText('Ophaallocatie *')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Plaatsen'));
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByPlaceholderText('Bijv. Bij de brievenbus op nr. 34'), { target: { value: 'Bij de brievenbus' } });
+    fireEvent.click(screen.getByText('Plaatsen'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      category: 'lostandfound',
+      subType: 'gevonden',
+      pickupLocation: 'Bij de brievenbus',
+    })));
+  });
+
+  it('straatzaken: requires Situatie before submitting, and submits the chosen type as subType (FRE-367)', async () => {
+    const onSubmit = vi.fn();
+    render(
+      <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={onSubmit}
+        streetId={1} user={USER} initialCat="straatzaken" initialType={null} />
+    );
+
+    expect(screen.getByText('Situatie *')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Bijv. Vervanging gasleiding'), { target: { value: 'Container voor de deur' } });
+
+    fireEvent.click(screen.getByText('Plaatsen'));
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    const situatieSelect = document.querySelectorAll('select')[0];
+    fireEvent.change(situatieSelect, { target: { value: 'container' } });
+
+    fireEvent.click(screen.getByText('Plaatsen'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      category: 'straatzaken',
+      subType: 'container',
+      title: 'Container voor de deur',
     })));
   });
 
@@ -88,11 +143,13 @@ describe('EditPostSheet (FRE-316 extraction + FRE-311-style sub_type drift fix)'
     expect(screen.getByText('Huisnummer geadresseerde')).toBeInTheDocument();
   });
 
-  it('lostandfound: shows title + description only, no house row (FRE-317)', () => {
-    const post = { id: 3, category: 'lostandfound', sub_type: 'gevonden', title: 'Zwarte want gevonden', body: '' };
+  it('lostandfound: shows title + description, no house row, and pre-fills Situatie/pickup-location from the post (FRE-317, FRE-368)', () => {
+    const post = { id: 3, category: 'lostandfound', sub_type: 'gevonden', title: 'Zwarte want gevonden', body: '', pickup_location: 'Bij de brievenbus' };
     render(<EditPostSheet post={post} onClose={vi.fn()} onSave={vi.fn()} streetId={1} />);
     expect(screen.getByText('Titel')).toBeInTheDocument();
     expect(screen.queryByText('Van nr.')).not.toBeInTheDocument();
+    expect(screen.getByText('Situatie')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Bij de brievenbus')).toBeInTheDocument();
   });
 
   it('straatzaken: shows the van/tot house row and date range, no link field', () => {
@@ -116,5 +173,25 @@ describe('CategoryPicker (FRE-316 extraction)', () => {
     fireEvent.click(screen.getByText('Pakket gezocht'));
 
     await waitFor(() => expect(onSelect).toHaveBeenCalledWith('bezorging', 'pakket_gezocht'), { timeout: 500 });
+  });
+
+  it('straatzaken is now a flat leaf, not a drill-down tree (FRE-367)', async () => {
+    expect(CATEGORY_TREE.find(c => c.key === 'straatzaken').types).toBeNull();
+
+    const onSelect = vi.fn();
+    render(<CategoryPicker onClose={vi.fn()} onSelect={onSelect} />);
+    fireEvent.click(screen.getByText('Straatzaken'));
+
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith('straatzaken', null), { timeout: 500 });
+  });
+
+  it('lostandfound is now a flat leaf too, not a Verloren/Gevonden drill-down (FRE-368)', async () => {
+    expect(CATEGORY_TREE.find(c => c.key === 'lostandfound').types).toBeNull();
+
+    const onSelect = vi.fn();
+    render(<CategoryPicker onClose={vi.fn()} onSelect={onSelect} />);
+    fireEvent.click(screen.getByText('Lost & Found'));
+
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith('lostandfound', null), { timeout: 500 });
   });
 });

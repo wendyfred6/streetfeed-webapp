@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { COLORS, RADIUS } from '../design/tokens.js';
-import { FIELD_INPUT, FIELD_LABEL, FIELD_GROUP } from '../design/onboardingStyles.js';
+import { FIELD_INPUT, FIELD_LABEL, FIELD_GROUP } from '../design/fieldStyles.js';
 import { t, getLang, setLang } from '../i18n/index.js';
 import HouseNumberPicker from '../components/HouseNumberPicker.jsx';
 import LegalSheet from '../components/LegalSheet.jsx';
@@ -40,7 +40,7 @@ const s = {
     gap: 32,
   },
   // Uppercase hoort hier wél bij (het is de "STAP X VAN 4"-sectietitel, niet
-  // het gedeelde FieldLabel-component — zie onboardingStyles.js).
+  // het gedeelde FieldLabel-component — zie fieldStyles.js).
   stepLabel: { ...FIELD_LABEL, textTransform: 'uppercase' },
   titleGroup: { display: 'flex', flexDirection: 'column', gap: 16 },
   title: { fontSize: 24, fontWeight: 700, color: COLORS.text, lineHeight: '28px' },

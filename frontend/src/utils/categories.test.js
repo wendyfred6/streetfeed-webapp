@@ -21,9 +21,18 @@ describe('typeLabel', () => {
     expect(typeLabel('lostandfound', 'gevonden')).toBe('Gevonden');
   });
 
-  it('labels nested straatzaken sub-types', () => {
+  it('labels straatzaken Situatie types (FRE-367: chosen in-post, not via CategoryPicker drill-down)', () => {
     expect(typeLabel('straatzaken', 'container')).toBe('Container');
-    expect(typeLabel('straatzaken', 'parkeerplaatsen')).toBe('Parkeerplaatsen gereserveerd');
+    expect(typeLabel('straatzaken', 'verhuislift')).toBe('Verhuislift');
+    expect(typeLabel('straatzaken', 'parkeerplek_gereserveerd')).toBe('Parkeerplek gereserveerd');
+    expect(typeLabel('straatzaken', 'anders')).toBe('Anders');
+  });
+
+  it('still labels old straatzaken posts from before the tree flattened (FRE-367)', () => {
+    expect(typeLabel('straatzaken', 'verhuizing')).toBe('Verhuizing');
+    // Renamed concept: an old post with sub_type='parkeerplaatsen' shows the
+    // current terminology, not the stale one it was created with.
+    expect(typeLabel('straatzaken', 'parkeerplaatsen')).toBe('Parkeerplek gereserveerd');
   });
 
   it('still labels legacy algemeen sub-types not offered by the current picker', () => {

@@ -24,6 +24,7 @@ export const createPostSchema = z.object({
   photoKey: z.string().max(500).optional(),
   link: z.string().max(500).optional(),
   allowJoin: z.boolean().optional(),
+  pickupLocation: z.string().max(200).optional(),
 });
 
 // Edit allows omitting a field (keep existing value) or sending an empty
@@ -44,6 +45,7 @@ export const editPostSchema = z.object({
   eventTime: z.string().max(16).optional(),
   subType: z.string().max(50).optional(),
   bringList: z.array(z.string().max(100)).max(50).optional(),
+  pickupLocation: z.string().max(200).optional(),
 });
 
 export const pinPostSchema = z.object({

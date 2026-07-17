@@ -2,18 +2,12 @@ import { getLang } from '../i18n/index.js';
 
 import { PackageIcon } from '@phosphor-icons/react/dist/csr/Package';
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
-import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
-import { CarIcon } from '@phosphor-icons/react/dist/csr/Car';
 import { TrafficConeIcon } from '@phosphor-icons/react/dist/csr/TrafficCone';
-import { BarricadeIcon } from '@phosphor-icons/react/dist/csr/Barricade';
-import { LadderIcon } from '@phosphor-icons/react/dist/csr/Ladder';
-import { CraneIcon } from '@phosphor-icons/react/dist/csr/Crane';
 import { WarningIcon } from '@phosphor-icons/react/dist/csr/Warning';
 import { MaskHappyIcon } from '@phosphor-icons/react/dist/csr/MaskHappy';
 import { DropIcon } from '@phosphor-icons/react/dist/csr/Drop';
 import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
 import { BinocularsIcon } from '@phosphor-icons/react/dist/csr/Binoculars';
-import { MapPinIcon } from '@phosphor-icons/react/dist/csr/MapPin';
 import { CalendarPlusIcon } from '@phosphor-icons/react/dist/csr/CalendarPlus';
 import { ChatsCircleIcon } from '@phosphor-icons/react/dist/csr/ChatsCircle';
 import { QuestionIcon } from '@phosphor-icons/react/dist/csr/Question';
@@ -64,19 +58,8 @@ export const CATEGORY_TREE = [
     ],
   },
   {
-    key: 'straatzaken', label: 'Straatzaken', sub: 'Verhuizing, container of tijdelijke hinder', icon: TrafficConeIcon,
-    types: [
-      { key: 'verhuizing',      label: 'Verhuizing',                   sub: 'Je gaat verhuizen of komt wonen in de straat', icon: HouseIcon },
-      { key: 'parkeerplaatsen', label: 'Parkeerplaatsen gereserveerd', sub: 'Tijdelijk minder parkeerruimte',               icon: CarIcon },
-      {
-        key: 'tijdelijke_hinder', label: 'Tijdelijke hinder', sub: 'Tijdelijke overlast of afsluiting', icon: BarricadeIcon,
-        types: [
-          { key: 'container', label: 'Container', sub: 'Container geplaatst of onderweg',    icon: PackageIcon },
-          { key: 'steiger',   label: 'Steiger',   sub: 'Steiger geplaatst of gepland',        icon: LadderIcon },
-          { key: 'kraan',     label: 'Kraan',     sub: 'Kraanwerkzaamheden in de straat',     icon: CraneIcon },
-        ],
-      },
-    ],
+    key: 'straatzaken', label: 'Straatzaken', sub: 'Container, steiger, kraan of andere tijdelijke hinder', icon: TrafficConeIcon,
+    types: null,
   },
   {
     key: 'melding', label: 'Melding', sub: 'Schade, overlast of iets verdachts', icon: WarningIcon,
@@ -88,10 +71,7 @@ export const CATEGORY_TREE = [
   },
   {
     key: 'lostandfound', label: 'Lost & Found', sub: 'Iets verloren of gevonden', icon: BinocularsIcon,
-    types: [
-      { key: 'verloren', label: 'Verloren', sub: 'Iets kwijtgeraakt', icon: MagnifyingGlassIcon },
-      { key: 'gevonden', label: 'Gevonden', sub: 'Iets gevonden',      icon: MapPinIcon },
-    ],
+    types: null,
   },
   { key: 'evenement', label: 'Evenement', sub: 'Van straatborrel tot....straatborrel?', icon: CalendarPlusIcon, types: null },
   {
@@ -105,13 +85,37 @@ export const CATEGORY_TREE = [
   },
 ];
 
+// Straatzaken's "Situatie" (Type hinder) options — chosen inside the post
+// itself (FRE-367), not via CategoryPicker drill-down. Reuses the same
+// container/steiger/kraan keys the old tree used for those, so existing
+// posts keep the same sub_type values; verhuislift/parkeerplek_gereserveerd/
+// anders are new.
+export const STRAATZAKEN_TYPES = [
+  { key: 'container',                label: 'Container' },
+  { key: 'steiger',                  label: 'Steiger' },
+  { key: 'kraan',                    label: 'Kraan' },
+  { key: 'verhuislift',              label: 'Verhuislift' },
+  { key: 'parkeerplek_gereserveerd', label: 'Parkeerplek gereserveerd' },
+  { key: 'anders',                   label: 'Anders' },
+];
+
+// Lost & Found's "Situatie" (Type) options — same in-post pattern as
+// Straatzaken (FRE-368); keeps the same 'verloren'/'gevonden' keys the old
+// tree used, so no legacy-label fallback is needed.
+export const LOSTANDFOUND_TYPES = [
+  { key: 'verloren', label: 'Verloren' },
+  { key: 'gevonden', label: 'Gevonden' },
+];
+
 // Sub-type labels that predate the CategoryPicker's current tree (renamed
 // or consolidated away) but that older posts may still carry as sub_type
 // — kept only so those posts render a real label instead of a raw key.
 // This is where FRE-311's drift (`te_leen`/`vraag` etc.) lived.
+// straatzaken's `verhuizing`/`parkeerplaatsen` are FRE-367's own drift: both
+// were tree entries before the Category Tree flattened to Situatie options.
 const LEGACY_TYPE_LABELS = {
   bezorging:   { bezorgd: 'Bezorgd', gezocht: 'Gezocht' },
-  straatzaken: { werkzaamheden: 'Werkzaamheden', parkeerverbod: 'Parkeerverbod' },
+  straatzaken: { werkzaamheden: 'Werkzaamheden', parkeerverbod: 'Parkeerverbod', verhuizing: 'Verhuizing', parkeerplaatsen: 'Parkeerplek gereserveerd' },
   melding:     { lost_found: 'Lost & Found' },
   algemeen:    { te_leen: 'Te leen', vraag: 'Vraag' },
 };
@@ -126,6 +130,8 @@ function collectTreeLabels(items, acc) {
 const TYPE_LABELS = Object.fromEntries(CATEGORY_TREE.map(cat => {
   const labels = {};
   if (cat.types) collectTreeLabels(cat.types, labels);
+  if (cat.key === 'straatzaken') for (const ty of STRAATZAKEN_TYPES) labels[ty.key] = ty.label;
+  if (cat.key === 'lostandfound') for (const ty of LOSTANDFOUND_TYPES) labels[ty.key] = ty.label;
   return [cat.key, { ...labels, ...LEGACY_TYPE_LABELS[cat.key] }];
 }));
 
