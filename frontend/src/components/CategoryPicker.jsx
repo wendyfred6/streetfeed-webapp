@@ -101,10 +101,10 @@ export default function CategoryPicker({ onClose, onSelect }) {
             const Icon = item.icon;
             return (
               <button key={item.key} type="button" onClick={() => handleRow(item)} className="tap-feedback" style={rowStyle}>
-                <Icon size={28} weight="regular" color={COLORS.text} style={{ flexShrink: 0 }} />
+                <Icon size={32} weight="regular" color={COLORS.text} style={{ flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{item.label}</div>
-                  {item.sub && <div style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sub}</div>}
+                  <div style={{ fontSize: 14, fontWeight: 600, color: COLORS.text }}>{item.label}</div>
+                  {item.sub && <div style={{ fontSize: 10, fontWeight: 500, color: COLORS.textMuted, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sub}</div>}
                 </div>
                 {item.types && <CaretRightIcon size={16} weight="bold" color={COLORS.textDim} />}
               </button>

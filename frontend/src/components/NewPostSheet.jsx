@@ -61,6 +61,21 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
   const heading      = initialType ? typeLabel(initialCat, initialType) : catLabel(initialCat);
   const categoryPath = initialType ? catLabel(initialCat) : null;
 
+  // Per-category descriptive sentence under the heading, matching every
+  // Figma New Post Sheet mockup (FRE-377). Melding has no Figma mockup at
+  // all (postponed from Pilot v1 scope) and no intro text either.
+  const introText = isMelding
+    ? null
+    : isEvenement
+      ? 'Welk evenement wil je met je buren delen?'
+      : isStraatzaken
+        ? 'Informeer je buren over tijdelijke situaties in de straat.'
+        : isLostAndFound
+          ? 'Meld een verloren of gevonden voorwerp.'
+          : isBezorging
+            ? (isGezocht ? 'Heeft iemand mijn pakket aangenomen?' : 'Voor welk huisnummer is het pakket bedoeld?')
+            : 'Heb je iets te koop, gratis aan te bieden, wil je iets van je buur lenen of heb je een andere algemene vraag?';
+
   return (
     <div
       style={{
@@ -105,6 +120,12 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
           </div>
         </div>
 
+        {introText && (
+          <div style={{ fontSize: 12, color: COLORS.text, lineHeight: 1.5, marginBottom: 16, flexShrink: 0 }}>
+            {introText}
+          </div>
+        )}
+
         {/* Scrollbaar formuliergebied */}
         <div style={{ flex: 1, overflowY: 'auto', marginBottom: 4 }}>
           <PostFormFields mode="create" category={initialCat} subType={initialType} form={form} streetId={streetId} user={user} onError={onError} />
@@ -113,7 +134,7 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
         {/* Vaste CTA's */}
         <div style={{ flexShrink: 0 }}>
           <button
-            style={{ width: '100%', background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, padding: '14px 24px', fontSize: 16, fontWeight: 700, cursor: canSubmit ? 'pointer' : 'not-allowed', marginTop: 16, opacity: canSubmit ? 1 : 0.35 }}
+            style={{ width: '100%', height: 48, background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, padding: '4px 16px', fontSize: 16, fontWeight: 500, cursor: canSubmit ? 'pointer' : 'not-allowed', marginTop: 16, opacity: canSubmit ? 1 : 0.35 }}
             disabled={!canSubmit}
             onClick={handleSubmit}
           >

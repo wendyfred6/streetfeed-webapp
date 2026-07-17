@@ -23,7 +23,7 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
 
     expect(screen.getByText('Onderwerp *')).toBeInTheDocument();
     expect(screen.getByText('Van nr. *')).toBeInTheDocument();
-    expect(screen.getByText('Omschrijving *')).toBeInTheDocument();
+    expect(screen.getByText('Details *')).toBeInTheDocument();
 
     fireEvent.change(screen.getByPlaceholderText('Kort en duidelijk'), { target: { value: 'Kapotte lantaarnpaal' } });
     const textareas = document.querySelectorAll('textarea');
@@ -45,7 +45,7 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
         streetId={1} user={USER} initialCat="lostandfound" initialType={null} />
     );
 
-    expect(screen.getByText('Titel *')).toBeInTheDocument();
+    expect(screen.getByText('Wat ben je verloren of heb je gevonden? *')).toBeInTheDocument();
     expect(screen.queryByText('Van nr. *')).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByPlaceholderText('Bijv. Verloren of gevonden voorwerp'), { target: { value: 'Sleutelbos kwijt' } });
@@ -99,6 +99,7 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
     expect(screen.queryByText('Van nr. *')).not.toBeInTheDocument();
     expect(screen.queryByText('Tijd van')).not.toBeInTheDocument();
     expect(document.querySelectorAll('input[type="file"]').length).toBe(0);
+    expect(screen.getByText('Informeer je buren over tijdelijke situaties in de straat.')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('Plaatsen'));
     expect(onSubmit).not.toHaveBeenCalled();
@@ -111,6 +112,29 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
       subType: 'container',
       title: 'Container',
     })));
+  });
+
+  it('bezorging + pakket_aangenomen: labels the house-number fields "Voor huisnummer"/"Toevoeging" (FRE-378) and shows the tailored intro text (FRE-377)', () => {
+    render(
+      <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={vi.fn()}
+        streetId={1} user={USER} initialCat="bezorging" initialType="pakket_aangenomen" />
+    );
+    expect(screen.getByText('Voor huisnummer *')).toBeInTheDocument();
+    expect(screen.getByText('Voor welk huisnummer is het pakket bedoeld?')).toBeInTheDocument();
+  });
+
+  it('lostandfound / evenement: use the tailored title-field labels instead of a generic fallback (FRE-379)', () => {
+    render(
+      <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={vi.fn()}
+        streetId={1} user={USER} initialCat="lostandfound" initialType={null} />
+    );
+    expect(screen.getByText('Wat ben je verloren of heb je gevonden? *')).toBeInTheDocument();
+
+    render(
+      <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={vi.fn()}
+        streetId={1} user={USER} initialCat="evenement" initialType={null} />
+    );
+    expect(screen.getByText('Evenement *')).toBeInTheDocument();
   });
 
   it('evenement: does not show a house-number row (FRE-376)', () => {
@@ -192,7 +216,7 @@ describe('EditPostSheet (FRE-316 extraction + FRE-311-style sub_type drift fix)'
       title: 'Pakket aangenomen voor nr. 12', body: '', start_house: '12',
     };
     render(<EditPostSheet post={post} onClose={vi.fn()} onSave={vi.fn()} streetId={1} />);
-    expect(screen.getByText('Huisnummer geadresseerde')).toBeInTheDocument();
+    expect(screen.getByText('Voor huisnummer')).toBeInTheDocument();
   });
 
   it('lostandfound: shows title + description, no house row, and pre-fills Situatie/pickup-location from the post (FRE-317, FRE-368)', () => {

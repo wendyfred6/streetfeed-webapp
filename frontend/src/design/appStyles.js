@@ -43,8 +43,12 @@ export const s = {
   label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textDim, display: 'block', marginBottom: 6 },
   catGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 },
   catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}18` : 'rgba(255,255,255,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: `1px solid ${selected ? CATEGORIES[cat]?.color : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
-  submitBtn: { width: '100%', background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, padding: '13px 24px', fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 8 },
-  cancelBtn: { width: '100%', background: 'rgba(255,255,255,0.60)', color: COLORS.text, border: `2px solid ${COLORS.borderPrimary}`, borderRadius: RADIUS.pill, padding: '11px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
+  // Primary/Secondary Action — aligned to Figma Pattern Library v0.1's
+  // Actions section (node 241:25340, FRE-380): height 48, weight 500,
+  // font-size 16; Secondary is a 1px border on a plain background, not the
+  // frosted-glass look these predate.
+  submitBtn: { width: '100%', height: 48, background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, padding: '4px 16px', fontSize: 16, fontWeight: 500, cursor: 'pointer', marginTop: 8 },
+  cancelBtn: { width: '100%', height: 48, background: COLORS.background, color: COLORS.text, border: `1px solid ${COLORS.borderPrimary}`, borderRadius: RADIUS.pill, padding: '4px 16px', fontSize: 16, fontWeight: 500, cursor: 'pointer', marginTop: 8 },
   badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}18`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 11, fontWeight: 700, padding: '2px 7px' }),
   infoBox: { ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', marginBottom: 10 },
   adminCard: { ...GLASS.card, borderRadius: RADIUS.lg, padding: '14px 16px', marginBottom: 8 },

@@ -35,7 +35,7 @@ function groupAddresses(flat) {
   return map;
 }
 
-export default function HouseNumberPicker({ streetId, value, onChange, showSuffix = true, showLabels = false, style = {} }) {
+export default function HouseNumberPicker({ streetId, value, onChange, showSuffix = true, showLabels = false, numberLabel, suffixLabel, style = {} }) {
   const numId = useId();
   const sufId = useId();
   const [num, setNum] = useState('');
@@ -79,7 +79,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
   return (
     <div style={{ display: 'flex', gap: 8, ...style }}>
       <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
-        {showLabels && <label htmlFor={numId} style={FIELD_LABEL}>{t('house_number_label')}</label>}
+        {showLabels && <label htmlFor={numId} style={FIELD_LABEL}>{numberLabel ?? t('house_number_label')}</label>}
         <div style={{ position: 'relative' }}>
           <select
             id={numId}
@@ -99,7 +99,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
 
       {showSuffix && suffixes.length > 1 && (
         <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
-          {showLabels && <label htmlFor={sufId} style={FIELD_LABEL}>{t('house_suffix_label')}</label>}
+          {showLabels && <label htmlFor={sufId} style={FIELD_LABEL}>{suffixLabel ?? t('house_suffix_label')}</label>}
           <div style={{ position: 'relative' }}>
             <select
               id={sufId}

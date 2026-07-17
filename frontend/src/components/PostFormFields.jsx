@@ -35,8 +35,13 @@ export default function PostFormFields({ mode, category, subType, form, streetId
 
   const singleHouseField = (
     <>
-      <FieldLabel>Huisnummer geadresseerde{isCreate ? ' *' : ''}</FieldLabel>
-      <HouseNumberPicker streetId={streetId} value={startHouse} onChange={setStartHouse} style={{ marginBottom: isCreate ? 10 : 14 }} />
+      <HouseNumberPicker
+        streetId={streetId} value={startHouse} onChange={setStartHouse}
+        showLabels
+        numberLabel={`Voor huisnummer${isCreate ? ' *' : ''}`}
+        suffixLabel="Toevoeging"
+        style={{ marginBottom: isCreate ? 10 : 14 }}
+      />
       {isCreate && autoTitle && <div style={{ fontSize: 11, color: COLORS.textDim, marginBottom: 12 }}>Titel: <em>{autoTitle}</em></div>}
     </>
   );
@@ -107,7 +112,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     <TextField type={isCreate ? 'url' : undefined} label={isCreate ? 'Link' : 'Externe link'} placeholder={isCreate ? 'https://…' : 'https://...'} value={link} onChange={e => setLink(e.target.value)} wrapperStyle={{ marginBottom: 10 }} />
   );
 
-  const createTitleLabel = isMelding ? 'Onderwerp *' : isEvenement ? 'Naam *' : 'Titel *';
+  const createTitleLabel = isMelding ? 'Onderwerp *' : isEvenement ? 'Evenement *' : isLostAndFound ? 'Wat ben je verloren of heb je gevonden? *' : 'Titel *';
   const createTitlePlaceholder = isMelding
     ? 'Kort en duidelijk'
     : isEvenement
@@ -129,7 +134,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
 
   const bodyField = (
     <>
-      <FieldLabel>{isCreate && isMelding ? 'Omschrijving *' : 'Omschrijving'}</FieldLabel>
+      <FieldLabel>{isCreate && isMelding ? 'Details *' : 'Details'}</FieldLabel>
       <AutoTextarea
         style={{ ...FIELD_INPUT, borderRadius: RADIUS.lg, height: 'auto', minHeight: isCreate && !isMelding ? 60 : 80, padding: '16px', marginBottom: 10 }}
         value={body} onChange={e => setBody(e.target.value)}
