@@ -10,7 +10,7 @@ import { ArrowCircleLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowCircleL
 
 export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user, initialCat = 'bezorging', initialType = null, onError }) {
   const form = usePostFormState();
-  const { title, body, startHouse, endHouse, startDate, endDate, startTime, endTime, link, situatie, pickupLocation, eventDate, eventTime, photoKey, uploading } = form;
+  const { title, body, startHouse, endHouse, startDate, endDate, link, situatie, pickupLocation, eventDate, eventTime, photoKey, uploading } = form;
   const [closing, setClosing] = useState(false);
   const close = () => { setClosing(true); setTimeout(onClose, 220); };
   const back  = () => { setClosing(true); setTimeout(onBack,  220); };
@@ -22,6 +22,10 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
     ? (user?.house_number ? t('package_search_title_house', { houseNumber: user.house_number }) : t('package_search_title'))
     : startHouse.trim() ? t('package_delivered_title_house', { houseNumber: startHouse.trim() }) : '';
 
+  // Straatzaken has no user-facing title field in create mode (FRE-375) —
+  // auto-generate one from the chosen Situatie, same pattern as Bezorging's autoTitle above.
+  const straatzakenAutoTitle = isStraatzaken ? typeLabel('straatzaken', situatie) : '';
+
   const canSubmit = !uploading && (isBezorging
     ? (isGezocht || !!startHouse.trim())
     : isMelding
@@ -29,7 +33,7 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
       : isEvenement
         ? !!(title.trim() && eventDate)
         : isStraatzaken
-          ? !!(title.trim() && situatie)
+          ? !!situatie
           : isLostAndFound
             ? !!(title.trim() && situatie && (!isGevondenType || pickupLocation.trim()))
             : !!title.trim());
@@ -39,14 +43,12 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
     onSubmit({
       category: initialCat,
       subType: (isStraatzaken || isLostAndFound) ? (situatie || undefined) : (initialType || undefined),
-      title: isBezorging ? autoTitle : title.trim(),
+      title: isBezorging ? autoTitle : isStraatzaken ? straatzakenAutoTitle : title.trim(),
       body: body.trim() || undefined,
       startHouse: startHouse.trim() || undefined,
       endHouse: endHouse.trim() || undefined,
       startDate: isStraatzaken ? (startDate || undefined) : undefined,
       endDate: (isStraatzaken || isEvenement) ? (endDate || undefined) : undefined,
-      startTime: isStraatzaken ? (startTime || undefined) : undefined,
-      endTime: isStraatzaken ? (endTime || undefined) : undefined,
       link: isStraatzaken ? (link.trim() || undefined) : undefined,
       eventDate: isEvenement ? (eventDate || undefined) : undefined,
       eventTime: isEvenement ? (eventTime || undefined) : undefined,

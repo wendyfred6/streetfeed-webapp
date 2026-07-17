@@ -22,12 +22,11 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     title, setTitle, body, setBody,
     startHouse, setStartHouse, endHouse, setEndHouse,
     startDate, setStartDate, endDate, setEndDate,
-    startTime, setStartTime, endTime, setEndTime,
     link, setLink, situatie, setSituatie, pickupLocation, setPickupLocation, eventDate, setEventDate, eventTime, setEventTime,
     photoPreview, setPhotoPreview, setPhotoKey, uploading, setUploading,
   } = form;
 
-  const { isBezorging, isStraatzaken, isMelding, isEvenement, isAlgemeen, isLostAndFound, isGezocht, isBezorgd, hasDateRange, hasTimeRange, hasLink } =
+  const { isBezorging, isStraatzaken, isMelding, isEvenement, isAlgemeen, isLostAndFound, isGezocht, isBezorgd, hasDateRange, hasLink } =
     postCategoryFlags(category, subType);
 
   const autoTitle = isGezocht
@@ -48,7 +47,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     </div>
   );
 
-  const houseRow = !isBezorging && !isAlgemeen && !isLostAndFound && (
+  const houseRow = !isBezorging && !isAlgemeen && !isLostAndFound && !isStraatzaken && !isEvenement && (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
       <div>
         <FieldLabel>Van nr.{isCreate ? ' *' : ''}</FieldLabel>
@@ -62,20 +61,10 @@ export default function PostFormFields({ mode, category, subType, form, streetId
   );
 
   const dateTimeRange = hasDateRange && (
-    <>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isCreate ? 10 : 16, marginBottom: isCreate ? 10 : undefined }}>
-        <TextField type="date" label="Datum van" value={startDate} onChange={e => setStartDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
-        {hasTimeRange && (
-          <TextField type="time" label="Tijd van" value={startTime} onChange={e => setStartTime(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
-        )}
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isCreate ? 10 : 16, marginBottom: isCreate ? 14 : undefined }}>
-        <TextField type="date" label="Datum tot" value={endDate} onChange={e => setEndDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
-        {hasTimeRange && (
-          <TextField type="time" label="Tijd tot" value={endTime} onChange={e => setEndTime(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
-        )}
-      </div>
-    </>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isCreate ? 10 : 16, marginBottom: isCreate ? 14 : undefined }}>
+      <TextField type="date" label="Datum van" value={startDate} onChange={e => setStartDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
+      <TextField type="date" label="Datum tot" value={endDate} onChange={e => setEndDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
+    </div>
   );
 
   const eventFields = isEvenement && (
@@ -123,16 +112,18 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     ? 'Kort en duidelijk'
     : isEvenement
       ? 'Bijv. Straatborrel Kerst'
-      : isStraatzaken
-        ? 'Bijv. Vervanging gasleiding'
-        : isLostAndFound
-          // Lost & Found's Verloren/Gevonden choice now lives in the in-post
-          // `situatie` field (FRE-368), not the CategoryPicker-selected
-          // `subType` prop, which is always null for new Lost & Found posts.
-          ? (situatie === 'verloren' ? 'Bijv. Sleutelbos met rood label' : situatie === 'gevonden' ? 'Bijv. Zwarte want bij de brievenbus' : 'Bijv. Verloren of gevonden voorwerp')
-          : 'Bijv. Tweedehands bank te koop';
+      : isLostAndFound
+        // Lost & Found's Verloren/Gevonden choice now lives in the in-post
+        // `situatie` field (FRE-368), not the CategoryPicker-selected
+        // `subType` prop, which is always null for new Lost & Found posts.
+        ? (situatie === 'verloren' ? 'Bijv. Sleutelbos met rood label' : situatie === 'gevonden' ? 'Bijv. Zwarte want bij de brievenbus' : 'Bijv. Verloren of gevonden voorwerp')
+        : 'Bijv. Tweedehands bank te koop';
 
-  const titleField = !(isCreate && isBezorging) && (
+  // Straatzaken has no user-facing title field in create mode (FRE-375) — the
+  // title is auto-generated from Situatie (NewPostSheet.jsx), same pattern as
+  // Bezorging's autoTitle. Edit mode still shows title for every category,
+  // per this file's own established rule (see top comment).
+  const titleField = !(isCreate && (isBezorging || isStraatzaken)) && (
     <TextField label={isCreate ? createTitleLabel : t('title')} placeholder={isCreate ? createTitlePlaceholder : undefined} value={title} onChange={e => setTitle(e.target.value)} wrapperStyle={{ marginBottom: 10 }} />
   );
 
@@ -173,9 +164,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
       )}
       {isStraatzaken && (
         <>
-          {titleField}
           {situatieField}
-          {houseRow}
           {dateTimeRange}
           {linkField}
           {bodyField}
@@ -192,7 +181,6 @@ export default function PostFormFields({ mode, category, subType, form, streetId
         <>
           {titleField}
           {eventFields}
-          {houseRow}
           {bodyField}
         </>
       )}
@@ -210,8 +198,10 @@ export default function PostFormFields({ mode, category, subType, form, streetId
           {bodyField}
         </>
       )}
-      <AttachmentUpload photoPreview={photoPreview} uploading={uploading} onUploading={setUploading} onError={onError}
-        onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); setPhotoKey(key); }} />
+      {!isStraatzaken && (
+        <AttachmentUpload photoPreview={photoPreview} uploading={uploading} onUploading={setUploading} onError={onError}
+          onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); setPhotoKey(key); }} />
+      )}
     </>
   );
 }
