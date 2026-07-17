@@ -65,7 +65,7 @@ export function registerCrudRoutes(router) {
     const { category, title, body, endDate, startDate,
             eventDate, eventTime, bringList, photoKey,
             link, allowJoin, startTime, endTime, subType,
-            startHouse, endHouse, pickupLocation } = req.body;
+            startHouse, endHouse } = req.body;
 
     // Auto-pin for straatzaken/evenement with dates
     const autoPin = ['straatzaken', 'evenement'].includes(category) &&
@@ -76,8 +76,8 @@ export function registerCrudRoutes(router) {
          (street_id, user_id, category, title, body, pinned, end_date, start_date,
           event_date, event_time, bring_list, photo_key,
           link, allow_join, start_time, end_time, sub_type,
-          start_house, end_house, pickup_location)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+          start_house, end_house)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
        RETURNING *`,
       [
         streetId, req.user.user_id, category, title.trim(), body?.trim() || '',
@@ -90,7 +90,6 @@ export function registerCrudRoutes(router) {
         startTime || null, endTime || null,
         subType || null,
         startHouse || null, endHouse || null,
-        pickupLocation || null,
       ]
     );
 
@@ -149,25 +148,24 @@ export function registerCrudRoutes(router) {
 
     if (!isAuthorOrModerator(post, req)) return res.status(403).json({ error: 'Forbidden' });
 
-    const { title, body, endDate, startDate, eventDate, eventTime, bringList, link, startTime, endTime, subType, startHouse, endHouse, pickupLocation } = req.body;
+    const { title, body, endDate, startDate, eventDate, eventTime, bringList, link, startTime, endTime, subType, startHouse, endHouse } = req.body;
 
     const { rows } = await query(
       `UPDATE posts SET
-         title           = $1,
-         body            = $2,
-         end_date        = $3,
-         start_date      = $4,
-         event_date      = $5,
-         event_time      = $6,
-         bring_list      = $7,
-         link            = $8,
-         start_time      = $9,
-         end_time        = $10,
-         sub_type        = $11,
-         start_house     = $12,
-         end_house       = $13,
-         pickup_location = $14
-       WHERE id = $15 AND street_id = $16
+         title       = $1,
+         body        = $2,
+         end_date    = $3,
+         start_date  = $4,
+         event_date  = $5,
+         event_time  = $6,
+         bring_list  = $7,
+         link        = $8,
+         start_time  = $9,
+         end_time    = $10,
+         sub_type    = $11,
+         start_house = $12,
+         end_house   = $13
+       WHERE id = $14 AND street_id = $15
        RETURNING *`,
       [
         title?.trim() || post.title,
@@ -183,7 +181,6 @@ export function registerCrudRoutes(router) {
         subType !== undefined ? (subType || null) : post.sub_type,
         startHouse !== undefined ? (startHouse || null) : post.start_house,
         endHouse !== undefined ? (endHouse || null) : post.end_house,
-        pickupLocation !== undefined ? (pickupLocation || null) : post.pickup_location,
         postId, streetId,
       ]
     );

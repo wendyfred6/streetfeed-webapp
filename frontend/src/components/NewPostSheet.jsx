@@ -10,13 +10,12 @@ import { ArrowCircleLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowCircleL
 
 export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user, initialCat = 'bezorging', initialType = null, onError }) {
   const form = usePostFormState();
-  const { title, body, startHouse, endHouse, startDate, endDate, link, situatie, pickupLocation, eventDate, eventTime, photoKey, uploading } = form;
+  const { title, body, startHouse, endHouse, startDate, endDate, link, situatie, eventDate, eventTime, photoKey, uploading } = form;
   const [closing, setClosing] = useState(false);
   const close = () => { setClosing(true); setTimeout(onClose, 220); };
   const back  = () => { setClosing(true); setTimeout(onBack,  220); };
 
   const { isBezorging, isStraatzaken, isMelding, isEvenement, isLostAndFound, isGezocht } = postCategoryFlags(initialCat, initialType);
-  const isGevondenType = isLostAndFound && situatie === 'gevonden';
 
   const autoTitle = isGezocht
     ? (user?.house_number ? t('package_search_title_house', { houseNumber: user.house_number }) : t('package_search_title'))
@@ -25,6 +24,14 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
   // Straatzaken has no user-facing title field in create mode (FRE-375) —
   // auto-generate one from the chosen Situatie, same pattern as Bezorging's autoTitle above.
   const straatzakenAutoTitle = isStraatzaken ? typeLabel('straatzaken', situatie) : '';
+
+  // Lost & Found: the "Wat ben je verloren/heb je gevonden?" field (`title`
+  // state) captures the object description, not the post title — the actual
+  // title is generated as "Verloren - {object}"/"Gevonden - {object}"
+  // (confirmed against Wendy's Verloren/Gevonden screenshots, 2026-07-17).
+  const lostAndFoundAutoTitle = isLostAndFound
+    ? `${situatie === 'gevonden' ? 'Gevonden' : 'Verloren'} - ${title.trim()}`
+    : '';
 
   const canSubmit = !uploading && (isBezorging
     ? (isGezocht || !!startHouse.trim())
@@ -35,7 +42,7 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
         : isStraatzaken
           ? !!situatie
           : isLostAndFound
-            ? !!(title.trim() && situatie && (!isGevondenType || pickupLocation.trim()))
+            ? !!(title.trim() && situatie)
             : !!title.trim());
 
   const handleSubmit = () => {
@@ -43,7 +50,7 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
     onSubmit({
       category: initialCat,
       subType: (isStraatzaken || isLostAndFound) ? (situatie || undefined) : (initialType || undefined),
-      title: isBezorging ? autoTitle : isStraatzaken ? straatzakenAutoTitle : title.trim(),
+      title: isBezorging ? autoTitle : isStraatzaken ? straatzakenAutoTitle : isLostAndFound ? lostAndFoundAutoTitle : title.trim(),
       body: body.trim() || undefined,
       startHouse: startHouse.trim() || undefined,
       endHouse: endHouse.trim() || undefined,
@@ -52,7 +59,6 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
       link: isStraatzaken ? (link.trim() || undefined) : undefined,
       eventDate: isEvenement ? (eventDate || undefined) : undefined,
       eventTime: isEvenement ? (eventTime || undefined) : undefined,
-      pickupLocation: isGevondenType ? (pickupLocation.trim() || undefined) : undefined,
       photoKey: photoKey || undefined,
     });
     close();

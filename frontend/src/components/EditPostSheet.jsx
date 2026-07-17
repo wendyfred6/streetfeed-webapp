@@ -20,9 +20,8 @@ export default function EditPostSheet({ post, onClose, onSave, streetId }) {
     eventTime: post.event_time || '',
     link: post.link || '',
     situatie: post.sub_type || '',
-    pickupLocation: post.pickup_location || '',
   });
-  const { title, body, startHouse, endHouse, startDate, endDate, link, situatie, pickupLocation, eventDate, eventTime } = form;
+  const { title, body, startHouse, endHouse, startDate, endDate, link, situatie, eventDate, eventTime } = form;
   const [closing, setClosing] = useState(false);
   const close = () => { setClosing(true); setTimeout(onClose, 270); };
 
@@ -47,7 +46,6 @@ export default function EditPostSheet({ post, onClose, onSave, streetId }) {
             eventTime: eventTime || undefined,
             link: link || undefined,
             subType: situatie || undefined,
-            pickupLocation: pickupLocation || undefined,
           });
           close();
         }}>

@@ -38,7 +38,7 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
     })));
   });
 
-  it('lostandfound: shows a title + description but no house-number row (FRE-317), requires Situatie, and submits the chosen type as subType (FRE-368)', async () => {
+  it('lostandfound + verloren: Situatie precedes the object field, label/placeholder adapt, no Ophaallocatie field, title auto-generates as "Verloren - {object}" (revised 2026-07-17)', async () => {
     const onSubmit = vi.fn();
     render(
       <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={onSubmit}
@@ -52,42 +52,42 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
     // field, not below it (this file previously had it backwards).
     expect(situatieLabel.compareDocumentPosition(titleLabel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    fireEvent.change(screen.getByPlaceholderText('Bijv. Verloren of gevonden voorwerp'), { target: { value: 'Sleutelbos kwijt' } });
-
-    fireEvent.click(screen.getByText('Plaatsen'));
-    expect(onSubmit).not.toHaveBeenCalled();
-
     fireEvent.change(document.querySelectorAll('select')[0], { target: { value: 'verloren' } });
+
+    // Confirmed against Wendy's Verloren screenshot: label/placeholder adapt
+    // once Situatie is chosen, and there's no Ophaallocatie field at all.
+    expect(screen.getByText('Wat ben je verloren? *')).toBeInTheDocument();
+    expect(screen.queryByText('Ophaallocatie *')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Sleutelbos met rood label'), { target: { value: 'Sleutelbos kwijt' } });
     fireEvent.click(screen.getByText('Plaatsen'));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
       category: 'lostandfound',
       subType: 'verloren',
-      title: 'Sleutelbos kwijt',
+      title: 'Verloren - Sleutelbos kwijt',
     })));
   });
 
-  it('lostandfound + gevonden: requires a pickup location before submitting; verloren does not (FRE-368)', async () => {
+  it('lostandfound + gevonden: label/placeholder adapt, no Ophaallocatie field, title auto-generates as "Gevonden - {object}" (revised 2026-07-17)', async () => {
     const onSubmit = vi.fn();
     render(
       <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={onSubmit}
         streetId={1} user={USER} initialCat="lostandfound" initialType={null} />
     );
 
-    fireEvent.change(screen.getByPlaceholderText('Bijv. Verloren of gevonden voorwerp'), { target: { value: 'Zwarte want gevonden' } });
     fireEvent.change(document.querySelectorAll('select')[0], { target: { value: 'gevonden' } });
 
-    expect(screen.getByText('Ophaallocatie *')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Plaatsen'));
-    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText('Wat heb je gevonden? *')).toBeInTheDocument();
+    expect(screen.queryByText('Ophaallocatie *')).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText('Bijv. Bij de brievenbus op nr. 34'), { target: { value: 'Bij de brievenbus' } });
+    fireEvent.change(screen.getByPlaceholderText('Zwarte lederen handschoen'), { target: { value: 'Zwarte want' } });
     fireEvent.click(screen.getByText('Plaatsen'));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
       category: 'lostandfound',
       subType: 'gevonden',
-      pickupLocation: 'Bij de brievenbus',
+      title: 'Gevonden - Zwarte want',
     })));
   });
 
@@ -229,13 +229,13 @@ describe('EditPostSheet (FRE-316 extraction + FRE-311-style sub_type drift fix)'
     expect(screen.getByText('Voor huisnummer')).toBeInTheDocument();
   });
 
-  it('lostandfound: shows title + description, no house row, and pre-fills Situatie/pickup-location from the post (FRE-317, FRE-368)', () => {
-    const post = { id: 3, category: 'lostandfound', sub_type: 'gevonden', title: 'Zwarte want gevonden', body: '', pickup_location: 'Bij de brievenbus' };
+  it('lostandfound: shows title + description, no house row, no Ophaallocatie field, and pre-fills Situatie from the post (FRE-317, revised 2026-07-17)', () => {
+    const post = { id: 3, category: 'lostandfound', sub_type: 'gevonden', title: 'Gevonden - Zwarte want', body: '' };
     render(<EditPostSheet post={post} onClose={vi.fn()} onSave={vi.fn()} streetId={1} />);
     expect(screen.getByText('Titel')).toBeInTheDocument();
     expect(screen.queryByText('Van nr.')).not.toBeInTheDocument();
     expect(screen.getByText('Situatie')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Bij de brievenbus')).toBeInTheDocument();
+    expect(screen.queryByText('Ophaallocatie')).not.toBeInTheDocument();
   });
 
   it('straatzaken: shows Situatie and date range, no house row, no time fields, no link field (FRE-375)', () => {

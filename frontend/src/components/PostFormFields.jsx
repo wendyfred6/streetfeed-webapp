@@ -22,7 +22,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     title, setTitle, body, setBody,
     startHouse, setStartHouse, endHouse, setEndHouse,
     startDate, setStartDate, endDate, setEndDate,
-    link, setLink, situatie, setSituatie, pickupLocation, setPickupLocation, eventDate, setEventDate, eventTime, setEventTime,
+    link, setLink, situatie, setSituatie, eventDate, setEventDate, eventTime, setEventTime,
     photoPreview, setPhotoPreview, setPhotoKey, uploading, setUploading,
   } = form;
 
@@ -106,34 +106,36 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     </DropdownField>
   );
 
-  // Lost & Found: pickup location is required once "Gevonden" is chosen,
-  // never asked for "Verloren" (Post Type Specifications — Pilot v1).
-  const isGevondenType = isLostAndFound && situatie === 'gevonden';
-  const pickupLocationField = isGevondenType && (
-    <TextField
-      label={isCreate ? 'Ophaallocatie *' : 'Ophaallocatie'}
-      placeholder="Bijv. Bij de brievenbus op nr. 34"
-      value={pickupLocation}
-      onChange={e => setPickupLocation(e.target.value)}
-      wrapperStyle={{ marginBottom: 10 }}
-    />
-  );
-
   const linkField = hasLink && (
     <TextField type={isCreate ? 'url' : undefined} label={isCreate ? 'Link' : 'Externe link'} placeholder={isCreate ? 'https://…' : 'https://...'} value={link} onChange={e => setLink(e.target.value)} wrapperStyle={{ marginBottom: 10 }} />
   );
 
-  const createTitleLabel = isMelding ? 'Onderwerp *' : isEvenement ? 'Evenement *' : isLostAndFound ? 'Wat ben je verloren of heb je gevonden? *' : 'Titel *';
+  // Lost & Found's object-description label/placeholder is tailored per
+  // Situatie (confirmed against Wendy's Verloren/Gevonden screenshots,
+  // 2026-07-17) — the field itself feeds the auto-generated title
+  // ("Verloren - {object}"/"Gevonden - {object}", NewPostSheet.jsx), it
+  // isn't the title itself. Falls back to the neutral combined question
+  // before Situatie is chosen.
+  const createTitleLabel = isMelding
+    ? 'Onderwerp *'
+    : isEvenement
+      ? 'Evenement *'
+      : isLostAndFound
+        ? (situatie === 'verloren' ? 'Wat ben je verloren? *' : situatie === 'gevonden' ? 'Wat heb je gevonden? *' : 'Wat ben je verloren of heb je gevonden? *')
+        : 'Titel *';
   const createTitlePlaceholder = isMelding
     ? 'Kort en duidelijk'
     : isEvenement
       ? 'Bijv. Straatborrel Kerst'
       : isLostAndFound
-        // Lost & Found's Verloren/Gevonden choice now lives in the in-post
-        // `situatie` field (FRE-368), not the CategoryPicker-selected
-        // `subType` prop, which is always null for new Lost & Found posts.
-        ? (situatie === 'verloren' ? 'Bijv. Sleutelbos met rood label' : situatie === 'gevonden' ? 'Bijv. Zwarte want bij de brievenbus' : 'Bijv. Verloren of gevonden voorwerp')
+        ? (situatie === 'verloren' ? 'Sleutelbos met rood label' : situatie === 'gevonden' ? 'Zwarte lederen handschoen' : 'Bijv. Verloren of gevonden voorwerp')
         : 'Bijv. Tweedehands bank te koop';
+
+  // Details placeholder, confirmed per Situatie for Lost & Found; other
+  // categories keep no placeholder until their own copy is confirmed.
+  const bodyPlaceholder = isLostAndFound
+    ? (situatie === 'verloren' ? 'Vanmorgen had ik ze nog!' : situatie === 'gevonden' ? 'Deze handschoen lag bij het fietsenrek ingang park.' : undefined)
+    : undefined;
 
   // Straatzaken has no user-facing title field in create mode (FRE-375) — the
   // title is auto-generated from Situatie (NewPostSheet.jsx), same pattern as
@@ -148,6 +150,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
       <FieldLabel>{isCreate && isMelding ? 'Details *' : 'Details'}</FieldLabel>
       <AutoTextarea
         style={{ ...FIELD_INPUT, borderRadius: RADIUS.lg, height: 'auto', minHeight: isCreate && !isMelding ? 60 : 80, padding: '16px', marginBottom: 10 }}
+        placeholder={isCreate ? bodyPlaceholder : undefined}
         value={body} onChange={e => setBody(e.target.value)}
       />
     </>
@@ -160,7 +163,6 @@ export default function PostFormFields({ mode, category, subType, form, streetId
         {bodyField}
         {isBezorgd && singleHouseField}
         {situatieField}
-        {pickupLocationField}
         {houseRow}
         {dateTimeRange}
         {eventFields}
@@ -209,7 +211,6 @@ export default function PostFormFields({ mode, category, subType, form, streetId
       {isLostAndFound && (
         <>
           {situatieField}
-          {pickupLocationField}
           {titleField}
           {bodyField}
         </>
