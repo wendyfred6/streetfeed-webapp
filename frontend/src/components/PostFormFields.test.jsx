@@ -87,30 +87,39 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
     })));
   });
 
-  it('straatzaken: requires Situatie before submitting, and submits the chosen type as subType (FRE-367)', async () => {
+  it('straatzaken: no user-facing Title/house-row/Attachment, requires Situatie, and auto-generates the title from it (FRE-375)', async () => {
     const onSubmit = vi.fn();
     render(
       <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={onSubmit}
         streetId={1} user={USER} initialCat="straatzaken" initialType={null} />
     );
 
+    expect(screen.queryByText('Titel *')).not.toBeInTheDocument();
     expect(screen.getByText('Situatie *')).toBeInTheDocument();
-
-    fireEvent.change(screen.getByPlaceholderText('Bijv. Vervanging gasleiding'), { target: { value: 'Container voor de deur' } });
+    expect(screen.queryByText('Van nr. *')).not.toBeInTheDocument();
+    expect(screen.queryByText('Tijd van')).not.toBeInTheDocument();
+    expect(document.querySelectorAll('input[type="file"]').length).toBe(0);
 
     fireEvent.click(screen.getByText('Plaatsen'));
     expect(onSubmit).not.toHaveBeenCalled();
 
-    const situatieSelect = document.querySelectorAll('select')[0];
-    fireEvent.change(situatieSelect, { target: { value: 'container' } });
-
+    fireEvent.change(document.querySelectorAll('select')[0], { target: { value: 'container' } });
     fireEvent.click(screen.getByText('Plaatsen'));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
       category: 'straatzaken',
       subType: 'container',
-      title: 'Container voor de deur',
+      title: 'Container',
     })));
+  });
+
+  it('evenement: does not show a house-number row (FRE-376)', () => {
+    render(
+      <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={vi.fn()}
+        streetId={1} user={USER} initialCat="evenement" initialType={null} />
+    );
+    expect(screen.queryByText('Van nr. *')).not.toBeInTheDocument();
+    expect(screen.getByText('Datum *')).toBeInTheDocument();
   });
 
   it('bezorging + pakket_gezocht: hides the title input, shows the "own house number" helper text, and can submit immediately', async () => {
@@ -152,11 +161,13 @@ describe('EditPostSheet (FRE-316 extraction + FRE-311-style sub_type drift fix)'
     expect(screen.getByDisplayValue('Bij de brievenbus')).toBeInTheDocument();
   });
 
-  it('straatzaken: shows the van/tot house row and date range, no link field', () => {
-    const post = { id: 2, category: 'straatzaken', title: 'Werkzaamheden', body: 'Tekst', link: '' };
+  it('straatzaken: shows Situatie and date range, no house row, no time fields, no link field (FRE-375)', () => {
+    const post = { id: 2, category: 'straatzaken', sub_type: 'container', title: 'Werkzaamheden', body: 'Tekst', link: '' };
     render(<EditPostSheet post={post} onClose={vi.fn()} onSave={vi.fn()} streetId={1} />);
-    expect(screen.getByText('Van nr.')).toBeInTheDocument();
+    expect(screen.getByText('Situatie')).toBeInTheDocument();
     expect(screen.getByText('Datum van')).toBeInTheDocument();
+    expect(screen.queryByText('Van nr.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Tijd van')).not.toBeInTheDocument();
     expect(screen.queryByText('Externe link')).not.toBeInTheDocument();
   });
 });

@@ -9,8 +9,6 @@ export function usePostFormState(initial = {}) {
   const [endHouse, setEndHouse] = useState(initial.endHouse ?? '');
   const [startDate, setStartDate] = useState(initial.startDate ?? '');
   const [endDate, setEndDate] = useState(initial.endDate ?? '');
-  const [startTime, setStartTime] = useState(initial.startTime ?? '');
-  const [endTime, setEndTime] = useState(initial.endTime ?? '');
   const [link, setLink] = useState(initial.link ?? '');
   const [situatie, setSituatie] = useState(initial.situatie ?? '');
   const [pickupLocation, setPickupLocation] = useState(initial.pickupLocation ?? '');
@@ -27,8 +25,6 @@ export function usePostFormState(initial = {}) {
     endHouse, setEndHouse,
     startDate, setStartDate,
     endDate, setEndDate,
-    startTime, setStartTime,
-    endTime, setEndTime,
     link, setLink,
     situatie, setSituatie,
     pickupLocation, setPickupLocation,

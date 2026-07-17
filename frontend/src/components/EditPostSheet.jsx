@@ -16,15 +16,13 @@ export default function EditPostSheet({ post, onClose, onSave, streetId }) {
     endHouse: post.end_house || '',
     startDate: toDateInput(post.start_date),
     endDate: toDateInput(post.end_date),
-    startTime: post.start_time || '',
-    endTime: post.end_time || '',
     eventDate: post.event_date || '',
     eventTime: post.event_time || '',
     link: post.link || '',
     situatie: post.sub_type || '',
     pickupLocation: post.pickup_location || '',
   });
-  const { title, body, startHouse, endHouse, startDate, endDate, startTime, endTime, link, situatie, pickupLocation, eventDate, eventTime } = form;
+  const { title, body, startHouse, endHouse, startDate, endDate, link, situatie, pickupLocation, eventDate, eventTime } = form;
   const [closing, setClosing] = useState(false);
   const close = () => { setClosing(true); setTimeout(onClose, 270); };
 
@@ -45,8 +43,6 @@ export default function EditPostSheet({ post, onClose, onSave, streetId }) {
             endHouse: endHouse || undefined,
             startDate: startDate || undefined,
             endDate: endDate || undefined,
-            startTime: startTime || undefined,
-            endTime: endTime || undefined,
             eventDate: eventDate || undefined,
             eventTime: eventTime || undefined,
             link: link || undefined,
