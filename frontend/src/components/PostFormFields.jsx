@@ -6,7 +6,7 @@ import AutoTextarea from './AutoTextarea.jsx';
 import AttachmentUpload from './AttachmentUpload.jsx';
 import { FieldLabel, TextField, DropdownField } from './PostFormField.jsx';
 import { postCategoryFlags } from '../utils/postCategoryFlags.js';
-import { STRAATZAKEN_TYPES } from '../utils/categories.js';
+import { STRAATZAKEN_TYPES, LOSTANDFOUND_TYPES } from '../utils/categories.js';
 
 // Shared field-rendering schema for NewPostSheet (mode="create") and
 // EditPostSheet (mode="edit") — previously each component duplicated almost
@@ -23,7 +23,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     startHouse, setStartHouse, endHouse, setEndHouse,
     startDate, setStartDate, endDate, setEndDate,
     startTime, setStartTime, endTime, setEndTime,
-    link, setLink, situatie, setSituatie, eventDate, setEventDate, eventTime, setEventTime,
+    link, setLink, situatie, setSituatie, pickupLocation, setPickupLocation, eventDate, setEventDate, eventTime, setEventTime,
     photoPreview, setPhotoPreview, setPhotoKey, uploading, setUploading,
   } = form;
 
@@ -85,7 +85,11 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     </div>
   );
 
-  const situatieField = isStraatzaken && (
+  // Straatzaken's Type-hinder (FRE-367) and Lost & Found's Verloren/Gevonden
+  // (FRE-368) are both an in-post "Situatie" choice now, instead of a
+  // CategoryPicker drill-down — same field, different option list per category.
+  const situatieOptions = isStraatzaken ? STRAATZAKEN_TYPES : isLostAndFound ? LOSTANDFOUND_TYPES : null;
+  const situatieField = situatieOptions && (
     <DropdownField
       label={isCreate ? 'Situatie *' : 'Situatie'}
       placeholder="Kies een type"
@@ -93,8 +97,21 @@ export default function PostFormFields({ mode, category, subType, form, streetId
       onChange={e => setSituatie(e.target.value)}
       wrapperStyle={{ marginBottom: isCreate ? 10 : 14 }}
     >
-      {STRAATZAKEN_TYPES.map(ty => <option key={ty.key} value={ty.key}>{ty.label}</option>)}
+      {situatieOptions.map(ty => <option key={ty.key} value={ty.key}>{ty.label}</option>)}
     </DropdownField>
+  );
+
+  // Lost & Found: pickup location is required once "Gevonden" is chosen,
+  // never asked for "Verloren" (Post Type Specifications — Pilot v1).
+  const isGevondenType = isLostAndFound && situatie === 'gevonden';
+  const pickupLocationField = isGevondenType && (
+    <TextField
+      label={isCreate ? 'Ophaallocatie *' : 'Ophaallocatie'}
+      placeholder="Bijv. Bij de brievenbus op nr. 34"
+      value={pickupLocation}
+      onChange={e => setPickupLocation(e.target.value)}
+      wrapperStyle={{ marginBottom: 10 }}
+    />
   );
 
   const linkField = hasLink && (
@@ -109,7 +126,10 @@ export default function PostFormFields({ mode, category, subType, form, streetId
       : isStraatzaken
         ? 'Bijv. Vervanging gasleiding'
         : isLostAndFound
-          ? (subType === 'verloren' ? 'Bijv. Sleutelbos met rood label' : subType === 'gevonden' ? 'Bijv. Zwarte want bij de brievenbus' : 'Bijv. Verloren of gevonden voorwerp')
+          // Lost & Found's Verloren/Gevonden choice now lives in the in-post
+          // `situatie` field (FRE-368), not the CategoryPicker-selected
+          // `subType` prop, which is always null for new Lost & Found posts.
+          ? (situatie === 'verloren' ? 'Bijv. Sleutelbos met rood label' : situatie === 'gevonden' ? 'Bijv. Zwarte want bij de brievenbus' : 'Bijv. Verloren of gevonden voorwerp')
           : 'Bijv. Tweedehands bank te koop';
 
   const titleField = !(isCreate && isBezorging) && (
@@ -133,6 +153,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
         {bodyField}
         {isBezorgd && singleHouseField}
         {situatieField}
+        {pickupLocationField}
         {houseRow}
         {dateTimeRange}
         {eventFields}
@@ -184,6 +205,8 @@ export default function PostFormFields({ mode, category, subType, form, streetId
       {isLostAndFound && (
         <>
           {titleField}
+          {situatieField}
+          {pickupLocationField}
           {bodyField}
         </>
       )}

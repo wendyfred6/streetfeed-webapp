@@ -8,7 +8,6 @@ import { MaskHappyIcon } from '@phosphor-icons/react/dist/csr/MaskHappy';
 import { DropIcon } from '@phosphor-icons/react/dist/csr/Drop';
 import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
 import { BinocularsIcon } from '@phosphor-icons/react/dist/csr/Binoculars';
-import { MapPinIcon } from '@phosphor-icons/react/dist/csr/MapPin';
 import { CalendarPlusIcon } from '@phosphor-icons/react/dist/csr/CalendarPlus';
 import { ChatsCircleIcon } from '@phosphor-icons/react/dist/csr/ChatsCircle';
 import { QuestionIcon } from '@phosphor-icons/react/dist/csr/Question';
@@ -72,10 +71,7 @@ export const CATEGORY_TREE = [
   },
   {
     key: 'lostandfound', label: 'Lost & Found', sub: 'Iets verloren of gevonden', icon: BinocularsIcon,
-    types: [
-      { key: 'verloren', label: 'Verloren', sub: 'Iets kwijtgeraakt', icon: MagnifyingGlassIcon },
-      { key: 'gevonden', label: 'Gevonden', sub: 'Iets gevonden',      icon: MapPinIcon },
-    ],
+    types: null,
   },
   { key: 'evenement', label: 'Evenement', sub: 'Van straatborrel tot....straatborrel?', icon: CalendarPlusIcon, types: null },
   {
@@ -103,6 +99,14 @@ export const STRAATZAKEN_TYPES = [
   { key: 'anders',                   label: 'Anders' },
 ];
 
+// Lost & Found's "Situatie" (Type) options — same in-post pattern as
+// Straatzaken (FRE-368); keeps the same 'verloren'/'gevonden' keys the old
+// tree used, so no legacy-label fallback is needed.
+export const LOSTANDFOUND_TYPES = [
+  { key: 'verloren', label: 'Verloren' },
+  { key: 'gevonden', label: 'Gevonden' },
+];
+
 // Sub-type labels that predate the CategoryPicker's current tree (renamed
 // or consolidated away) but that older posts may still carry as sub_type
 // — kept only so those posts render a real label instead of a raw key.
@@ -127,6 +131,7 @@ const TYPE_LABELS = Object.fromEntries(CATEGORY_TREE.map(cat => {
   const labels = {};
   if (cat.types) collectTreeLabels(cat.types, labels);
   if (cat.key === 'straatzaken') for (const ty of STRAATZAKEN_TYPES) labels[ty.key] = ty.label;
+  if (cat.key === 'lostandfound') for (const ty of LOSTANDFOUND_TYPES) labels[ty.key] = ty.label;
   return [cat.key, { ...labels, ...LEGACY_TYPE_LABELS[cat.key] }];
 }));
 

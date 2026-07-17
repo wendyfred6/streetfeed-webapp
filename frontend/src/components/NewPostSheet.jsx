@@ -10,12 +10,13 @@ import { ArrowCircleLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowCircleL
 
 export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user, initialCat = 'bezorging', initialType = null, onError }) {
   const form = usePostFormState();
-  const { title, body, startHouse, endHouse, startDate, endDate, startTime, endTime, link, situatie, eventDate, eventTime, photoKey, uploading } = form;
+  const { title, body, startHouse, endHouse, startDate, endDate, startTime, endTime, link, situatie, pickupLocation, eventDate, eventTime, photoKey, uploading } = form;
   const [closing, setClosing] = useState(false);
   const close = () => { setClosing(true); setTimeout(onClose, 220); };
   const back  = () => { setClosing(true); setTimeout(onBack,  220); };
 
-  const { isBezorging, isStraatzaken, isMelding, isEvenement, isGezocht } = postCategoryFlags(initialCat, initialType);
+  const { isBezorging, isStraatzaken, isMelding, isEvenement, isLostAndFound, isGezocht } = postCategoryFlags(initialCat, initialType);
+  const isGevondenType = isLostAndFound && situatie === 'gevonden';
 
   const autoTitle = isGezocht
     ? (user?.house_number ? t('package_search_title_house', { houseNumber: user.house_number }) : t('package_search_title'))
@@ -29,13 +30,15 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
         ? !!(title.trim() && eventDate)
         : isStraatzaken
           ? !!(title.trim() && situatie)
-          : !!title.trim());
+          : isLostAndFound
+            ? !!(title.trim() && situatie && (!isGevondenType || pickupLocation.trim()))
+            : !!title.trim());
 
   const handleSubmit = () => {
     if (!canSubmit) return;
     onSubmit({
       category: initialCat,
-      subType: isStraatzaken ? (situatie || undefined) : (initialType || undefined),
+      subType: (isStraatzaken || isLostAndFound) ? (situatie || undefined) : (initialType || undefined),
       title: isBezorging ? autoTitle : title.trim(),
       body: body.trim() || undefined,
       startHouse: startHouse.trim() || undefined,
@@ -47,6 +50,7 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
       link: isStraatzaken ? (link.trim() || undefined) : undefined,
       eventDate: isEvenement ? (eventDate || undefined) : undefined,
       eventTime: isEvenement ? (eventTime || undefined) : undefined,
+      pickupLocation: isGevondenType ? (pickupLocation.trim() || undefined) : undefined,
       photoKey: photoKey || undefined,
     });
     close();
