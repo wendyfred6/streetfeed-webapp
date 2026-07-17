@@ -1,4 +1,4 @@
-import { COLORS } from '../design/tokens.js';
+import { COLORS, RADIUS } from '../design/tokens.js';
 import { FIELD_INPUT } from '../design/fieldStyles.js';
 import { t } from '../i18n/index.js';
 import HouseNumberPicker from './HouseNumberPicker.jsx';
@@ -140,7 +140,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     <>
       <FieldLabel>{isCreate && isMelding ? 'Omschrijving *' : 'Omschrijving'}</FieldLabel>
       <AutoTextarea
-        style={{ ...FIELD_INPUT, height: 'auto', minHeight: isCreate && !isMelding ? 60 : 80, padding: '16px', marginBottom: 10 }}
+        style={{ ...FIELD_INPUT, borderRadius: RADIUS.lg, height: 'auto', minHeight: isCreate && !isMelding ? 60 : 80, padding: '16px', marginBottom: 10 }}
         value={body} onChange={e => setBody(e.target.value)}
       />
     </>

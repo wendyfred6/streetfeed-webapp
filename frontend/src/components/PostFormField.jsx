@@ -1,4 +1,4 @@
-import { COLORS } from '../design/tokens.js';
+import { COLORS, RADIUS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL } from '../design/fieldStyles.js';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 
@@ -42,14 +42,17 @@ export function TextField({ label, error, style, wrapperStyle, ...props }) {
   );
 }
 
-// Textarea Field (Figma node 241:25317) — reuses the same TextField
-// component/radius, just taller; the browser clamps border-radius: 999 to
-// roughly half the box height automatically, matching Figma's own reuse.
+// Textarea Field (Figma node 241:25317) — its own "Multi-line" TextField
+// variant, not the single-line one resized: Figma specifies a fixed 20px
+// radius here (`rounded-[20px]`), not the single-line field's pill radius.
+// (Confirmed directly against the Figma component's generated code — an
+// earlier version of this file wrongly assumed the pill radius would just
+// auto-clamp to match; it doesn't, Figma genuinely uses a different value.)
 export function TextareaField({ label, error, style, wrapperStyle, ...props }) {
   return (
     <div style={wrapperStyle}>
       {label && <FieldLabel htmlFor={props.id}>{label}</FieldLabel>}
-      <textarea style={{ ...fieldInput(error), height: 'auto', minHeight: 100, padding: '16px', resize: 'none', ...style }} {...props} />
+      <textarea style={{ ...fieldInput(error), borderRadius: RADIUS.lg, height: 'auto', minHeight: 100, padding: '16px', resize: 'none', ...style }} {...props} />
     </div>
   );
 }
