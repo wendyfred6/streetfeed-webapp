@@ -1,5 +1,6 @@
 import { COLORS, RADIUS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL } from '../design/fieldStyles.js';
+import { formatEventDate } from '../utils/eventDate.js';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 
 // Shared field primitives for the post composer, matching Figma
@@ -53,6 +54,34 @@ export function TextareaField({ label, error, style, wrapperStyle, ...props }) {
     <div style={wrapperStyle}>
       {label && <FieldLabel htmlFor={props.id}>{label}</FieldLabel>}
       <textarea style={{ ...fieldInput(error), borderRadius: RADIUS.lg, height: 'auto', minHeight: 100, padding: '16px', resize: 'none', ...style }} {...props} />
+    </div>
+  );
+}
+
+// Date/Time Field (FRE-374) — visually the same Dropdown Field pattern as
+// Situatie ("Kies" + trailing ChevronDown until a value is picked, then shows
+// the chosen value), but backed by a real native <input type="date"/"time">
+// laid invisibly on top so tapping it opens the platform's own date/time
+// picker — the native picker itself isn't being replaced, only its trigger.
+export function DateField({ type = 'date', label, value, onChange, placeholder = 'Kies', error, style, wrapperStyle, ...props }) {
+  const displayValue = value ? (type === 'date' ? formatEventDate(value) : value) : '';
+  return (
+    <div style={wrapperStyle}>
+      {label && <FieldLabel htmlFor={props.id}>{label}</FieldLabel>}
+      <div style={{ position: 'relative' }}>
+        <div style={{ ...fieldInput(error), display: 'flex', alignItems: 'center', paddingRight: 40, color: value ? COLORS.text : COLORS.textDim, pointerEvents: 'none', ...style }}>
+          {displayValue || placeholder}
+        </div>
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', margin: 0, padding: 0, border: 'none', opacity: 0, cursor: 'pointer' }}
+          {...props}
+        />
+        <CaretDownIcon size={16} color={COLORS.textDim} weight="regular"
+          style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+      </div>
     </div>
   );
 }

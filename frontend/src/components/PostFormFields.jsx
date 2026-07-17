@@ -4,7 +4,7 @@ import { t } from '../i18n/index.js';
 import HouseNumberPicker from './HouseNumberPicker.jsx';
 import AutoTextarea from './AutoTextarea.jsx';
 import AttachmentUpload from './AttachmentUpload.jsx';
-import { FieldLabel, TextField, DropdownField } from './PostFormField.jsx';
+import { FieldLabel, TextField, DateField, DropdownField } from './PostFormField.jsx';
 import { postCategoryFlags } from '../utils/postCategoryFlags.js';
 import { STRAATZAKEN_TYPES, LOSTANDFOUND_TYPES } from '../utils/categories.js';
 
@@ -62,15 +62,15 @@ export default function PostFormFields({ mode, category, subType, form, streetId
 
   const dateTimeRange = hasDateRange && (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isCreate ? 10 : 16, marginBottom: isCreate ? 14 : undefined }}>
-      <TextField type="date" label="Datum van" value={startDate} onChange={e => setStartDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
-      <TextField type="date" label="Datum tot" value={endDate} onChange={e => setEndDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
+      <DateField type="date" label="Datum van" value={startDate} onChange={e => setStartDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
+      <DateField type="date" label="Datum tot" value={endDate} onChange={e => setEndDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
     </div>
   );
 
   const eventFields = isEvenement && (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: isCreate ? 14 : undefined }}>
-      <TextField type="date" label={isCreate ? 'Datum *' : t('event_date')} value={eventDate} onChange={e => setEventDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
-      <TextField type="time" label={isCreate ? 'Tijdstip' : t('event_time')} value={eventTime} onChange={e => setEventTime(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
+      <DateField type="date" label={isCreate ? 'Datum *' : t('event_date')} value={eventDate} onChange={e => setEventDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
+      <DateField type="time" label={isCreate ? 'Tijdstip' : t('event_time')} value={eventTime} onChange={e => setEventTime(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
     </div>
   );
 
