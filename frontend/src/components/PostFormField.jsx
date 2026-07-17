@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { COLORS, RADIUS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL } from '../design/fieldStyles.js';
+import { formatEventDate } from '../utils/eventDate.js';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 
 // Shared field primitives for the post composer, matching Figma
@@ -53,6 +55,56 @@ export function TextareaField({ label, error, style, wrapperStyle, ...props }) {
     <div style={wrapperStyle}>
       {label && <FieldLabel htmlFor={props.id}>{label}</FieldLabel>}
       <textarea style={{ ...fieldInput(error), borderRadius: RADIUS.lg, height: 'auto', minHeight: 100, padding: '16px', resize: 'none', ...style }} {...props} />
+    </div>
+  );
+}
+
+// Date/Time Field (FRE-374) — visually the same Dropdown Field pattern as
+// Situatie ("Kies" + trailing ChevronDown until a value is picked, then shows
+// the chosen value), but backed by a real native <input type="date"/"time">
+// laid invisibly on top so tapping it opens the platform's own date/time
+// picker — the native picker itself isn't being replaced, only its trigger.
+//
+// The invisible input sitting on top isn't a reliable trigger by itself
+// (confirmed by Wendy's smoke test — visually correct, but tapping did
+// nothing): relying on the browser to hit-test through to a 0-opacity
+// absolutely-positioned control is exactly the kind of thing that silently
+// fails depending on layout/engine quirks. openPicker() is the actual,
+// explicit trigger — imperatively opens the native picker (showPicker(),
+// falling back to focus() where it isn't supported); the overlay staying
+// clickable too is redundant-but-harmless belt-and-suspenders, not the
+// mechanism being relied on.
+export function DateField({ type = 'date', label, value, onChange, placeholder = 'Kies', error, style, wrapperStyle, ...props }) {
+  const inputRef = useRef(null);
+  const displayValue = value ? (type === 'date' ? formatEventDate(value) : value) : '';
+
+  const openPicker = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    if (typeof el.showPicker === 'function') {
+      try { el.showPicker(); return; } catch { /* fall through to focus() below */ }
+    }
+    el.focus();
+  };
+
+  return (
+    <div style={wrapperStyle}>
+      {label && <FieldLabel htmlFor={props.id}>{label}</FieldLabel>}
+      <div style={{ position: 'relative', cursor: 'pointer' }} onClick={openPicker}>
+        <div style={{ ...fieldInput(error), display: 'flex', alignItems: 'center', paddingRight: 40, color: value ? COLORS.text : COLORS.textDim, pointerEvents: 'none', ...style }}>
+          {displayValue || placeholder}
+        </div>
+        <input
+          ref={inputRef}
+          type={type}
+          value={value}
+          onChange={onChange}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', margin: 0, padding: 0, border: 'none', opacity: 0, cursor: 'pointer' }}
+          {...props}
+        />
+        <CaretDownIcon size={16} color={COLORS.textDim} weight="regular"
+          style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+      </div>
     </div>
   );
 }

@@ -122,6 +122,49 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
     expect(screen.getByText('Datum *')).toBeInTheDocument();
   });
 
+  it('evenement: date/time fields show "Kies" until picked, then the chosen value, via the real native input underneath (FRE-374)', async () => {
+    const onSubmit = vi.fn();
+    render(
+      <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={onSubmit}
+        streetId={1} user={USER} initialCat="evenement" initialType={null} />
+    );
+
+    expect(screen.getAllByText('Kies').length).toBe(2);
+
+    fireEvent.change(screen.getByPlaceholderText('Bijv. Straatborrel Kerst'), { target: { value: 'Straatborrel' } });
+    fireEvent.change(document.querySelector('input[type="date"]'), { target: { value: '2026-07-20' } });
+    fireEvent.change(document.querySelector('input[type="time"]'), { target: { value: '18:00' } });
+
+    expect(screen.getByText('20 jul 2026')).toBeInTheDocument();
+    expect(screen.getByText('18:00')).toBeInTheDocument();
+    expect(screen.queryAllByText('Kies').length).toBe(0);
+
+    fireEvent.click(screen.getByText('Plaatsen'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      category: 'evenement',
+      eventDate: '2026-07-20',
+      eventTime: '18:00',
+    })));
+  });
+
+  it('DateField: clicking the display actively opens/focuses the underlying native input, not just passive tap-through (FRE-374 interaction fix)', () => {
+    render(
+      <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={vi.fn()}
+        streetId={1} user={USER} initialCat="evenement" initialType={null} />
+    );
+
+    const dateInput = document.querySelector('input[type="date"]');
+    const timeInput = document.querySelector('input[type="time"]');
+    expect(document.activeElement).not.toBe(dateInput);
+
+    fireEvent.click(screen.getAllByText('Kies')[0]);
+    expect(document.activeElement).toBe(dateInput);
+
+    fireEvent.click(screen.getAllByText('Kies')[1]);
+    expect(document.activeElement).toBe(timeInput);
+  });
+
   it('bezorging + pakket_gezocht: hides the title input, shows the "own house number" helper text, and can submit immediately', async () => {
     const onSubmit = vi.fn();
     render(
