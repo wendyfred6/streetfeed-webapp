@@ -26,8 +26,19 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     photoPreview, setPhotoPreview, setPhotoKey, uploading, setUploading,
   } = form;
 
-  const { isBezorging, isStraatzaken, isMelding, isEvenement, isAlgemeen, isLostAndFound, isGezocht, isBezorgd, hasDateRange, hasLink } =
+  const { isBezorging, isStraatzaken, isMelding, isEvenement, isAlgemeen, isLostAndFound, isGezocht, isBezorgd, hasDateRange, hasLink, hasAttachment } =
     postCategoryFlags(category, subType);
+
+  // Per-category Attachment Upload helper copy (Figma New Post Sheet
+  // mockups) — undefined for categories without confirmed copy yet;
+  // AttachmentUpload renders nothing extra when omitted.
+  const attachmentHelperText = isBezorging
+    ? 'Een foto helpt de ontvanger te bevestigen dat het om zijn/haar pakket gaat.'
+    : isLostAndFound
+      ? 'Deel een foto van het verloren (indien aanwezig) of gevonden voorwerp.'
+      : isEvenement
+        ? 'Upload eventueel een foto van de uitnodiging.'
+        : undefined;
 
   const autoTitle = isGezocht
     ? (user?.house_number ? `Pakket gezocht voor nr. ${user.house_number}` : 'Pakket gezocht')
@@ -197,14 +208,15 @@ export default function PostFormFields({ mode, category, subType, form, streetId
       )}
       {isLostAndFound && (
         <>
-          {titleField}
           {situatieField}
           {pickupLocationField}
+          {titleField}
           {bodyField}
         </>
       )}
-      {!isStraatzaken && (
+      {hasAttachment && (
         <AttachmentUpload photoPreview={photoPreview} uploading={uploading} onUploading={setUploading} onError={onError}
+          helperText={attachmentHelperText}
           onPhotoUploaded={(preview, key) => { setPhotoPreview(preview); setPhotoKey(key); }} />
       )}
     </>

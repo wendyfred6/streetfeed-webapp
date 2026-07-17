@@ -4,7 +4,13 @@ import { api } from '../api/client.js';
 import { t } from '../i18n/index.js';
 import ActionMenu from './ActionMenu.jsx';
 
-export default function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, documentName, uploading, onUploading, onError }) {
+// helperText is optional and category-specific (e.g. Bezorging/Lost & Found/
+// Evenement each have their own Figma copy) — omit it for categories that
+// don't need it yet. The current button-with-no-adjacent-text layout is
+// still the pre-Pattern-Library one (FRE-373 replaces it with Figma's
+// circular "+" button + inline helper text); this just wires the copy
+// through now so FRE-373 doesn't need to invent that plumbing later.
+export default function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, photoPreview, documentName, uploading, onUploading, onError, helperText }) {
   const [showMenu, setShowMenu] = useState(false);
   const cameraRef = useRef(null);
   const photoRef = useRef(null);
@@ -32,6 +38,7 @@ export default function AttachmentUpload({ onPhotoUploaded, onDocumentChosen, ph
 
   return (
     <>
+      {helperText && <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>{helperText}</div>}
       <button type="button" onClick={() => setShowMenu(true)}
         style={{ width: '100%', background: COLORS.bg, border: `1px solid ${hasAttachment ? COLORS.accent : COLORS.border}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, color: hasAttachment ? COLORS.accent : COLORS.textMuted, cursor: 'pointer', marginBottom: 4 }}>
         {uploading ? t('attachment_uploading') : hasAttachment ? (documentName || t('attachment_photo_chosen')) : t('attachment_add')}

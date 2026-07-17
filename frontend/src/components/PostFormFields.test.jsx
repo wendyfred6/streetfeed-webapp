@@ -45,8 +45,12 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
         streetId={1} user={USER} initialCat="lostandfound" initialType={null} />
     );
 
-    expect(screen.getByText('Wat ben je verloren of heb je gevonden? *')).toBeInTheDocument();
+    const situatieLabel = screen.getByText('Situatie *');
+    const titleLabel = screen.getByText('Wat ben je verloren of heb je gevonden? *');
     expect(screen.queryByText('Van nr. *')).not.toBeInTheDocument();
+    // Figma's Lost & Found mockup shows Situatie above the object-description
+    // field, not below it (this file previously had it backwards).
+    expect(situatieLabel.compareDocumentPosition(titleLabel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     fireEvent.change(screen.getByPlaceholderText('Bijv. Verloren of gevonden voorwerp'), { target: { value: 'Sleutelbos kwijt' } });
 
@@ -121,6 +125,10 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
     );
     expect(screen.getByText('Voor huisnummer *')).toBeInTheDocument();
     expect(screen.getByText('Voor welk huisnummer is het pakket bedoeld?')).toBeInTheDocument();
+    // Attachment is enabled for Pakket aangenomen, with its own helper copy —
+    // unlike Pakket gezocht below, which has nothing to photograph.
+    expect(document.querySelectorAll('input[type="file"]').length).toBeGreaterThan(0);
+    expect(screen.getByText('Een foto helpt de ontvanger te bevestigen dat het om zijn/haar pakket gaat.')).toBeInTheDocument();
   });
 
   it('lostandfound / evenement: use the tailored title-field labels instead of a generic fallback (FRE-379)', () => {
@@ -198,6 +206,8 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
 
     expect(screen.queryByText('Titel *')).not.toBeInTheDocument();
     expect(screen.getByText(/Je eigen huisnummer staat al bij je bericht/)).toBeInTheDocument();
+    // Nothing to photograph when you're searching for a missing package.
+    expect(document.querySelectorAll('input[type="file"]').length).toBe(0);
 
     fireEvent.click(screen.getByText('Plaatsen'));
 

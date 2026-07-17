@@ -22,5 +22,12 @@ export function postCategoryFlags(category, subType) {
   const hasDateRange = ['straatzaken', 'works', 'blockage', 'container'].includes(category);
   const hasLink      = ['works', 'blockage', 'container', 'waste'].includes(category);
 
-  return { isBezorging, isStraatzaken, isMelding, isEvenement, isAlgemeen, isLostAndFound, isGezocht, isBezorgd, hasDateRange, hasLink };
+  // Attachment Upload availability is category/sub-type-driven, not a single
+  // hardcoded exclusion (confirmed against Figma's New Post Sheet mockups) —
+  // Straatzaken's is hidden entirely, and Pakket gezocht's (searching for a
+  // missing package) has nothing to photograph. Extend this boolean, not a
+  // new `!isX &&` chain at the render site, as more exclusions turn up.
+  const hasAttachment = !(isStraatzaken || (isBezorging && isGezocht));
+
+  return { isBezorging, isStraatzaken, isMelding, isEvenement, isAlgemeen, isLostAndFound, isGezocht, isBezorgd, hasDateRange, hasLink, hasAttachment };
 }
