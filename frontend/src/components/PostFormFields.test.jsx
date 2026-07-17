@@ -95,12 +95,12 @@ describe('EditPostSheet (FRE-316 extraction + FRE-311-style sub_type drift fix)'
     expect(screen.queryByText('Van nr.')).not.toBeInTheDocument();
   });
 
-  it('straatzaken: shows the van/tot house row, date range, and link field', () => {
+  it('straatzaken: shows the van/tot house row and date range, no link field', () => {
     const post = { id: 2, category: 'straatzaken', title: 'Werkzaamheden', body: 'Tekst', link: '' };
     render(<EditPostSheet post={post} onClose={vi.fn()} onSave={vi.fn()} streetId={1} />);
     expect(screen.getByText('Van nr.')).toBeInTheDocument();
     expect(screen.getByText('Datum van')).toBeInTheDocument();
-    expect(screen.getByText('Externe link')).toBeInTheDocument();
+    expect(screen.queryByText('Externe link')).not.toBeInTheDocument();
   });
 });
 
