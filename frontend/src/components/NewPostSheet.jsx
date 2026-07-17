@@ -10,7 +10,7 @@ import { ArrowCircleLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowCircleL
 
 export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user, initialCat = 'bezorging', initialType = null, onError }) {
   const form = usePostFormState();
-  const { title, body, startHouse, endHouse, startDate, endDate, startTime, endTime, link, eventDate, eventTime, photoKey, uploading } = form;
+  const { title, body, startHouse, endHouse, startDate, endDate, startTime, endTime, link, situatie, eventDate, eventTime, photoKey, uploading } = form;
   const [closing, setClosing] = useState(false);
   const close = () => { setClosing(true); setTimeout(onClose, 220); };
   const back  = () => { setClosing(true); setTimeout(onBack,  220); };
@@ -27,13 +27,15 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
       ? !!(title.trim() && body.trim())
       : isEvenement
         ? !!(title.trim() && eventDate)
-        : !!title.trim());
+        : isStraatzaken
+          ? !!(title.trim() && situatie)
+          : !!title.trim());
 
   const handleSubmit = () => {
     if (!canSubmit) return;
     onSubmit({
       category: initialCat,
-      subType: initialType || undefined,
+      subType: isStraatzaken ? (situatie || undefined) : (initialType || undefined),
       title: isBezorging ? autoTitle : title.trim(),
       body: body.trim() || undefined,
       startHouse: startHouse.trim() || undefined,

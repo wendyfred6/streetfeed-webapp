@@ -4,8 +4,9 @@ import { t } from '../i18n/index.js';
 import HouseNumberPicker from './HouseNumberPicker.jsx';
 import AutoTextarea from './AutoTextarea.jsx';
 import AttachmentUpload from './AttachmentUpload.jsx';
-import { FieldLabel, TextField } from './PostFormField.jsx';
+import { FieldLabel, TextField, DropdownField } from './PostFormField.jsx';
 import { postCategoryFlags } from '../utils/postCategoryFlags.js';
+import { STRAATZAKEN_TYPES } from '../utils/categories.js';
 
 // Shared field-rendering schema for NewPostSheet (mode="create") and
 // EditPostSheet (mode="edit") — previously each component duplicated almost
@@ -22,7 +23,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     startHouse, setStartHouse, endHouse, setEndHouse,
     startDate, setStartDate, endDate, setEndDate,
     startTime, setStartTime, endTime, setEndTime,
-    link, setLink, eventDate, setEventDate, eventTime, setEventTime,
+    link, setLink, situatie, setSituatie, eventDate, setEventDate, eventTime, setEventTime,
     photoPreview, setPhotoPreview, setPhotoKey, uploading, setUploading,
   } = form;
 
@@ -84,6 +85,18 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     </div>
   );
 
+  const situatieField = isStraatzaken && (
+    <DropdownField
+      label={isCreate ? 'Situatie *' : 'Situatie'}
+      placeholder="Kies een type"
+      value={situatie}
+      onChange={e => setSituatie(e.target.value)}
+      wrapperStyle={{ marginBottom: isCreate ? 10 : 14 }}
+    >
+      {STRAATZAKEN_TYPES.map(ty => <option key={ty.key} value={ty.key}>{ty.label}</option>)}
+    </DropdownField>
+  );
+
   const linkField = hasLink && (
     <TextField type={isCreate ? 'url' : undefined} label={isCreate ? 'Link' : 'Externe link'} placeholder={isCreate ? 'https://…' : 'https://...'} value={link} onChange={e => setLink(e.target.value)} wrapperStyle={{ marginBottom: 10 }} />
   );
@@ -119,6 +132,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
         {titleField}
         {bodyField}
         {isBezorgd && singleHouseField}
+        {situatieField}
         {houseRow}
         {dateTimeRange}
         {eventFields}
@@ -139,6 +153,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
       {isStraatzaken && (
         <>
           {titleField}
+          {situatieField}
           {houseRow}
           {dateTimeRange}
           {linkField}

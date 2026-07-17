@@ -4,6 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import NewPostSheet from './NewPostSheet.jsx';
 import EditPostSheet from './EditPostSheet.jsx';
 import CategoryPicker from './CategoryPicker.jsx';
+import { CATEGORY_TREE } from '../utils/categories.js';
 
 // HouseNumberPicker (used by houseRow/singleHouseField) fetches addresses via api.
 vi.mock('../api/client.js', () => ({
@@ -55,6 +56,32 @@ describe('NewPostSheet (FRE-316 extraction)', () => {
       category: 'lostandfound',
       subType: 'verloren',
       title: 'Sleutelbos kwijt',
+    })));
+  });
+
+  it('straatzaken: requires Situatie before submitting, and submits the chosen type as subType (FRE-367)', async () => {
+    const onSubmit = vi.fn();
+    render(
+      <NewPostSheet onClose={vi.fn()} onBack={vi.fn()} onSubmit={onSubmit}
+        streetId={1} user={USER} initialCat="straatzaken" initialType={null} />
+    );
+
+    expect(screen.getByText('Situatie *')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Bijv. Vervanging gasleiding'), { target: { value: 'Container voor de deur' } });
+
+    fireEvent.click(screen.getByText('Plaatsen'));
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    const situatieSelect = document.querySelectorAll('select')[0];
+    fireEvent.change(situatieSelect, { target: { value: 'container' } });
+
+    fireEvent.click(screen.getByText('Plaatsen'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      category: 'straatzaken',
+      subType: 'container',
+      title: 'Container voor de deur',
     })));
   });
 
@@ -116,5 +143,15 @@ describe('CategoryPicker (FRE-316 extraction)', () => {
     fireEvent.click(screen.getByText('Pakket gezocht'));
 
     await waitFor(() => expect(onSelect).toHaveBeenCalledWith('bezorging', 'pakket_gezocht'), { timeout: 500 });
+  });
+
+  it('straatzaken is now a flat leaf, not a drill-down tree (FRE-367)', async () => {
+    expect(CATEGORY_TREE.find(c => c.key === 'straatzaken').types).toBeNull();
+
+    const onSelect = vi.fn();
+    render(<CategoryPicker onClose={vi.fn()} onSelect={onSelect} />);
+    fireEvent.click(screen.getByText('Straatzaken'));
+
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith('straatzaken', null), { timeout: 500 });
   });
 });

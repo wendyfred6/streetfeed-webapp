@@ -12,6 +12,7 @@ export function usePostFormState(initial = {}) {
   const [startTime, setStartTime] = useState(initial.startTime ?? '');
   const [endTime, setEndTime] = useState(initial.endTime ?? '');
   const [link, setLink] = useState(initial.link ?? '');
+  const [situatie, setSituatie] = useState(initial.situatie ?? '');
   const [eventDate, setEventDate] = useState(initial.eventDate ?? '');
   const [eventTime, setEventTime] = useState(initial.eventTime ?? '');
   const [photoKey, setPhotoKey] = useState(initial.photoKey ?? null);
@@ -28,6 +29,7 @@ export function usePostFormState(initial = {}) {
     startTime, setStartTime,
     endTime, setEndTime,
     link, setLink,
+    situatie, setSituatie,
     eventDate, setEventDate,
     eventTime, setEventTime,
     photoKey, setPhotoKey,
