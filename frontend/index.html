@@ -6,7 +6,13 @@
   <meta name="theme-color" content="#FFFFFF" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <!-- "default"/"black" reserve the status bar as its own opaque, OS-drawn
+       strip — no fixed element's background can ever paint behind it there,
+       regardless of viewport-fit=cover or env(safe-area-inset-top) math.
+       "black-translucent" is what actually lets the standalone PWA's own
+       background extend under the status bar/Dynamic Island (2026-07-20,
+       root cause of the header still showing a gap there). -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Streetfeed" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon-192.png" />

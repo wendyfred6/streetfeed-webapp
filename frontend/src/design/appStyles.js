@@ -5,9 +5,29 @@
 import { COLORS, RADIUS, ALPHA, GLASS } from './tokens.js';
 import { CATEGORIES } from '../utils/categories.js';
 
+// Header's own content row (logo + the 36px icon buttons) is 16px of top/
+// bottom padding around a 36px-tall row — kept as named numbers, not just
+// inlined into the calc() strings below, so `header` and `headerSpacer`
+// can't drift apart if this ever changes.
+const HEADER_PAD_Y = 16;
+const HEADER_CONTENT_HEIGHT = 36;
+const HEADER_HEIGHT = `calc(${HEADER_PAD_Y * 2 + HEADER_CONTENT_HEIGHT}px + env(safe-area-inset-top))`;
+
 export const s = {
   app: { fontFamily: "'Inter','Helvetica Neue',sans-serif", background: 'transparent', color: COLORS.text, minHeight: '100vh', maxWidth: 390, margin: '0 auto' },
-  header: { ...GLASS.header, borderBottom: '1px solid rgba(255,255,255,0.3)', padding: 'calc(16px + env(safe-area-inset-top)) 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 },
+  // Fixed (not sticky) so the frosted background genuinely extends behind
+  // the iOS status bar/Dynamic Island (viewport-fit=cover in index.html
+  // already lets the page draw there) and so feed content can scroll
+  // underneath it, dimly visible through the blur, instead of stopping dead
+  // at the header's edge the way an in-flow sticky header would (2026-07-20,
+  // refined per Figma/UX request — content must start below the header on
+  // load, but may pass behind it once scrolled). `headerSpacer` below is the
+  // matching reserved space for the content that follows.
+  header: { ...GLASS.header, borderBottom: '1px solid rgba(255,255,255,0.3)', padding: `calc(${HEADER_PAD_Y}px + env(safe-area-inset-top)) 20px ${HEADER_PAD_Y}px`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 390, zIndex: 50 },
+  // Unconditional spacer rendered once, right after the header, ahead of
+  // every tab's content — since the header is now `fixed` (out of flow),
+  // this is what keeps content from appearing underneath/above it on load.
+  headerSpacer: { height: HEADER_HEIGHT, flexShrink: 0 },
   logo: { fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px' },
   accent: { color: COLORS.accent },
   headerActions: { display: 'flex', alignItems: 'center', gap: 4 },
@@ -43,8 +63,12 @@ export const s = {
   label: { fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: COLORS.textDim, display: 'block', marginBottom: 6 },
   catGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 },
   catOption: (selected, cat) => ({ background: selected ? `${CATEGORIES[cat]?.color}18` : 'rgba(255,255,255,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: `1px solid ${selected ? CATEGORIES[cat]?.color : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: selected ? COLORS.text : COLORS.textMuted, fontWeight: selected ? 600 : 400, whiteSpace: 'nowrap' }),
-  submitBtn: { width: '100%', background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, padding: '13px 24px', fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 8 },
-  cancelBtn: { width: '100%', background: 'rgba(255,255,255,0.60)', color: COLORS.text, border: `2px solid ${COLORS.borderPrimary}`, borderRadius: RADIUS.pill, padding: '11px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
+  // Primary/Secondary Action — aligned to Figma Pattern Library v0.1's
+  // Actions section (node 241:25340, FRE-380): height 48, weight 500,
+  // font-size 16; Secondary is a 1px border on a plain background, not the
+  // frosted-glass look these predate.
+  submitBtn: { width: '100%', height: 48, background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, padding: '4px 16px', fontSize: 16, fontWeight: 500, cursor: 'pointer', marginTop: 8 },
+  cancelBtn: { width: '100%', height: 48, background: COLORS.background, color: COLORS.text, border: `1px solid ${COLORS.borderPrimary}`, borderRadius: RADIUS.pill, padding: '4px 16px', fontSize: 16, fontWeight: 500, cursor: 'pointer', marginTop: 8 },
   badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}18`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 11, fontWeight: 700, padding: '2px 7px' }),
   infoBox: { ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', marginBottom: 10 },
   adminCard: { ...GLASS.card, borderRadius: RADIUS.lg, padding: '14px 16px', marginBottom: 8 },

@@ -12,8 +12,9 @@ describe('catLabel', () => {
 });
 
 describe('typeLabel', () => {
-  it('labels sub-types straight from the CategoryPicker tree', () => {
+  it('labels bezorging Situatie types (chosen in-post, not via CategoryPicker drill-down)', () => {
     expect(typeLabel('bezorging', 'pakket_gezocht')).toBe('Pakket gezocht');
+    expect(typeLabel('bezorging', 'pakket_aangenomen')).toBe('Pakket aangenomen');
   });
 
   it('labels lostandfound sub-types (previously missing from TYPE_META entirely)', () => {

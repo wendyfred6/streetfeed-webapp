@@ -15,19 +15,16 @@ import CategoryPicker from './components/CategoryPicker.jsx';
 import Switch from './components/Switch.jsx';
 import NewPostSheet from './components/NewPostSheet.jsx';
 import EditPostSheet from './components/EditPostSheet.jsx';
+import ConfirmationSheet from './components/ConfirmationSheet.jsx';
 import { CATEGORIES, catLabel } from './utils/categories.js';
 import { timeAgo } from './utils/time.js';
 import { formatEventDate, downloadICS, googleCalendarUrl } from './utils/eventDate.js';
 
 // Phosphor Icons — subpath imports per icoon i.p.v. de barrel, voor kleinere bundle
 import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
-import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
-import { BellIcon } from '@phosphor-icons/react/dist/csr/Bell';
-import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
-import { CraneTowerIcon } from '@phosphor-icons/react/dist/csr/CraneTower';
-import { XIcon } from '@phosphor-icons/react/dist/csr/X';
-import { ArrowLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowLeft';
 import { TrophyIcon } from '@phosphor-icons/react/dist/csr/Trophy';
+// Custom Streetfeed Icon System icons (see src/icons/index.jsx)
+import { PersonIcon, BellIcon, PlusIcon, CrossIcon } from './icons/index.jsx';
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
 
@@ -368,7 +365,7 @@ function ProfileView({ user, onLogout, canModerate, streetId, streetName, member
               <div style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, fontSize: 12, color: COLORS.textMuted, marginBottom: 8, lineHeight: 1.5 }}>
                 <span>{subscribeMsg}</span>
                 <button onClick={() => setSubscribeMsg('')} style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', color: COLORS.textDim, flexShrink: 0 }} aria-label={t('close')}>
-                  <XIcon size={14} weight="bold" />
+                  <CrossIcon size={14} />
                 </button>
               </div>
             )}
@@ -748,7 +745,7 @@ export default function App() {
             aria-label="Notificaties"
             onClick={() => setShowNotifInbox(true)}
           >
-            <BellIcon size={20} weight={unreadCount > 0 ? 'fill' : 'regular'} />
+            <BellIcon size={20} filled={unreadCount > 0} />
             {unreadCount > 0 && (
               <span style={{ position: 'absolute', top: 2, right: 2, width: 9, height: 9, borderRadius: '50%', background: COLORS.interactionNotification, border: `1.5px solid ${COLORS.surface}` }} />
             )}
@@ -759,10 +756,11 @@ export default function App() {
             aria-label="Profiel"
             onClick={() => setTab('profile')}
           >
-            <UserIcon size={20} weight="regular" />
+            <PersonIcon size={20} />
           </button>
         </div>
       </div>
+      <div style={s.headerSpacer} />
 
       {tab === 'feed' && (
         <div style={{ ...s.feed, filter: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'blur(4px)' : 'none', transition: 'filter 0.2s', pointerEvents: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'none' : 'auto' }}>
@@ -820,7 +818,7 @@ export default function App() {
         </div>
 
         <button style={s.postCta(tab === 'feed')} onClick={() => setShowCatPicker(true)} aria-label="Bericht plaatsen" title="Bericht plaatsen" tabIndex={tab === 'feed' ? 0 : -1}>
-          <PlusIcon size={22} weight="bold" style={{ flexShrink: 0 }} />
+          <PlusIcon size={22} style={{ flexShrink: 0 }} />
         </button>
       </div>
 
@@ -855,24 +853,17 @@ export default function App() {
         <JoinDetailSheet post={joinDetail} onClose={() => setJoinDetail(null)} onJoin={handleJoin} />
       )}
       {editPost && (
-        <EditPostSheet post={editPost} onClose={() => setEditPost(null)} onSave={handleEdit} streetId={STREET_ID} />
+        <EditPostSheet post={editPost} onClose={() => setEditPost(null)} onSave={handleEdit} streetId={STREET_ID} onError={showError} user={user} />
       )}
       {deleteConfirm && (
-        <div style={s.overlay} onClick={() => setDeleteConfirm(null)}>
-          <div style={{ ...s.sheet, width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
-            <div style={s.sheetHandle} />
-            <div style={s.sheetTitle}>Bericht verwijderen?</div>
-            <p style={{ fontSize: 15, color: COLORS.textDim, lineHeight: 1.5, marginBottom: 20 }}>
-              Weet je zeker dat je dit bericht wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
-            </p>
-            <button style={{ ...s.submitBtn, background: COLORS.error }} onClick={handleDeleteConfirmed}>
-              Bericht verwijderen
-            </button>
-            <button style={s.cancelBtn} onClick={() => setDeleteConfirm(null)}>
-              Annuleren
-            </button>
-          </div>
-        </div>
+        <ConfirmationSheet
+          heading={t('delete_post_heading')}
+          body={t('delete_post_body')}
+          primaryLabel={t('delete_post_confirm')}
+          onPrimary={handleDeleteConfirmed}
+          secondaryLabel={t('cancel')}
+          onSecondary={() => setDeleteConfirm(null)}
+        />
       )}
     </div>
   );

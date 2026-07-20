@@ -4,7 +4,7 @@ import { COLORS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL } from '../design/fieldStyles.js';
 import { api } from '../api/client.js';
 import { t } from '../i18n/index.js';
-import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
+import { ChevronDownIcon } from '../icons/index.jsx';
 
 const selectStyle = {
   ...FIELD_INPUT,
@@ -35,7 +35,7 @@ function groupAddresses(flat) {
   return map;
 }
 
-export default function HouseNumberPicker({ streetId, value, onChange, showSuffix = true, showLabels = false, style = {} }) {
+export default function HouseNumberPicker({ streetId, value, onChange, showSuffix = true, showLabels = false, numberLabel, suffixLabel, style = {} }) {
   const numId = useId();
   const sufId = useId();
   const [num, setNum] = useState('');
@@ -79,7 +79,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
   return (
     <div style={{ display: 'flex', gap: 8, ...style }}>
       <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
-        {showLabels && <label htmlFor={numId} style={FIELD_LABEL}>{t('house_number_label')}</label>}
+        {showLabels && <label htmlFor={numId} style={FIELD_LABEL}>{numberLabel ?? t('house_number_label')}</label>}
         <div style={{ position: 'relative' }}>
           <select
             id={numId}
@@ -92,14 +92,14 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
             <option value="">{loading ? t('house_number_loading') : t('house_number_choose')}</option>
             {numbers.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
-          <CaretDownIcon size={12} color={COLORS.textMuted} weight="regular"
+          <ChevronDownIcon size={12} color={COLORS.textMuted}
             style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
         </div>
       </div>
 
       {showSuffix && suffixes.length > 1 && (
         <div style={{ flex: 1, ...(showLabels ? { display: 'flex', flexDirection: 'column', gap: 8 } : { position: 'relative' }) }}>
-          {showLabels && <label htmlFor={sufId} style={FIELD_LABEL}>{t('house_suffix_label')}</label>}
+          {showLabels && <label htmlFor={sufId} style={FIELD_LABEL}>{suffixLabel ?? t('house_suffix_label')}</label>}
           <div style={{ position: 'relative' }}>
             <select
               id={sufId}
@@ -113,7 +113,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
                 <option key={s} value={s}>{s === 'hs' ? t('house_number_ground_floor') : s}</option>
               ))}
             </select>
-            <CaretDownIcon size={12} color={COLORS.textMuted} weight="regular"
+            <ChevronDownIcon size={12} color={COLORS.textMuted}
               style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { COLORS } from '../design/tokens.js';
 import { t } from '../i18n/index.js';
-import { XIcon } from '@phosphor-icons/react/dist/csr/X';
+import { CrossIcon } from '../icons/index.jsx';
 
 export default function Toast({ toast, onDismiss }) {
   if (!toast) return null;
@@ -26,7 +26,7 @@ export default function Toast({ toast, onDismiss }) {
           aria-label={t('close')}
           style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', padding: 6, cursor: 'pointer', color: COLORS.textMuted, display: 'flex' }}
         >
-          <XIcon size={16} weight="bold" />
+          <CrossIcon size={16} />
         </button>
       )}
     </div>
