@@ -14,7 +14,6 @@ export default function LegalSheet({ titleKey, bodyKey, onClose }) {
 
   return (
     <SheetOverlay closing={closing} onOverlayClick={close}>
-      <div style={s.sheetHandle} />
       <div style={s.sheetTitle}>{t(titleKey)}</div>
       <div style={{ ...s.adminCard, fontSize: 13, color: COLORS.textMuted, lineHeight: 1.7, maxHeight: '50vh', overflowY: 'auto' }}>
         {t(bodyKey).map(item => <div key={item} style={{ padding: '3px 0' }}>{item}</div>)}

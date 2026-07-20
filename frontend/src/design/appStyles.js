@@ -53,8 +53,13 @@ export const s = {
     pointerEvents: visible ? 'auto' : 'none',
   }),
   overlay: { position: 'fixed', inset: 0, background: 'rgba(26,10,18,0.50)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' },
+  // No grabber: it was purely decorative everywhere it appeared (no swipe-
+  // to-dismiss gesture ever wired up), which misrepresented itself as a
+  // draggable affordance it wasn't — every sheet already has a real Cancel
+  // button plus tap-outside-to-dismiss via SheetOverlay, so removed rather
+  // than built out into an actual gesture (2026-07-20 design-principle
+  // review: controls should communicate affordances truthfully).
   sheet: { ...GLASS.sheet, borderRadius: `${RADIUS.xl}px ${RADIUS.xl}px 0 0`, width: '100%', maxWidth: 480, padding: '20px 20px 40px', maxHeight: '90vh', overflowY: 'auto', touchAction: 'pan-y', overscrollBehaviorX: 'none' },
-  sheetHandle: { width: 36, height: 4, background: 'rgba(0,0,0,0.15)', borderRadius: 2, margin: '0 auto 20px' },
   sheetTitle: { fontSize: 18, fontWeight: 800, marginBottom: 20, letterSpacing: '-0.3px' },
   sheetBackRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 },
   sheetBackBtn: { background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: RADIUS.pill, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: COLORS.text, flexShrink: 0 },

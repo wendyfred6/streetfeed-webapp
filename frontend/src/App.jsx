@@ -43,7 +43,6 @@ function EventDetailSheet({ post, onClose, onRsvp }) {
   const maybe = post.rsvp?.maybe || [];
   return (
     <SheetOverlay closing={closing} onOverlayClick={close}>
-        <div style={s.sheetHandle} />
         <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
           <CatBadge cat={post.category} />
           {post.pinned && <span style={s.pinnedBadge}>Pinned</span>}
@@ -108,7 +107,6 @@ function JoinDetailSheet({ post, onClose, onJoin }) {
   const joiners = post.joiners || [];
   return (
     <SheetOverlay closing={closing} onOverlayClick={close}>
-        <div style={s.sheetHandle} />
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>{post.title}</div>
         <div style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 16 }}>
           {joiners.length} {joiners.length === 1 ? t('join_count_one') : t('join_count_many')}
@@ -247,7 +245,6 @@ function NotificationInboxSheet({ onClose, onOpenPost, onError }) {
 
   return (
     <SheetOverlay closing={closing} onOverlayClick={close}>
-      <div style={s.sheetHandle} />
       <div style={s.sheetTitle}>{t('notifications')}</div>
       {items === null ? (
         <div style={s.emptyState}>{t('loading')}</div>
