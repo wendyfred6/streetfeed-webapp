@@ -1,19 +1,10 @@
 import { getLang } from '../i18n/index.js';
 
 import { PackageIcon } from '@phosphor-icons/react/dist/csr/Package';
-import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
 import { TrafficConeIcon } from '@phosphor-icons/react/dist/csr/TrafficCone';
-import { WarningIcon } from '@phosphor-icons/react/dist/csr/Warning';
-import { MaskHappyIcon } from '@phosphor-icons/react/dist/csr/MaskHappy';
-import { DropIcon } from '@phosphor-icons/react/dist/csr/Drop';
-import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
 import { BinocularsIcon } from '@phosphor-icons/react/dist/csr/Binoculars';
 import { CalendarPlusIcon } from '@phosphor-icons/react/dist/csr/CalendarPlus';
 import { ChatsCircleIcon } from '@phosphor-icons/react/dist/csr/ChatsCircle';
-import { QuestionIcon } from '@phosphor-icons/react/dist/csr/Question';
-import { ArmchairIcon } from '@phosphor-icons/react/dist/csr/Armchair';
-import { GiftIcon } from '@phosphor-icons/react/dist/csr/Gift';
-import { ShieldStarIcon } from '@phosphor-icons/react/dist/csr/ShieldStar';
 
 export const CATEGORIES = {
   bezorging:    { label: 'Bezorging',    labelEn: 'Package',       color: '#4488FF' },
@@ -49,40 +40,37 @@ export function catLabel(key) {
 // Previously this drifted across three separate maps (PICKER_DATA,
 // TYPE_META, and inline per-category maps recreated inside PostCard on
 // every render) — see FRE-311.
+// Melding is intentionally absent here — not part of Pilot v1 (Category
+// Picker List alignment, 2026-07-18). Its category/flags/rendering logic
+// elsewhere is untouched (existing Melding posts still render correctly),
+// it's just no longer a selectable option in this picker.
 export const CATEGORY_TREE = [
   {
-    key: 'bezorging', label: 'Bezorging', sub: 'Pakket aangenomen of pakket gezocht', icon: PackageIcon,
-    types: [
-      { key: 'pakket_aangenomen', label: 'Pakket aangenomen', sub: 'Pakket ontvangen voor een buur',    icon: PackageIcon },
-      { key: 'pakket_gezocht',    label: 'Pakket gezocht',    sub: 'Op zoek naar een vermist pakket',   icon: MagnifyingGlassIcon },
-    ],
-  },
-  {
-    key: 'straatzaken', label: 'Straatzaken', sub: 'Container, steiger, kraan of andere tijdelijke hinder', icon: TrafficConeIcon,
+    key: 'bezorging', label: 'Bezorging', sub: 'Pakketten ontvangen of hulp gevraagd bij bezorging', icon: PackageIcon,
     types: null,
   },
   {
-    key: 'melding', label: 'Melding', sub: 'Schade, overlast of iets verdachts', icon: WarningIcon,
-    types: [
-      { key: 'overlast', label: 'Overlast',           sub: 'Meld overlast in de straat',  icon: MaskHappyIcon },
-      { key: 'schade',   label: 'Schade',             sub: 'Meld schade in de straat',    icon: DropIcon },
-      { key: 'verdacht', label: 'Verdachte situatie', sub: 'Iets gezien dat niet klopt?', icon: EyeIcon },
-    ],
+    key: 'straatzaken', label: 'Straatzaken', sub: 'Tijdelijke zaken rondom de straat', icon: TrafficConeIcon,
+    types: null,
   },
   {
     key: 'lostandfound', label: 'Lost & Found', sub: 'Iets verloren of gevonden', icon: BinocularsIcon,
     types: null,
   },
-  { key: 'evenement', label: 'Evenement', sub: 'Van straatborrel tot....straatborrel?', icon: CalendarPlusIcon, types: null },
+  { key: 'evenement', label: 'Evenement', sub: 'Van straatborrel tot buurtactiviteit', icon: CalendarPlusIcon, types: null },
   {
-    key: 'algemeen', label: 'Algemeen', sub: 'Van oppas gezocht tot gratis af te halen', icon: ChatsCircleIcon,
-    types: [
-      { key: 'gezocht',     label: 'Gezocht',          sub: 'Op zoek naar iets of iemand',          icon: QuestionIcon },
-      { key: 'te_koop',     label: 'Te koop',           sub: 'Bied iets te koop aan',                icon: ArmchairIcon },
-      { key: 'gratis',      label: 'Gratis af te halen', sub: 'Geef iets gratis weg',               icon: GiftIcon },
-      { key: 'aanbeveling', label: 'Aanbeveling',       sub: 'Tip een bedrijf, restaurant of vakman', icon: ShieldStarIcon },
-    ],
+    key: 'algemeen', label: 'Algemeen', sub: 'Algemene berichten voor de straat', icon: ChatsCircleIcon,
+    types: null,
   },
+];
+
+// Bezorging's "Situatie" options — chosen inside the post itself (Product
+// Model Alignment v1, 2026-07-18), not via CategoryPicker drill-down. Same
+// keys/labels the old tree used for these, so existing posts' sub_type
+// values need no migration.
+export const BEZORGING_TYPES = [
+  { key: 'pakket_aangenomen', label: 'Pakket aangenomen' },
+  { key: 'pakket_gezocht',    label: 'Pakket gezocht' },
 ];
 
 // Straatzaken's "Situatie" (Type hinder) options — chosen inside the post
@@ -130,6 +118,7 @@ function collectTreeLabels(items, acc) {
 const TYPE_LABELS = Object.fromEntries(CATEGORY_TREE.map(cat => {
   const labels = {};
   if (cat.types) collectTreeLabels(cat.types, labels);
+  if (cat.key === 'bezorging') for (const ty of BEZORGING_TYPES) labels[ty.key] = ty.label;
   if (cat.key === 'straatzaken') for (const ty of STRAATZAKEN_TYPES) labels[ty.key] = ty.label;
   if (cat.key === 'lostandfound') for (const ty of LOSTANDFOUND_TYPES) labels[ty.key] = ty.label;
   return [cat.key, { ...labels, ...LEGACY_TYPE_LABELS[cat.key] }];

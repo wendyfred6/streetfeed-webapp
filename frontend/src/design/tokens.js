@@ -16,7 +16,15 @@ export const COLORS = {
   // Background
   background:     '#FFFFFF',             // Background/Background
   // Surface
-  surfaceModal:   '#E8E6E7',             // Surface/Modal — Category Picker, modal sheets
+  // Surface/Tertiary — Category Picker, New/Edit Post Sheet Modal. Figma
+  // specifies this as rgba(108,104,96,0.05), but that's a 5%-alpha color
+  // meant to be read as composited onto an opaque white backing (how Figma
+  // itself renders it) — used directly as a CSS `background` with no solid
+  // layer under it, it let the dark overlay behind the modal show through
+  // almost entirely (2026-07-19 regression). This is that same tint
+  // pre-flattened onto white, so the modal stays a fully opaque, light
+  // warm-grey surface: rgb(247,247,246).
+  surfaceModal:   '#F7F7F6',
   // Feedback
   success:        '#3D7A43',             // Feedback/Success — toggle on, success states
   error:          '#C62828',             // Feedback/Error — validation errors, error states

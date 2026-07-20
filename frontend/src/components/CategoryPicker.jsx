@@ -3,7 +3,7 @@ import { COLORS, RADIUS } from '../design/tokens.js';
 import { s } from '../design/appStyles.js';
 import { CATEGORY_TREE } from '../utils/categories.js';
 import { ArrowCircleLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowCircleLeft';
-import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { ChevronRightIcon } from '../icons/index.jsx';
 
 // Centered modal, all navigation levels handled internally (path = drill-down
 // history through CATEGORY_TREE). See the CenteredModal item in M6 for
@@ -64,7 +64,6 @@ export default function CategoryPicker({ onClose, onSelect }) {
         style={{
           width: '100%', maxWidth: 350,
           background: COLORS.surfaceModal,
-          backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
           borderRadius: RADIUS.xl,
           padding: '28px 20px 24px',
           boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
@@ -106,7 +105,7 @@ export default function CategoryPicker({ onClose, onSelect }) {
                   <div style={{ fontSize: 14, fontWeight: 600, color: COLORS.text }}>{item.label}</div>
                   {item.sub && <div style={{ fontSize: 10, fontWeight: 500, color: COLORS.textMuted, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sub}</div>}
                 </div>
-                {item.types && <CaretRightIcon size={16} weight="bold" color={COLORS.textDim} />}
+                {item.types && <ChevronRightIcon size={16} color={COLORS.textDim} />}
               </button>
             );
           })}

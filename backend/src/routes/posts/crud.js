@@ -148,7 +148,7 @@ export function registerCrudRoutes(router) {
 
     if (!isAuthorOrModerator(post, req)) return res.status(403).json({ error: 'Forbidden' });
 
-    const { title, body, endDate, startDate, eventDate, eventTime, bringList, link, startTime, endTime, subType, startHouse, endHouse } = req.body;
+    const { title, body, endDate, startDate, eventDate, eventTime, bringList, link, startTime, endTime, subType, startHouse, endHouse, photoKey } = req.body;
 
     const { rows } = await query(
       `UPDATE posts SET
@@ -164,8 +164,9 @@ export function registerCrudRoutes(router) {
          end_time    = $10,
          sub_type    = $11,
          start_house = $12,
-         end_house   = $13
-       WHERE id = $14 AND street_id = $15
+         end_house   = $13,
+         photo_key   = $14
+       WHERE id = $15 AND street_id = $16
        RETURNING *`,
       [
         title?.trim() || post.title,
@@ -181,6 +182,7 @@ export function registerCrudRoutes(router) {
         subType !== undefined ? (subType || null) : post.sub_type,
         startHouse !== undefined ? (startHouse || null) : post.start_house,
         endHouse !== undefined ? (endHouse || null) : post.end_house,
+        photoKey !== undefined ? (photoKey || null) : post.photo_key,
         postId, streetId,
       ]
     );

@@ -6,16 +6,22 @@ import AutoTextarea from './AutoTextarea.jsx';
 import AttachmentUpload from './AttachmentUpload.jsx';
 import { FieldLabel, TextField, DateField, DropdownField } from './PostFormField.jsx';
 import { postCategoryFlags } from '../utils/postCategoryFlags.js';
-import { STRAATZAKEN_TYPES, LOSTANDFOUND_TYPES } from '../utils/categories.js';
+import { BEZORGING_TYPES, STRAATZAKEN_TYPES, LOSTANDFOUND_TYPES } from '../utils/categories.js';
 
 // Shared field-rendering schema for NewPostSheet (mode="create") and
 // EditPostSheet (mode="edit") — previously each component duplicated almost
-// this entire field set independently (FRE-316). The two modes keep
-// deliberate differences (Create tailors title/label/placeholder per
-// category and orders fields to guide a first-time post; Edit always shows
-// a uniform Title+Description up front, has no photo re-upload, and drops
-// the "required" asterisks) — those differences are branched explicitly
-// below rather than silently collapsed.
+// this entire field set independently (FRE-316). Both modes now render the
+// exact same per-category field set (confirmed against Figma's "Edit Post
+// Flow v0.1", 2026-07-19: "same structure as New Post Sheet" for both, field
+// behaviour differs only by whether a field is generated or user-created).
+// Categories whose title is generated (Bezorging, Straatzaken) never render
+// a title field in either mode — it isn't hidden-then-shown on edit, it's
+// just never one of this category's fields. Categories whose title is
+// user-created (Melding, Evenement, Algemeen, Lost & Found's object
+// description) render it, tailored label/placeholder and all, in both modes
+// too. Only small cosmetic differences (spacing, textarea min-height, the
+// title field's `placeholder` — a create-only affordance since edit always
+// has a real value) are still branched on `isCreate`.
 export default function PostFormFields({ mode, category, subType, form, streetId, user, onError }) {
   const isCreate = mode === 'create';
   const {
@@ -49,15 +55,15 @@ export default function PostFormFields({ mode, category, subType, form, streetId
       <HouseNumberPicker
         streetId={streetId} value={startHouse} onChange={setStartHouse}
         showLabels
-        numberLabel={`Voor huisnummer${isCreate ? ' *' : ''}`}
+        numberLabel="Voor huisnummer"
         suffixLabel="Toevoeging"
         style={{ marginBottom: isCreate ? 10 : 14 }}
       />
-      {isCreate && autoTitle && <div style={{ fontSize: 11, color: COLORS.textDim, marginBottom: 12 }}>Titel: <em>{autoTitle}</em></div>}
+      {autoTitle && <div style={{ fontSize: 11, color: COLORS.textDim, marginBottom: 12 }}>Titel: <em>{autoTitle}</em></div>}
     </>
   );
 
-  const gezochtInfo = isCreate && isGezocht && (
+  const gezochtInfo = isGezocht && (
     <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 12 }}>
       Je eigen huisnummer staat al bij je bericht — daar hoef je niets voor in te vullen.
     </div>
@@ -66,7 +72,7 @@ export default function PostFormFields({ mode, category, subType, form, streetId
   const houseRow = !isBezorging && !isAlgemeen && !isLostAndFound && !isStraatzaken && !isEvenement && (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
       <div>
-        <FieldLabel>Van nr.{isCreate ? ' *' : ''}</FieldLabel>
+        <FieldLabel>Van nr.</FieldLabel>
         <HouseNumberPicker streetId={streetId} value={startHouse} onChange={setStartHouse} showSuffix={false} />
       </div>
       <div>
@@ -85,18 +91,23 @@ export default function PostFormFields({ mode, category, subType, form, streetId
 
   const eventFields = isEvenement && (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: isCreate ? 14 : undefined }}>
-      <DateField type="date" label={isCreate ? 'Datum *' : t('event_date')} value={eventDate} onChange={e => setEventDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
-      <DateField type="time" label={isCreate ? 'Tijdstip' : t('event_time')} value={eventTime} onChange={e => setEventTime(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
+      <DateField type="date" label={isCreate ? 'Datum' : t('event_date')} value={eventDate} onChange={e => setEventDate(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
+      <DateField type="time" label={isCreate ? 'Tijd' : t('event_time')} value={eventTime} onChange={e => setEventTime(e.target.value)} wrapperStyle={{ marginBottom: isCreate ? 0 : 10 }} />
     </div>
   );
 
-  // Straatzaken's Type-hinder (FRE-367) and Lost & Found's Verloren/Gevonden
-  // (FRE-368) are both an in-post "Situatie" choice now, instead of a
-  // CategoryPicker drill-down — same field, different option list per category.
-  const situatieOptions = isStraatzaken ? STRAATZAKEN_TYPES : isLostAndFound ? LOSTANDFOUND_TYPES : null;
+  // Bezorging's Pakket aangenomen/gezocht, Straatzaken's Type-hinder (FRE-367),
+  // and Lost & Found's Verloren/Gevonden (FRE-368) are all an in-post
+  // "Situatie" choice, not a CategoryPicker drill-down — same field,
+  // different option list per category. Algemeen does NOT get one — checked
+  // directly against Figma (2026-07-18), which shows Algemeen going straight
+  // from Titel to Details with no Situatie field at all; it's a genuinely
+  // situation-less category, not just an oversight from folding it into this
+  // pattern by analogy with the others.
+  const situatieOptions = isBezorging ? BEZORGING_TYPES : isStraatzaken ? STRAATZAKEN_TYPES : isLostAndFound ? LOSTANDFOUND_TYPES : null;
   const situatieField = situatieOptions && (
     <DropdownField
-      label={isCreate ? 'Situatie *' : 'Situatie'}
+      label="Situatie"
       placeholder="Kies een type"
       value={situatie}
       onChange={e => setSituatie(e.target.value)}
@@ -112,17 +123,17 @@ export default function PostFormFields({ mode, category, subType, form, streetId
 
   // Lost & Found's object-description label/placeholder is tailored per
   // Situatie (confirmed against Wendy's Verloren/Gevonden screenshots,
-  // 2026-07-17) — the field itself feeds the auto-generated title
-  // ("Verloren - {object}"/"Gevonden - {object}", NewPostSheet.jsx), it
-  // isn't the title itself. Falls back to the neutral combined question
-  // before Situatie is chosen.
+  // 2026-07-17) — this field feeds the generated title ("Verloren -
+  // {object}"/"Gevonden - {object}", NewPostSheet.jsx), it isn't the title
+  // itself. Falls back to the neutral combined question before Situatie is
+  // chosen.
   const createTitleLabel = isMelding
-    ? 'Onderwerp *'
+    ? 'Onderwerp'
     : isEvenement
-      ? 'Evenement *'
+      ? 'Evenement'
       : isLostAndFound
-        ? (situatie === 'verloren' ? 'Wat ben je verloren? *' : situatie === 'gevonden' ? 'Wat heb je gevonden? *' : 'Wat ben je verloren of heb je gevonden? *')
-        : 'Titel *';
+        ? (situatie === 'verloren' ? 'Wat ben je verloren?' : situatie === 'gevonden' ? 'Wat heb je gevonden?' : 'Wat ben je verloren of heb je gevonden?')
+        : 'Titel';
   const createTitlePlaceholder = isMelding
     ? 'Kort en duidelijk'
     : isEvenement
@@ -137,17 +148,20 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     ? (situatie === 'verloren' ? 'Vanmorgen had ik ze nog!' : situatie === 'gevonden' ? 'Deze handschoen lag bij het fietsenrek ingang park.' : undefined)
     : undefined;
 
-  // Straatzaken has no user-facing title field in create mode (FRE-375) — the
-  // title is auto-generated from Situatie (NewPostSheet.jsx), same pattern as
-  // Bezorging's autoTitle. Edit mode still shows title for every category,
-  // per this file's own established rule (see top comment).
-  const titleField = !(isCreate && (isBezorging || isStraatzaken)) && (
-    <TextField label={isCreate ? createTitleLabel : t('title')} placeholder={isCreate ? createTitlePlaceholder : undefined} value={title} onChange={e => setTitle(e.target.value)} wrapperStyle={{ marginBottom: 10 }} />
+  // Bezorging and Straatzaken never render this field at all (in either
+  // mode) — their titles are generated from Situatie/house-number, not
+  // user-created (FRE-375; confirmed for edit against Figma's "Edit Post
+  // Flow v0.1", 2026-07-19). Every other category's title field keeps its
+  // tailored label in both modes too (edit's Evenement field is still
+  // labelled "Evenement", not a generic "Titel") — only the placeholder is
+  // create-only, since edit always has a real value to show instead.
+  const titleField = !(isBezorging || isStraatzaken) && (
+    <TextField label={createTitleLabel} placeholder={isCreate ? createTitlePlaceholder : undefined} value={title} onChange={e => setTitle(e.target.value)} wrapperStyle={{ marginBottom: 10 }} />
   );
 
   const bodyField = (
     <>
-      <FieldLabel>{isCreate && isMelding ? 'Details *' : 'Details'}</FieldLabel>
+      <FieldLabel>Details</FieldLabel>
       <AutoTextarea
         style={{ ...FIELD_INPUT, borderRadius: RADIUS.lg, height: 'auto', minHeight: isCreate && !isMelding ? 60 : 80, padding: '16px', marginBottom: 10 }}
         placeholder={isCreate ? bodyPlaceholder : undefined}
@@ -156,25 +170,11 @@ export default function PostFormFields({ mode, category, subType, form, streetId
     </>
   );
 
-  if (!isCreate) {
-    return (
-      <>
-        {titleField}
-        {bodyField}
-        {isBezorgd && singleHouseField}
-        {situatieField}
-        {houseRow}
-        {dateTimeRange}
-        {eventFields}
-        {linkField}
-      </>
-    );
-  }
-
   return (
     <>
       {isBezorging && (
         <>
+          {situatieField}
           {isBezorgd && singleHouseField}
           {gezochtInfo}
           {bodyField}

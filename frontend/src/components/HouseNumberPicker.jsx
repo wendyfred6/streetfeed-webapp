@@ -4,7 +4,7 @@ import { COLORS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL } from '../design/fieldStyles.js';
 import { api } from '../api/client.js';
 import { t } from '../i18n/index.js';
-import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
+import { ChevronDownIcon } from '../icons/index.jsx';
 
 const selectStyle = {
   ...FIELD_INPUT,
@@ -92,7 +92,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
             <option value="">{loading ? t('house_number_loading') : t('house_number_choose')}</option>
             {numbers.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
-          <CaretDownIcon size={12} color={COLORS.textMuted} weight="regular"
+          <ChevronDownIcon size={12} color={COLORS.textMuted}
             style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function HouseNumberPicker({ streetId, value, onChange, showSuffi
                 <option key={s} value={s}>{s === 'hs' ? t('house_number_ground_floor') : s}</option>
               ))}
             </select>
-            <CaretDownIcon size={12} color={COLORS.textMuted} weight="regular"
+            <ChevronDownIcon size={12} color={COLORS.textMuted}
               style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
           </div>
         </div>

@@ -5,9 +5,29 @@
 import { COLORS, RADIUS, ALPHA, GLASS } from './tokens.js';
 import { CATEGORIES } from '../utils/categories.js';
 
+// Header's own content row (logo + the 36px icon buttons) is 16px of top/
+// bottom padding around a 36px-tall row — kept as named numbers, not just
+// inlined into the calc() strings below, so `header` and `headerSpacer`
+// can't drift apart if this ever changes.
+const HEADER_PAD_Y = 16;
+const HEADER_CONTENT_HEIGHT = 36;
+const HEADER_HEIGHT = `calc(${HEADER_PAD_Y * 2 + HEADER_CONTENT_HEIGHT}px + env(safe-area-inset-top))`;
+
 export const s = {
   app: { fontFamily: "'Inter','Helvetica Neue',sans-serif", background: 'transparent', color: COLORS.text, minHeight: '100vh', maxWidth: 390, margin: '0 auto' },
-  header: { ...GLASS.header, borderBottom: '1px solid rgba(255,255,255,0.3)', padding: 'calc(16px + env(safe-area-inset-top)) 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 },
+  // Fixed (not sticky) so the frosted background genuinely extends behind
+  // the iOS status bar/Dynamic Island (viewport-fit=cover in index.html
+  // already lets the page draw there) and so feed content can scroll
+  // underneath it, dimly visible through the blur, instead of stopping dead
+  // at the header's edge the way an in-flow sticky header would (2026-07-20,
+  // refined per Figma/UX request — content must start below the header on
+  // load, but may pass behind it once scrolled). `headerSpacer` below is the
+  // matching reserved space for the content that follows.
+  header: { ...GLASS.header, borderBottom: '1px solid rgba(255,255,255,0.3)', padding: `calc(${HEADER_PAD_Y}px + env(safe-area-inset-top)) 20px ${HEADER_PAD_Y}px`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 390, zIndex: 50 },
+  // Unconditional spacer rendered once, right after the header, ahead of
+  // every tab's content — since the header is now `fixed` (out of flow),
+  // this is what keeps content from appearing underneath/above it on load.
+  headerSpacer: { height: HEADER_HEIGHT, flexShrink: 0 },
   logo: { fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px' },
   accent: { color: COLORS.accent },
   headerActions: { display: 'flex', alignItems: 'center', gap: 4 },

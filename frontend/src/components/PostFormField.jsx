@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { COLORS, RADIUS } from '../design/tokens.js';
 import { FIELD_INPUT, FIELD_LABEL } from '../design/fieldStyles.js';
 import { formatEventDate } from '../utils/eventDate.js';
-import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
+import { ChevronDownIcon } from '../icons/index.jsx';
 
 // Shared field primitives for the post composer, matching Figma
 // "🌼 Streetfeed Pattern Library v0.1"'s "Field Types" section (FieldLabel +
@@ -102,7 +102,7 @@ export function DateField({ type = 'date', label, value, onChange, placeholder =
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', margin: 0, padding: 0, border: 'none', opacity: 0, cursor: 'pointer' }}
           {...props}
         />
-        <CaretDownIcon size={16} color={COLORS.textDim} weight="regular"
+        <ChevronDownIcon size={16} color={COLORS.textDim}
           style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
       </div>
     </div>
@@ -125,7 +125,7 @@ export function DropdownField({ label, error, style, wrapperStyle, placeholder, 
           {placeholder && <option value="" disabled hidden>{placeholder}</option>}
           {children}
         </select>
-        <CaretDownIcon size={16} color={COLORS.textDim} weight="regular"
+        <ChevronDownIcon size={16} color={COLORS.textDim}
           style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
       </div>
     </div>

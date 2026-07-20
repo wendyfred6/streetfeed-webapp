@@ -44,6 +44,7 @@ export const editPostSchema = z.object({
   eventTime: z.string().max(16).optional(),
   subType: z.string().max(50).optional(),
   bringList: z.array(z.string().max(100)).max(50).optional(),
+  photoKey: z.string().max(500).optional(),
 });
 
 export const pinPostSchema = z.object({
