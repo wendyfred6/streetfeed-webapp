@@ -1,7 +1,8 @@
 import { query } from '../../db/index.js';
 import { requireAuth, requireMembership } from '../../middleware/auth.js';
 import { notifyStreet, notifyUser, findUserIdsAtHouse } from '../../services/push.js';
-import { getPublicUrl } from '../../services/storage.js';
+import { getPublicUrl, deleteFile } from '../../services/storage.js';
+import { expirePost } from '../../services/postExpiration.js';
 import { isAuthorOrModerator } from './authorization.js';
 import { validateBody } from '../../validation/validate.js';
 import { createPostSchema, editPostSchema, pinPostSchema, resolvePostSchema } from '../../validation/postSchemas.js';
@@ -149,23 +150,25 @@ export function registerCrudRoutes(router) {
     if (!isAuthorOrModerator(post, req)) return res.status(403).json({ error: 'Forbidden' });
 
     const { title, body, endDate, startDate, eventDate, eventTime, bringList, link, startTime, endTime, subType, startHouse, endHouse, photoKey } = req.body;
+    const nextPhotoKey = photoKey !== undefined ? (photoKey || null) : post.photo_key;
 
     const { rows } = await query(
       `UPDATE posts SET
-         title       = $1,
-         body        = $2,
-         end_date    = $3,
-         start_date  = $4,
-         event_date  = $5,
-         event_time  = $6,
-         bring_list  = $7,
-         link        = $8,
-         start_time  = $9,
-         end_time    = $10,
-         sub_type    = $11,
-         start_house = $12,
-         end_house   = $13,
-         photo_key   = $14
+         title            = $1,
+         body             = $2,
+         end_date         = $3,
+         start_date       = $4,
+         event_date       = $5,
+         event_time       = $6,
+         bring_list       = $7,
+         link             = $8,
+         start_time       = $9,
+         end_time         = $10,
+         sub_type         = $11,
+         start_house      = $12,
+         end_house        = $13,
+         photo_key        = $14,
+         last_activity_at = NOW()
        WHERE id = $15 AND street_id = $16
        RETURNING *`,
       [
@@ -182,10 +185,17 @@ export function registerCrudRoutes(router) {
         subType !== undefined ? (subType || null) : post.sub_type,
         startHouse !== undefined ? (startHouse || null) : post.start_house,
         endHouse !== undefined ? (endHouse || null) : post.end_house,
-        photoKey !== undefined ? (photoKey || null) : post.photo_key,
+        nextPhotoKey,
         postId, streetId,
       ]
     );
+
+    // FRE-389: an edit that replaces or clears the photo previously leaked
+    // the old file on disk — the row was updated, but nothing ever unlinked
+    // the file the old photo_key pointed at.
+    if (post.photo_key && post.photo_key !== nextPhotoKey) {
+      await deleteFile(post.photo_key);
+    }
 
     res.json(withPhotoUrl(rows[0]));
   });
@@ -200,11 +210,11 @@ export function registerCrudRoutes(router) {
 
     if (!isAuthorOrModerator(existing[0], req)) return res.status(403).json({ error: 'Forbidden' });
 
-    const { rows } = await query(
-      'DELETE FROM posts WHERE id = $1 AND street_id = $2 RETURNING id',
-      [req.params.postId, req.params.streetId]
-    );
-    if (!rows.length) return res.status(404).json({ error: 'Post not found' });
+    // FRE-402/FRE-389: shared with the automatic expiration sweep — deletes
+    // the row (cascading comments/likes/rsvps/joins/reports) and unlinks its
+    // photo file, instead of leaking it the way a raw DELETE used to.
+    const deleted = await expirePost(req.params.postId);
+    if (!deleted) return res.status(404).json({ error: 'Post not found' });
     res.json({ ok: true });
   });
 

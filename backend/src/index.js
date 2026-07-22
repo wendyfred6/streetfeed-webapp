@@ -15,7 +15,7 @@ import bagRoutes from './routes/bag.js';
 import notificationsRoutes from './routes/notifications.js';
 import diagnosticsRoutes from './routes/diagnostics.js';
 import { runMigrations } from './db/index.js';
-import { runPhotoRetention } from './services/retention.js';
+import { runPostExpiration } from './services/postExpiration.js';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || '/data/photos';
 
@@ -61,11 +61,11 @@ export default runMigrations()
     });
   }))
   .then((server) => {
-    runPhotoRetention().catch(err => console.error('[retention] initial run failed:', err));
+    runPostExpiration().catch(err => console.error('[postExpiration] initial run failed:', err));
     // unref() so this timer alone never keeps the process alive (relevant
     // for tests, which boot this same default export and expect a clean exit).
     setInterval(() => {
-      runPhotoRetention().catch(err => console.error('[retention] scheduled run failed:', err));
+      runPostExpiration().catch(err => console.error('[postExpiration] scheduled run failed:', err));
     }, DAY_MS).unref();
     return server;
   })

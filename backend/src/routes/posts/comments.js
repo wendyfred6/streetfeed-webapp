@@ -29,6 +29,11 @@ export function registerCommentRoutes(router) {
     );
     res.status(201).json(rows[0]);
 
+    // FRE-402: a new comment is "activity" for retention purposes — resets
+    // the post's expiration clock, same as creating or editing it.
+    query('UPDATE posts SET last_activity_at = NOW() WHERE id = $1', [req.params.postId])
+      .catch(err => console.error(`[comments] failed to bump last_activity_at for post ${req.params.postId}:`, err));
+
     // Verplichte notificatie: post-auteur + bewoners van het gekoppelde
     // huisnummer — negeert notification_prefs, want een reactie op je eigen
     // bericht (of een bericht over jouw huisnummer) is altijd relevant

@@ -125,10 +125,13 @@ Photos are stored on local disk inside the backend container, at `/data/photos`
 `docker-compose.nas.yml` — this volume is required, without it uploaded photos
 are lost on every redeploy.
 
-Retention/auto-deletion runs automatically per category (`backend/src/services/retention.js`):
-bezorging 7d, straatzaken 14d (or 3 days after its end date, if set),
-melding/algemeen/lostandfound/evenement 30d. Only the photo is deleted — the
-post itself stays.
+Post expiration runs automatically (`backend/src/services/postExpiration.js`,
+FRE-402): a post is treated as a single object — once expired, the post row,
+its comments/likes/RSVPs/joins/reports (cascading via FK), and its photo file
+are all deleted together, not just the photo. Street Issues (straatzaken)
+with an end date expire at the end of that day; every other post (including
+a straatzaken post with no end date) expires 60 days after its last activity
+(creation, edit, or a new comment).
 
 Cloudflare R2 was the original plan (see `docs/DECISIONS.md`) but was dropped
 for the pilot in favor of local disk: simpler, already fully implemented

@@ -1,4 +1,4 @@
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile, mkdir, unlink } from 'fs/promises';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
 import sharp from 'sharp';
@@ -47,4 +47,19 @@ export async function saveFile(buffer, contentType) {
 
 export function getPublicUrl(key) {
   return `/api/uploads/${key}`;
+}
+
+// FRE-389: previously no primitive existed anywhere to remove an uploaded
+// file — DELETE/PATCH routes and the post-expiration sweep each
+// independently need this, so it lives here rather than being reimplemented
+// per caller.
+export async function deleteFile(key) {
+  if (!key) return;
+  try {
+    await unlink(join(UPLOAD_DIR, key));
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      console.error(`[storage] failed to delete file ${key}:`, err.message);
+    }
+  }
 }
