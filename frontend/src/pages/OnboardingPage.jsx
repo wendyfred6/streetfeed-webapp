@@ -23,7 +23,7 @@ const s = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 40,
+    gap: 32,
   },
   logo: { fontSize: 32, fontWeight: 800, color: COLORS.text, textAlign: 'center', letterSpacing: '-0.5px' },
   accent: { color: COLORS.accent },
@@ -51,8 +51,8 @@ const s = {
   input: FIELD_INPUT,
   inputAccent: { ...FIELD_INPUT, border: `1px solid ${COLORS.accent}` },
   ctaGroup: { display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' },
-  choiceGroup: { display: 'flex', flexDirection: 'column', gap: 28 },
-  choiceSection: { display: 'flex', flexDirection: 'column', gap: 12 },
+  choiceGroup: { display: 'flex', flexDirection: 'column', gap: 32 },
+  choiceSection: { display: 'flex', flexDirection: 'column', gap: 8 },
   choiceLabel: { fontSize: 15, color: COLORS.textMuted, fontWeight: 500 },
   btn: {
     width: '100%',
@@ -498,15 +498,17 @@ export default function OnboardingPage() {
             </div>
           </div>
           <div style={s.noMailGroup}>
-            <span>{t('onboarding_no_mail_q')}</span>
-            <span>{t('onboarding_no_mail_body')}</span>
-            <button
-              type="button"
-              style={{ background: 'none', border: 'none', color: COLORS.accent, fontSize: 12, lineHeight: '18px', cursor: 'pointer', padding: 0 }}
-              onClick={() => { setStep('login'); setError(''); }}
-            >
-              {t('onboarding_try_again')}
-            </button>
+            <span style={{ fontWeight: 700, color: COLORS.text }}>{t('onboarding_no_mail_q')}</span>
+            <span>
+              {t('onboarding_no_mail_body')}{' '}
+              <button
+                type="button"
+                style={{ background: 'none', border: 'none', color: COLORS.accent, fontSize: 12, lineHeight: '18px', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                onClick={() => { setStep('login'); setError(''); }}
+              >
+                {t('onboarding_try_again')}
+              </button>.
+            </span>
           </div>
         </div>
       </div>
