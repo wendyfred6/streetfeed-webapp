@@ -14,10 +14,6 @@ import pushRoutes from './routes/push.js';
 import bagRoutes from './routes/bag.js';
 import notificationsRoutes from './routes/notifications.js';
 import diagnosticsRoutes from './routes/diagnostics.js';
-// TEMPORARY (delete this import + its mount line below, together with
-// routes/adminReset.js, immediately after the one-time clean-slate reset
-// has been executed and verified — see 2026-07-21 conversation).
-import adminResetRoutes from './routes/adminReset.js';
 import { runMigrations } from './db/index.js';
 import { runPhotoRetention } from './services/retention.js';
 
@@ -42,9 +38,6 @@ app.use('/api/push', pushRoutes);
 app.use('/api/bag', bagRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/diagnostics', diagnosticsRoutes);
-// TEMPORARY — remove this line + the import above together with
-// routes/adminReset.js after the reset is executed and verified.
-app.use('/api/admin/reset-to-clean-slate', adminResetRoutes);
 
 app.get('/api/health', (_, res) => res.json({ ok: true, ts: new Date() }));
 
