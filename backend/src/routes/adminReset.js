@@ -95,14 +95,26 @@ async function computeCounts() {
   };
 }
 
+// Row-level detail for the humans reviewing the dry run before approving —
+// counts alone don't let anyone confirm "yes, that's really just disposable
+// test accounts." Read-only, same as computeCounts().
+async function usersToBeDeleted() {
+  const { rows } = await query(
+    'SELECT id, email, name, house_number FROM users WHERE email <> $1 ORDER BY id',
+    ['wendy@fred6.nl']
+  );
+  return rows;
+}
+
 // GET /api/admin/reset-to-clean-slate/preview — read-only, safe to call any
 // number of times, never touches the one-time marker.
 router.get('/preview', requireAuth, requireSuperAdmin, requireNotExpired, async (req, res) => {
-  const counts = await computeCounts();
+  const [counts, users] = await Promise.all([computeCounts(), usersToBeDeleted()]);
   res.json({
     mode: 'DRY_RUN',
     warning: 'DRY RUN — no data has been changed. Nothing was deleted. This is a preview only.',
     ...counts,
+    usersToBeDeleted: users,
   });
 });
 
