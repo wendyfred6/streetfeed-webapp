@@ -106,6 +106,45 @@ async function usersToBeDeleted() {
   return rows;
 }
 
+// GET /api/admin/reset-to-clean-slate/confirm — a plain HTML page instead of
+// a JSON API, specifically so executing this doesn't require opening
+// DevTools/a JS console. Visiting this page is itself harmless (GET, no
+// mutation) — the actual POST only fires on an explicit button click, same
+// safety property as before, just a friendlier way to trigger it.
+router.get('/confirm', requireAuth, requireSuperAdmin, requireNotExpired, async (req, res) => {
+  const [counts, users] = await Promise.all([computeCounts(), usersToBeDeleted()]);
+  res.set('Content-Type', 'text/html');
+  res.send(`<!doctype html>
+<html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="font-family:-apple-system,sans-serif;max-width:480px;margin:40px auto;padding:0 20px;">
+<h2>Clean Slate Reset</h2>
+<p>This will <strong>permanently delete</strong>:</p>
+<ul>
+<li>${counts.willBeDeleted.posts} post(s) and all their comments/likes/rsvps/joins/reports</li>
+<li>${counts.willBeDeleted.notifications} notification(s)</li>
+<li>${counts.willBeDeleted.authTokens} stale auth token(s)</li>
+<li>${counts.willBeDeleted.users} user account(s): ${users.map(u => u.email).join(', ')}</li>
+</ul>
+<p>Only <strong>${counts.willBePreserved.user?.email}</strong> and the street survive.</p>
+<p>This cannot be undone, and this button only works once.</p>
+<button id="go" style="font-size:18px;padding:16px 32px;background:#c62828;color:white;border:none;border-radius:8px;width:100%;">Execute Reset</button>
+<pre id="result" style="text-align:left;white-space:pre-wrap;background:#f0f0f0;padding:12px;border-radius:8px;margin-top:16px;"></pre>
+<script>
+document.getElementById('go').onclick = async () => {
+  document.getElementById('go').disabled = true;
+  document.getElementById('go').textContent = 'Working...';
+  try {
+    const res = await fetch('/api/admin/reset-to-clean-slate', { method: 'POST', credentials: 'include' });
+    const json = await res.json();
+    document.getElementById('result').textContent = JSON.stringify(json, null, 2);
+  } catch (err) {
+    document.getElementById('result').textContent = 'Request failed: ' + err.message;
+  }
+};
+</script>
+</body></html>`);
+});
+
 // GET /api/admin/reset-to-clean-slate/preview — read-only, safe to call any
 // number of times, never touches the one-time marker.
 router.get('/preview', requireAuth, requireSuperAdmin, requireNotExpired, async (req, res) => {
