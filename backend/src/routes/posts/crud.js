@@ -3,6 +3,7 @@ import { requireAuth, requireMembership } from '../../middleware/auth.js';
 import { notifyStreet, notifyUser, findUserIdsAtHouse } from '../../services/push.js';
 import { getPublicUrl, deleteFile } from '../../services/storage.js';
 import { expirePost } from '../../services/postExpiration.js';
+import { recordContributions } from '../../services/contributions.js';
 import { isAuthorOrModerator } from './authorization.js';
 import { validateBody } from '../../validation/validate.js';
 import { createPostSchema, editPostSchema, pinPostSchema, resolvePostSchema } from '../../validation/postSchemas.js';
@@ -95,6 +96,11 @@ export function registerCrudRoutes(router) {
     );
 
     const post = withPhotoUrl(rows[0]);
+
+    // FRE-403: recorded once, now, as a permanent historical fact — not a
+    // fire-and-forget side effect like the notification below, since a lost
+    // write here silently drops an achievement forever.
+    await recordContributions({ userId: req.user.user_id, streetId, category, subType });
 
     // Push notification (fire and forget)
     const isSearchPackage = (category === 'bezorging' || category === 'package') && (subType === 'gezocht' || subType === 'search');
