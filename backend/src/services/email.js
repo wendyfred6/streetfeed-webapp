@@ -130,7 +130,7 @@ export async function sendMagicLink(email, name, token) {
       </div>
       <div style="margin:0 0 24px">
         <a href="${url}" style="display:inline-block;background:#FF0066;color:#ffffff;font-weight:500;font-size:16px;padding:14px 28px;border-radius:999px;text-decoration:none">
-          Inloggen op Streetfeed
+          <span style="color:#ffffff">Inloggen op Streetfeed</span>
         </a>
       </div>
       <div class="sf-text" style="color:#1C1A18;font-size:12px;line-height:18px;margin:0 0 24px">
