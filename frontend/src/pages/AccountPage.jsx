@@ -9,6 +9,7 @@ import { timeAgo } from '../utils/time.js';
 import Switch from '../components/Switch.jsx';
 import LegalContent from '../components/LegalContent.jsx';
 import { ChevronDownIcon, CrossIcon } from '../icons/index.jsx';
+import { ArrowCircleLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowCircleLeft';
 
 // Figma "Account - Resident View" (node 466:3287, 2026-07-24) only shows
 // these five categories — Melding/Report is excluded here too, matching
@@ -140,7 +141,7 @@ function AdminView({ streetId, user, memberCount, households, onError }) {
 // Figma "Account - Resident View" (node 466:3287) is the source of truth for
 // every resident-facing section below. Admin functionality is deliberately
 // NOT part of that design — see AdminView above and FRE-405/FRE-391.
-export default function AccountPage({ user, onLogout, canModerate, streetId, streetName, memberCount, households, onError }) {
+export default function AccountPage({ user, onLogout, onBack, canModerate, streetId, streetName, memberCount, households, onError }) {
   const [lang, setLangState] = useState(getLang());
   const [notifs, setNotifs] = useState({});
   const [subscribeMsg, setSubscribeMsg] = useState('');
@@ -174,6 +175,18 @@ export default function AccountPage({ user, onLogout, canModerate, streetId, str
 
   return (
     <div style={s.feed}>
+      {/* FRE-407: with the bottom tab bar hidden, tapping the header logo
+          returns to Feed — but that's a discoverable-only-if-you-already-
+          know-the-convention affordance. This explicit back button is the
+          reliable path for everyone else. Temporary: remove once the tab
+          bar (or Hall of Fame's real design) comes back and Feed is once
+          again reachable without leaving Account. */}
+      <div style={{ padding: '16px 20px 0' }}>
+        <button type="button" onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }} aria-label={t('back_to_feed')}>
+          <ArrowCircleLeftIcon size={32} weight="regular" color={COLORS.text} />
+          <span style={{ fontSize: 14, fontWeight: 600, color: COLORS.text }}>{t('back_to_feed')}</span>
+        </button>
+      </div>
       <div style={s.sectionLabel}>{t('profile')}</div>
       <div style={{ padding: '0 20px' }}>
         <div style={{ ...card, display: 'flex', gap: 12, alignItems: 'center' }}>

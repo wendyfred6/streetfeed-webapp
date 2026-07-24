@@ -20,7 +20,8 @@ import { timeAgo } from './utils/time.js';
 import { formatEventDate, downloadICS, googleCalendarUrl } from './utils/eventDate.js';
 
 // Phosphor Icons — subpath imports per icoon i.p.v. de barrel, voor kleinere bundle
-import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
+// HouseIcon (Feed's tab icon) is unused while the bottom tab bar is hidden
+// (FRE-407) — re-add it alongside restoring that block once Hall of Fame ships.
 import { TrophyIcon } from '@phosphor-icons/react/dist/csr/Trophy';
 // Custom Streetfeed Icon System icons (see src/icons/index.jsx)
 import { PersonIcon, BellIcon, PlusIcon } from './icons/index.jsx';
@@ -475,7 +476,13 @@ export default function App() {
       <Toast toast={toast} onDismiss={dismissToast} />
 
       <div style={s.header}>
-        <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
+        {/* FRE-407: with the bottom tab bar hidden (see below), tapping the
+            logo is now the only way back to Feed from Account — the
+            standard "tap the brand mark to go home" pattern, so this isn't
+            a dead end once Hall of Fame's tab is gone. */}
+        <button type="button" onClick={() => setTab('feed')} style={{ ...s.logo, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }} aria-label={t('feed')}>
+          Street<span style={s.accent}>feed</span>
+        </button>
         <div style={s.headerActions}>
           <button
             style={{ ...s.headerIconBtn(showNotifInbox), position: 'relative' }}
@@ -535,26 +542,19 @@ export default function App() {
 
       {tab === 'hof' && <HallOfFameView streetId={STREET_ID} onError={showError} />}
       {tab === 'profile' && (
-        <AccountPage user={user} onLogout={logout} canModerate={canModerate} streetId={STREET_ID}
+        <AccountPage user={user} onLogout={logout} onBack={() => setTab('feed')} canModerate={canModerate} streetId={STREET_ID}
           streetName={streetInfo?.name} memberCount={streetInfo?.members || 0} households={streetInfo?.households || 0} onError={showError} />
       )}
 
-      <div style={s.bottomBar}>
-        <div style={s.tabBar}>
-          {[
-            { id: 'feed', label: t('feed'), icon: HouseIcon },
-            { id: 'hof', label: t('hall_of_fame_title'), icon: TrophyIcon },
-          ].map(tab_ => {
-            const active = tab === tab_.id;
-            const TabIcon = tab_.icon;
-            return (
-              <button key={tab_.id} style={s.tab(active)} onClick={() => setTab(tab_.id)} aria-label={tab_.label} title={tab_.label}>
-                <TabIcon size={20} weight={active ? 'bold' : 'regular'} />
-              </button>
-            );
-          })}
-        </div>
-
+      {/* FRE-407: the Feed/Hall of Fame tab switcher is temporarily hidden —
+          Hall of Fame's frontend is broken against the FRE-403 backend shape
+          and its redesign is paused pending Figma, and a tab bar with only
+          one working destination (Feed) doesn't make sense on its own. `tab`
+          still defaults to 'feed' with no other UI able to change it, so
+          this is purely a navigation hide — HallOfFameView itself is
+          untouched and simply unreachable in the meantime. Restore the
+          tabBar block below once Hall of Fame's real design ships. */}
+      <div style={{ ...s.bottomBar, justifyContent: 'center' }}>
         <button style={s.postCta(tab === 'feed')} onClick={() => setShowCatPicker(true)} aria-label="Bericht plaatsen" title="Bericht plaatsen" tabIndex={tab === 'feed' ? 0 : -1}>
           <PlusIcon size={22} style={{ flexShrink: 0 }} />
         </button>

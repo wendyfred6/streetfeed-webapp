@@ -2,6 +2,7 @@ export default {
   app_name: 'Streetfeed',
   generic_error: 'Something went wrong',
   back: 'Back',
+  back_to_feed: 'Back to feed',
   package_search_title_house: 'Package wanted for no. {houseNumber}',
   package_search_title: 'Package wanted',
   package_delivered_title_house: 'Package accepted for no. {houseNumber}',
