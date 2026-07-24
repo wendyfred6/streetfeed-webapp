@@ -130,7 +130,7 @@ export async function sendMagicLink(email, name, token) {
       </div>
       <div style="margin:0 0 24px">
         <a href="${url}" style="display:inline-block;background:#FF0066;color:#ffffff;font-weight:500;font-size:16px;padding:14px 28px;border-radius:999px;text-decoration:none">
-          <span style="color:#ffffff">Inloggen op Streetfeed</span>
+          <font color="#ffffff"><span style="color:#ffffff">Inloggen op Streetfeed</span></font>
         </a>
       </div>
       <div class="sf-text" style="color:#1C1A18;font-size:12px;line-height:18px;margin:0 0 24px">
@@ -176,8 +176,8 @@ export async function sendApprovalEmail(email, name) {
       </h2>
       <p>Hoi ${name || 'bewoner'},</p>
       <p>Goed nieuws — je aanvraag voor Streetfeed is goedgekeurd. Je hebt nu toegang tot de buurtfeed.</p>
-      <a href="${url}" style="display:inline-block;background:#FF0066;color:#fff;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;margin:16px 0">
-        Open Streetfeed →
+      <a href="${url}" style="display:inline-block;background:#FF0066;color:#ffffff;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;margin:16px 0">
+        <font color="#ffffff"><span style="color:#ffffff">Open Streetfeed →</span></font>
       </a>
     </div>
   `;

@@ -94,7 +94,7 @@ function AdminView({ streetId, user, memberCount, households, onError }) {
                   {p.house_number ? t('house_nr', { n: p.house_number }) : p.email} · {timeAgo(p.created_at)}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button style={{ flex: 1, background: COLORS.accent, color: '#000', border: 'none', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }} onClick={() => approve(p.id)}>{t('approve')}</button>
+                  <button style={{ flex: 1, background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }} onClick={() => approve(p.id)}>{t('approve')}</button>
                   <button style={{ flex: 1, background: 'none', color: COLORS.error, border: `1px solid ${COLORS.error}`, borderRadius: 8, padding: '8px', fontSize: 12, cursor: 'pointer' }} onClick={() => reject(p.id)}>{t('reject')}</button>
                 </div>
               </div>
@@ -194,19 +194,19 @@ export default function AccountPage({ user, onLogout, canModerate, streetId, str
       <div style={{ padding: '0 20px' }}>
         <div style={card}>
           <div style={{ fontWeight: 700, fontSize: 16, color: COLORS.text, marginBottom: 4 }}>{streetName || '–'}</div>
-          <div style={{ display: 'flex', gap: 12, fontSize: 14, color: COLORS.text }}>
-            <span>{households} {t('households')}</span>
-            <span>{memberCount} {t('members')}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14, color: COLORS.text }}>
+            <span>{t('account_addresses_in_street', { n: households })}</span>
+            <span>{t('account_registered_residents', { n: memberCount })}</span>
           </div>
         </div>
       </div>
 
       <div style={s.sectionLabel}>{t('account_notif_section')}</div>
+      {isIOS && !subscribed && (
+        <div style={{ padding: '0 20px 8px', fontSize: 12, color: COLORS.textMuted }}>{t('pwa_ios_hint')}</div>
+      )}
       <div style={{ padding: '0 20px' }}>
         <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {isIOS && !subscribed && (
-            <div style={{ fontSize: 12, color: COLORS.textMuted }}>{t('pwa_ios_hint')}</div>
-          )}
           {notifSupported && !subscribed && permission !== 'denied' && (
             <>
               <button style={s.submitBtn} onClick={async () => {
@@ -261,20 +261,23 @@ export default function AccountPage({ user, onLogout, canModerate, streetId, str
 
       <div style={s.sectionLabel}>{t('account_legal_section')}</div>
       <div style={{ padding: '0 20px' }}>
-        <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ ...card, display: 'flex', flexDirection: 'column' }}>
           <button type="button" onClick={() => toggleLegal('terms')} aria-expanded={legalOpen === 'terms'}
             style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', textAlign: 'left' }}>
             <span style={rowLabel}>{t('terms_title')}</span>
             <ChevronDownIcon size={24} color={COLORS.text} style={{ flexShrink: 0, transition: 'transform 0.2s', transform: legalOpen === 'terms' ? 'rotate(180deg)' : 'none' }} />
           </button>
-          {legalOpen === 'terms' && <LegalContent introKey="terms_intro" sectionsKey="terms_sections" />}
-          <div style={divider} />
+          {legalOpen === 'terms' && <div style={{ marginTop: 12 }}><LegalContent introKey="terms_intro" sectionsKey="terms_sections" /></div>}
+          {/* Matches the same 16px rhythm used between sections elsewhere on
+              this page (s.sectionLabel's own top padding) — split 8/8 around
+              the divider so its line sits centered in that 16px gap. */}
+          <div style={{ ...divider, marginTop: 8, marginBottom: 8 }} />
           <button type="button" onClick={() => toggleLegal('privacy')} aria-expanded={legalOpen === 'privacy'}
             style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', textAlign: 'left' }}>
             <span style={rowLabel}>{t('privacy_title')}</span>
             <ChevronDownIcon size={24} color={COLORS.text} style={{ flexShrink: 0, transition: 'transform 0.2s', transform: legalOpen === 'privacy' ? 'rotate(180deg)' : 'none' }} />
           </button>
-          {legalOpen === 'privacy' && <LegalContent introKey="privacy_intro" sectionsKey="privacy_sections" contactCtaKey="privacy_contact_cta" streetName={streetName} />}
+          {legalOpen === 'privacy' && <div style={{ marginTop: 12 }}><LegalContent introKey="privacy_intro" sectionsKey="privacy_sections" contactCtaKey="privacy_contact_cta" streetName={streetName} /></div>}
         </div>
       </div>
 

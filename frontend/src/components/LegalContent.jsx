@@ -34,7 +34,9 @@ export default function LegalContent({ introKey, sectionsKey, contactCtaKey, str
         </div>
       ))}
       {contactCta && (
-        <p style={{ margin: '12px 0 0', textDecoration: 'underline' }}>{contactCta}</p>
+        <p style={{ margin: '12px 0 0' }}>
+          <a href="mailto:wendy@fred6.nl" style={{ color: 'inherit', textDecoration: 'underline' }}>{contactCta}</a>
+        </p>
       )}
     </div>
   );
