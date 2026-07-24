@@ -3,7 +3,7 @@ import { useAuth } from './hooks/useAuth.jsx';
 import { usePush, notifSupported } from './hooks/usePush.jsx';
 import { useToast } from './hooks/useToast.jsx';
 import { api } from './api/client.js';
-import { t, getLang, setLang } from './i18n/index.js';
+import { t } from './i18n/index.js';
 
 import { COLORS, RADIUS, ALPHA } from './design/tokens.js';
 import { s } from './design/appStyles.js';
@@ -12,11 +12,10 @@ import Toast from './components/Toast.jsx';
 import CatBadge from './components/CatBadge.jsx';
 import SheetOverlay from './components/SheetOverlay.jsx';
 import CategoryPicker from './components/CategoryPicker.jsx';
-import Switch from './components/Switch.jsx';
 import NewPostSheet from './components/NewPostSheet.jsx';
 import EditPostSheet from './components/EditPostSheet.jsx';
 import ConfirmationSheet from './components/ConfirmationSheet.jsx';
-import { CATEGORIES, catLabel } from './utils/categories.js';
+import AccountPage from './pages/AccountPage.jsx';
 import { timeAgo } from './utils/time.js';
 import { formatEventDate, downloadICS, googleCalendarUrl } from './utils/eventDate.js';
 
@@ -24,7 +23,7 @@ import { formatEventDate, downloadICS, googleCalendarUrl } from './utils/eventDa
 import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
 import { TrophyIcon } from '@phosphor-icons/react/dist/csr/Trophy';
 // Custom Streetfeed Icon System icons (see src/icons/index.jsx)
-import { PersonIcon, BellIcon, PlusIcon, CrossIcon } from './icons/index.jsx';
+import { PersonIcon, BellIcon, PlusIcon } from './icons/index.jsx';
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
 
@@ -130,104 +129,6 @@ function JoinDetailSheet({ post, onClose, onJoin }) {
   );
 }
 
-// ─── ADMIN VIEW ────────────────────────────────────────────────────────────────
-
-function AdminView({ streetId, user, memberCount, households, onError }) {
-  const [subTab, setSubTab] = useState('queue');
-  const [pending, setPending] = useState([]);
-  const [members, setMembers] = useState([]);
-
-  useEffect(() => {
-    if (subTab === 'queue') {
-      api.get(`/streets/${streetId}/pending`).then(setPending).catch(e => onError(e.message || t('generic_error')));
-    }
-    if (subTab === 'members') {
-      api.get(`/streets/${streetId}/members`).then(setMembers).catch(e => onError(e.message || t('generic_error')));
-    }
-  }, [subTab, streetId, onError]);
-
-  const approve = async (userId) => {
-    await api.post(`/streets/${streetId}/pending/${userId}/approve`);
-    setPending(p => p.filter(m => m.id !== userId));
-  };
-
-  const reject = async (userId) => {
-    await api.delete(`/streets/${streetId}/pending/${userId}`);
-    setPending(p => p.filter(m => m.id !== userId));
-  };
-
-  const changeRole = async (userId, role) => {
-    await api.patch(`/streets/${streetId}/members/${userId}/role`, { role });
-    setMembers(ms => ms.map(m => m.id === userId ? { ...m, role } : m));
-  };
-
-  return (
-    <>
-      <div style={{ display: 'flex', gap: 6, padding: '12px 12px 0' }}>
-        {[[['queue', t('requests')], ['members', t('residents_tab')], ['manage', t('manage_tab')]]].flat().map(([id, label]) => (
-          <button key={id} type="button" style={s.filterChip(subTab === id)} aria-pressed={subTab === id} onClick={() => setSubTab(id)}>{label}</button>
-        ))}
-      </div>
-
-      {subTab === 'queue' && (
-        <>
-          <div style={{ ...s.statRow, padding: '12px 12px 0' }}>
-            <div style={s.statCard}><div style={s.statNum}>{memberCount}</div><div style={s.statLabel}>{t('stat_residents')}</div></div>
-            <div style={s.statCard}><div style={s.statNum}>{pending.length}</div><div style={s.statLabel}>{t('stat_pending')}</div></div>
-            <div style={s.statCard}><div style={s.statNum}>{households}</div><div style={s.statLabel}>{t('stat_addresses')}</div></div>
-          </div>
-          <div style={s.sectionLabel}>{t('approval_queue')}</div>
-          {pending.length === 0
-            ? <div style={s.emptyState}>{t('no_pending')}</div>
-            : pending.map(p => (
-              <div key={p.id} style={{ ...s.adminCard, margin: '0 12px 8px' }}>
-                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>{p.name}</div>
-                <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 12 }}>
-                  {p.house_number ? t('house_nr', { n: p.house_number }) : p.email} · {timeAgo(p.created_at)}
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button style={{ flex: 1, background: COLORS.accent, color: '#000', border: 'none', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }} onClick={() => approve(p.id)}>{t('approve')}</button>
-                  <button style={{ flex: 1, background: 'none', color: COLORS.error, border: `1px solid ${COLORS.error}`, borderRadius: 8, padding: '8px', fontSize: 12, cursor: 'pointer' }} onClick={() => reject(p.id)}>{t('reject')}</button>
-                </div>
-              </div>
-            ))}
-        </>
-      )}
-
-      {subTab === 'members' && (
-        <>
-          <div style={s.sectionLabel}>{t('members_list')} ({members.length})</div>
-          {members.map(m => (
-            <div key={m.id} style={{ ...s.adminCard, margin: '0 12px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>{m.name}</div>
-                <div style={{ fontSize: 11, color: COLORS.textMuted }}>{m.house_number ? t('house_nr', { n: m.house_number }) : m.email}</div>
-              </div>
-              <select value={m.role} onChange={e => changeRole(m.id, e.target.value)}
-                style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, color: COLORS.text, borderRadius: 6, padding: '4px 8px', fontSize: 12, cursor: 'pointer' }}>
-                <option value="resident">{t('resident')}</option>
-                <option value="moderator">{t('moderator')}</option>
-                <option value="admin">{t('street_admin')}</option>
-              </select>
-            </div>
-          ))}
-        </>
-      )}
-
-      {subTab === 'manage' && (
-        <div style={{ padding: '12px 12px 0' }}>
-          {[t('pins_manage'), t('street_settings'), t('invite_link'), t('statistics')].map(item => (
-            <div key={item} style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-              <span style={{ fontSize: 13 }}>{item}</span>
-              <span style={{ color: COLORS.textDim }}>›</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
-  );
-}
-
 // ─── NOTIFICATIE-INBOX ─────────────────────────────────────────────────────────
 
 function NotificationInboxSheet({ onClose, onOpenPost, onError }) {
@@ -281,137 +182,6 @@ function NotificationInboxSheet({ onClose, onOpenPost, onError }) {
   );
 }
 
-// ─── PROFIEL VIEW ──────────────────────────────────────────────────────────────
-// Consolideert wat eerder losse tabs waren (Mijn straten, Beheer,
-// Instellingen) — de bottom nav houdt alleen Feed + Hall of Fame over.
-
-function ProfileView({ user, onLogout, canModerate, streetId, streetName, memberCount, households, onError }) {
-  const [lang, setLangState] = useState(getLang());
-  const [notifs, setNotifs] = useState({});
-  const [subscribeMsg, setSubscribeMsg] = useState('');
-  const { permission, subscribed, subscribe } = usePush();
-  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
-
-  useEffect(() => {
-    api.get('/push/settings').then(data => setNotifs(prev => ({ ...Object.fromEntries(Object.keys(CATEGORIES).map(k => [k, true])), ...data })))
-      .catch(e => onError(e.message || t('generic_error')));
-  }, [onError]);
-
-  const toggleNotif = async (key) => {
-    const prev = notifs;
-    const next = { ...notifs, [key]: !notifs[key] };
-    setNotifs(next);
-    // Optimistic update rolled back on failure — otherwise the toggle keeps
-    // showing the flipped state even though the server never got it.
-    await api.patch('/push/settings', { settings: { [key]: next[key] } }).catch(e => {
-      setNotifs(prev);
-      onError(e.message || t('generic_error'));
-    });
-  };
-
-  const switchLang = (l) => {
-    setLang(l);
-    setLangState(l);
-  };
-
-  const roleLabel = () => {
-    if (user.is_super_admin) return t('super_admin');
-    const m = user.memberships?.find(m => m.status === 'approved');
-    if (!m) return t('pending_role');
-    if (m.role === 'admin') return t('street_admin');
-    if (m.role === 'moderator') return t('moderator');
-    return t('resident');
-  };
-
-  return (
-    <div style={s.feed}>
-      <div style={s.sectionLabel}>{t('profile')}</div>
-      <div style={{ padding: '0 12px' }}>
-        {[{ label: t('name'), value: user.name }, { label: t('address'), value: (user.house_number && streetName) ? t('profile_address_value', { street: streetName, number: user.house_number }) : (user.house_number || '–') }, { label: t('role'), value: roleLabel() }].map(item => (
-          <div key={item.label} style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: COLORS.textMuted }}>{item.label}</span>
-            <span style={{ fontSize: 13, fontWeight: 600 }}>{item.value}</span>
-          </div>
-        ))}
-      </div>
-
-      <div style={s.sectionLabel}>{t('your_streets')}</div>
-      <div style={{ padding: '0 12px' }}>
-        <StreetsView user={user} onError={onError} />
-      </div>
-
-      {canModerate && (
-        <>
-          <div style={s.sectionLabel}>{t('admin')}</div>
-          <AdminView streetId={streetId} user={user} memberCount={memberCount} households={households} onError={onError} />
-        </>
-      )}
-
-      <div style={s.sectionLabel}>{t('notifications')}</div>
-      <div style={{ padding: '0 12px' }}>
-        {isIOS && !subscribed && (
-          <div style={{ ...s.adminCard, fontSize: 12, color: COLORS.textMuted, marginBottom: 8 }}>{t('pwa_ios_hint')}</div>
-        )}
-        {notifSupported && !subscribed && permission !== 'denied' && (
-          <>
-            <button style={{ ...s.submitBtn, marginBottom: 12 }} onClick={async () => {
-              const result = await subscribe();
-              setSubscribeMsg(result.ok ? t('notifications_enabled_toast') : (result.error || ''));
-            }}>{t('enable_notifications')}</button>
-            {subscribeMsg && (
-              <div style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, fontSize: 12, color: COLORS.textMuted, marginBottom: 8, lineHeight: 1.5 }}>
-                <span>{subscribeMsg}</span>
-                <button onClick={() => setSubscribeMsg('')} style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', color: COLORS.textDim, flexShrink: 0 }} aria-label={t('close')}>
-                  <CrossIcon size={14} />
-                </button>
-              </div>
-            )}
-          </>
-        )}
-        {Object.entries(CATEGORIES).map(([key, c]) => (
-          <div key={key} style={{ ...s.adminCard, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 13 }}>{catLabel(key)}</span>
-            <Switch checked={!!notifs[key]} onChange={() => toggleNotif(key)} label={catLabel(key)} />
-          </div>
-        ))}
-      </div>
-
-      <div style={s.sectionLabel}>{t('language')}</div>
-      <div style={{ padding: '0 12px' }}>
-        <div style={s.adminCard}>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {[['nl', 'Nederlands'], ['en', 'English']].map(([code, label]) => (
-              <button key={code} type="button" aria-pressed={lang === code} onClick={() => switchLang(code)}
-                style={{ flex: 1, textAlign: 'center', padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: lang === code ? 700 : 400, background: lang === code ? COLORS.accent : 'none', color: lang === code ? '#000' : COLORS.textMuted, cursor: 'pointer', border: 'none' }}>{label}</button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div style={s.sectionLabel}>{t('terms_title')}</div>
-      <div style={{ padding: '0 12px' }}>
-        <div style={{ ...s.adminCard, fontSize: 12, color: COLORS.textMuted, lineHeight: 1.7 }}>
-          {t('terms_body').map(item => <div key={item} style={{ padding: '3px 0' }}>{item}</div>)}
-        </div>
-      </div>
-
-      <div style={s.sectionLabel}>{t('privacy_title')}</div>
-      <div style={{ padding: '0 12px' }}>
-        <div style={{ ...s.adminCard, fontSize: 12, color: COLORS.textMuted, lineHeight: 1.7 }}>
-          <div style={{ fontWeight: 700, color: COLORS.text, marginBottom: 8 }}>{t('privacy_intro')}</div>
-          {t('privacy_body').map(item => <div key={item} style={{ padding: '3px 0' }}>{item}</div>)}
-        </div>
-      </div>
-
-      <div style={{ padding: '0 12px' }}>
-        <button style={{ ...s.cancelBtn, marginTop: 4 }} onClick={onLogout}>{t('logout')}</button>
-      </div>
-    </div>
-  );
-}
-
-// ─── STREETS VIEW ──────────────────────────────────────────────────────────────
-
 // ─── HALL OF FAME ──────────────────────────────────────────────────────────────
 
 function HallOfFameView({ streetId, onError }) {
@@ -464,35 +234,6 @@ function HallOfFameView({ streetId, onError }) {
         ))}
       </div>
     </div>
-  );
-}
-
-function StreetsView({ user, onError }) {
-  const [streets, setStreets] = useState([]);
-
-  useEffect(() => {
-    api.get('/streets').then(setStreets).catch(e => onError(e.message || t('generic_error')));
-  }, [onError]);
-
-  return (
-    <>
-      {streets.filter(s => s.status === 'approved').map(st => (
-        <div key={st.id} style={s.streetCard}>
-          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{st.name}</div>
-          <div style={{ fontSize: 12, color: COLORS.textMuted, display: 'flex', gap: 12 }}>
-            <span>{st.households} {t('households')}</span>
-            <span>{st.members} {t('members')}</span>
-          </div>
-          <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
-            {st.role === 'admin' && <span style={s.badge(COLORS.accent)}>{t('admin_short')}</span>}
-            {st.role === 'moderator' && <span style={s.badge(COLORS.purple)}>{t('moderator_short')}</span>}
-          </div>
-        </div>
-      ))}
-      <div style={{ ...s.streetCard, opacity: 0.5 }}>
-        <div style={{ fontSize: 13, color: COLORS.textMuted }}>{t('request_street')}</div>
-      </div>
-    </>
   );
 }
 
@@ -749,8 +490,8 @@ export default function App() {
           </button>
           <button
             style={s.headerIconBtn(tab === 'profile')}
-            title="Profiel"
-            aria-label="Profiel"
+            title={t('nav_account')}
+            aria-label={t('nav_account')}
             onClick={() => setTab('profile')}
           >
             <PersonIcon size={20} />
@@ -794,7 +535,7 @@ export default function App() {
 
       {tab === 'hof' && <HallOfFameView streetId={STREET_ID} onError={showError} />}
       {tab === 'profile' && (
-        <ProfileView user={user} onLogout={logout} canModerate={canModerate} streetId={STREET_ID}
+        <AccountPage user={user} onLogout={logout} canModerate={canModerate} streetId={STREET_ID}
           streetName={streetInfo?.name} memberCount={streetInfo?.members || 0} households={streetInfo?.households || 0} onError={showError} />
       )}
 

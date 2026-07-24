@@ -475,7 +475,10 @@ export default function OnboardingPage() {
         {legalSheet && (
           <LegalSheet
             titleKey={legalSheet === 'terms' ? 'terms_title' : 'privacy_title'}
-            bodyKey={legalSheet === 'terms' ? 'terms_body' : 'privacy_body'}
+            introKey={legalSheet === 'terms' ? 'terms_intro' : 'privacy_intro'}
+            sectionsKey={legalSheet === 'terms' ? 'terms_sections' : 'privacy_sections'}
+            contactCtaKey={legalSheet === 'privacy' ? 'privacy_contact_cta' : undefined}
+            streetName={validatedAddress?.streetName}
             onClose={() => setLegalSheet(null)}
           />
         )}

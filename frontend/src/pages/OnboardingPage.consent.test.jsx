@@ -119,12 +119,12 @@ describe('FRE-234 verification: onboarding consent checkbox', () => {
 
     // Preview both documents before agreeing
     fireEvent.click(screen.getByRole('button', { name: 'Voorwaarden' }));
-    expect(await screen.findByText(/besloten platform/)).toBeInTheDocument();
+    expect(await screen.findByText(/besloten buurtplatform/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Sluiten' }));
-    await waitFor(() => expect(screen.queryByText(/besloten platform/)).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText(/besloten buurtplatform/)).not.toBeInTheDocument());
 
     fireEvent.click(screen.getByRole('button', { name: 'Privacybeleid' }));
-    expect(await screen.findByText(/AVG-verwerkingsverantwoordelijke/)).toBeInTheDocument();
+    expect(await screen.findByText(/zorgvuldig om met jouw gegevens/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Sluiten' }));
 
     // Still disabled — checkbox not checked yet
