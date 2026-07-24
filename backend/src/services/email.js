@@ -173,26 +173,58 @@ export async function sendMagicLink(email, name, token) {
 // Verstuurd zodra een straat-admin een aanvraag goedkeurt — de bewoner heeft
 // op dat moment vaak geen actieve sessie meer open (PendingPage doet niet aan
 // polling), dus e-mail is het enige betrouwbare kanaal om dit te melden.
+// Rebuilt on the same emailDocument() wrapper/structure as sendMagicLink
+// (dark mode support, table-based button) — the two are the only
+// transactional emails in the app and should look and behave alike.
 export async function sendApprovalEmail(email, name) {
   const url = process.env.APP_URL;
-  const html = `
-    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-      <h2 style="margin:0 0 16px">
-        <span style="color:#1C1A18">Street</span><span style="color:#FF0066">feed</span>
-      </h2>
-      <p>Hoi ${name || 'bewoner'},</p>
-      <p>Goed nieuws — je aanvraag voor Streetfeed is goedgekeurd. Je hebt nu toegang tot de buurtfeed.</p>
-      <a href="${url}" style="text-decoration:none">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:16px 0">
-          <tr>
-            <td bgcolor="#FF0066" style="background:#FF0066;border-radius:10px;padding:14px 28px" align="center">
-              <font color="#ffffff" face="sans-serif"><b style="color:#ffffff;font-weight:700;font-size:15px;text-decoration:none">Open Streetfeed →</b></font>
-            </td>
-          </tr>
-        </table>
-      </a>
-    </div>
-  `;
+  const safeName = escapeHtml(name || 'bewoner');
+  const bodyHtml = `
+      <div style="margin:0 0 24px">
+        <span class="sf-logo-street" style="font-size:24px;font-weight:800;color:#1C1A18">Street</span><span style="font-size:24px;font-weight:800;color:#FF0066">feed</span>
+      </div>
+      <div class="sf-text" style="color:#1C1A18;font-size:16px;line-height:24px;margin:0 0 24px">
+        <p style="margin:0 0 8px">Hoi ${safeName},</p>
+        <p style="margin:0">Goed nieuws — je aanvraag voor Streetfeed is goedgekeurd. Je hebt nu toegang tot de buurtfeed.</p>
+      </div>
+      <div style="margin:0 0 24px">
+        <a href="${url}" style="text-decoration:none">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">
+            <tr>
+              <td bgcolor="#FF0066" style="background:#FF0066;border-radius:999px;padding:14px 28px" align="center">
+                <font color="#ffffff" face="${EMAIL_FONT_STACK}"><b style="color:#ffffff;font-weight:500;font-size:16px;text-decoration:none">Open Streetfeed</b></font>
+              </td>
+            </tr>
+          </table>
+        </a>
+      </div>
+      <div class="sf-text" style="color:#1C1A18;font-size:12px;line-height:18px;margin:0 0 24px">
+        Werkt de knop niet? Gebruik dan deze link:<br />
+        <a href="${url}" class="sf-link" style="color:#7692CD;text-decoration:underline;word-break:break-all">${url}</a>
+      </div>
+      <div class="sf-callout" style="background:rgba(108,104,96,0.05);border-radius:20px;padding:16px;margin:0 0 24px">
+        <div class="sf-text" style="color:#1C1A18;font-size:12px;line-height:18px">
+          <p style="margin:0 0 8px"><strong>Gebruik je een iPhone?</strong><br />Pushmeldingen werken op iOS alleen als Streetfeed aan je beginscherm is toegevoegd.</p>
+          <ol style="margin:0 0 8px;padding-left:18px">
+            <li>Open Streetfeed.nl in Safari.</li>
+            <li>Tik op het deel-icoon.</li>
+            <li>Kies '<strong>Zet op beginscherm</strong>'.</li>
+          </ol>
+          <p style="margin:0 0 8px"><strong>Gebruik je een Android-toestel?</strong><br />Voeg Streetfeed toe aan je startscherm voor de snelste toegang.</p>
+          <ol style="margin:0;padding-left:18px">
+            <li>Open Streetfeed.nl in Chrome.</li>
+            <li>Tik op het menu (⋮)</li>
+            <li>Kies '<strong>Toevoegen aan startscherm</strong>'. Zie je 'App installeren'? Kies dan die optie.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="sf-footer" style="color:#1C1A18;font-size:10px">
+        Als jij deze aanvraag niet hebt gedaan, kun je dit bericht als niet verzonden beschouwen en negeren.
+      </div>`;
 
-  await sendEmail({ to: email, subject: 'Je aanvraag is goedgekeurd — welkom bij Streetfeed', html });
+  await sendEmail({
+    to: email,
+    subject: 'Je aanvraag is goedgekeurd — welkom bij Streetfeed',
+    html: emailDocument({ title: 'Streetfeed', bodyHtml }),
+  });
 }
