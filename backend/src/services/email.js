@@ -129,8 +129,14 @@ export async function sendMagicLink(email, name, token) {
         <p style="margin:0">Klik op de knop hieronder om in te loggen op Streetfeed. De link is <strong>15 minuten geldig</strong>.</p>
       </div>
       <div style="margin:0 0 24px">
-        <a href="${url}" style="display:inline-block;background:#FF0066;color:#ffffff;font-weight:500;font-size:16px;padding:14px 28px;border-radius:999px;text-decoration:none">
-          <font color="#ffffff"><span style="color:#ffffff">Inloggen op Streetfeed</span></font>
+        <a href="${url}" style="text-decoration:none">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">
+            <tr>
+              <td bgcolor="#FF0066" style="background:#FF0066;border-radius:999px;padding:14px 28px" align="center">
+                <font color="#ffffff" face="${EMAIL_FONT_STACK}"><b style="color:#ffffff;font-weight:500;font-size:16px;text-decoration:none">Inloggen op Streetfeed</b></font>
+              </td>
+            </tr>
+          </table>
         </a>
       </div>
       <div class="sf-text" style="color:#1C1A18;font-size:12px;line-height:18px;margin:0 0 24px">
@@ -176,8 +182,14 @@ export async function sendApprovalEmail(email, name) {
       </h2>
       <p>Hoi ${name || 'bewoner'},</p>
       <p>Goed nieuws — je aanvraag voor Streetfeed is goedgekeurd. Je hebt nu toegang tot de buurtfeed.</p>
-      <a href="${url}" style="display:inline-block;background:#FF0066;color:#ffffff;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;margin:16px 0">
-        <font color="#ffffff"><span style="color:#ffffff">Open Streetfeed →</span></font>
+      <a href="${url}" style="text-decoration:none">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:16px 0">
+          <tr>
+            <td bgcolor="#FF0066" style="background:#FF0066;border-radius:10px;padding:14px 28px" align="center">
+              <font color="#ffffff" face="sans-serif"><b style="color:#ffffff;font-weight:700;font-size:15px;text-decoration:none">Open Streetfeed →</b></font>
+            </td>
+          </tr>
+        </table>
       </a>
     </div>
   `;
