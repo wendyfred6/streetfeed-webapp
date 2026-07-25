@@ -52,11 +52,25 @@ export const s = {
   filterBar: { display: 'flex', gap: 6, padding: '12px 20px', overflowX: 'auto', scrollbarWidth: 'none' },
   filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : 'rgba(255,255,255,0.55)', color: active ? COLORS.textInverse : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
   bottomBar: { position: 'fixed', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 28px)', maxWidth: 374, display: 'flex', alignItems: 'center', zIndex: 50 },
-  tabBar: { ...GLASS.header, border: '1px solid rgba(255,255,255,0.55)', borderRadius: RADIUS.pill, padding: '5px', display: 'flex', flex: '1 1 auto' },
-  tab: (active) => ({ flex: 1, padding: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? ALPHA.accentSubtle : 'none', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', color: active ? COLORS.accent : COLORS.textMuted, transition: 'background 0.15s' }),
+  // FloatingNavigation (Figma node 516:10417, 2026-07-25): same translucent-
+  // dark/80%-opacity treatment as the Account page's language segmented
+  // control, not the old frosted-glass-card look. FAB stays a separate,
+  // independently-sized component (postCta below) — visually balanced next
+  // to this, not technically coupled.
+  tabBar: { background: 'rgba(28,26,24,0.1)', opacity: 0.8, borderRadius: RADIUS.pill, padding: 2, display: 'flex', flex: '1 1 auto', boxSizing: 'border-box' },
+  // Icon + label stacked (Figma: Icon+Label column, no visible gap between
+  // them). Active = solid text/primary pill with inverse (white) content;
+  // inactive = transparent with text/primary content — no more accent-pink
+  // tinting on this component.
+  tab: (active) => ({ flex: 1, height: 52, padding: '4px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: active ? COLORS.text : 'none', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', color: active ? COLORS.textInverse : COLORS.text, boxSizing: 'border-box', transition: 'background 0.15s' }),
+  tabLabel: { fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' },
+  // FAB diameter 56px (2026-07-25, up from 54) — kept independent from
+  // FloatingNavigation's own sizing per explicit direction, just visually
+  // balanced against it (both centered on the same row via bottomBar's
+  // alignItems:center).
   postCta: (visible) => ({
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    width: visible ? 54 : 0, height: 54, marginLeft: visible ? 10 : 0,
+    width: visible ? 56 : 0, height: 56, marginLeft: visible ? 10 : 0,
     background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill,
     cursor: 'pointer', flexShrink: 0, overflow: 'hidden',
     opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(0.4)',

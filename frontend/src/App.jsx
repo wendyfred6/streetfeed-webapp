@@ -20,7 +20,7 @@ import { timeAgo } from './utils/time.js';
 import { formatEventDate, downloadICS, googleCalendarUrl } from './utils/eventDate.js';
 
 // Phosphor Icons — subpath imports per icoon i.p.v. de barrel, voor kleinere bundle
-import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
+import { ReceiptIcon } from '@phosphor-icons/react/dist/csr/Receipt';
 import { TrophyIcon } from '@phosphor-icons/react/dist/csr/Trophy';
 // Custom Streetfeed Icon System icons (see src/icons/index.jsx)
 import { PersonIcon, BellIcon, PlusIcon } from './icons/index.jsx';
@@ -548,14 +548,15 @@ export default function App() {
       <div style={s.bottomBar}>
         <div style={s.tabBar}>
           {[
-            { id: 'feed', label: t('feed'), icon: HouseIcon },
+            { id: 'feed', label: t('feed'), icon: ReceiptIcon },
             { id: 'hof', label: t('hall_of_fame_title'), icon: TrophyIcon },
           ].map(tab_ => {
             const active = tab === tab_.id;
             const TabIcon = tab_.icon;
             return (
               <button key={tab_.id} style={s.tab(active)} onClick={() => setTab(tab_.id)} aria-label={tab_.label} title={tab_.label}>
-                <TabIcon size={20} weight={active ? 'bold' : 'regular'} />
+                <TabIcon size={24} weight={active ? 'bold' : 'regular'} />
+                <span style={s.tabLabel}>{tab_.label}</span>
               </button>
             );
           })}
