@@ -43,7 +43,10 @@ const s = {
   // het gedeelde FieldLabel-component — zie fieldStyles.js).
   stepLabel: { ...FIELD_LABEL, textTransform: 'uppercase' },
   titleGroup: { display: 'flex', flexDirection: 'column', gap: 16 },
-  title: { fontSize: 24, fontWeight: 700, color: COLORS.text, lineHeight: '28px' },
+  // outline: 'none' — dit element krijgt alleen focus programmatisch (zie
+  // titleRef hieronder) om schermlezers de stap te laten aankondigen, niet
+  // voor zichtbare toetsenbordnavigatie.
+  title: { fontSize: 24, fontWeight: 700, color: COLORS.text, lineHeight: '28px', outline: 'none' },
   sub: { fontSize: 16, color: COLORS.textMuted, lineHeight: '24px' },
   form: { display: 'flex', flexDirection: 'column', gap: 32 },
   fieldGroup: FIELD_GROUP,

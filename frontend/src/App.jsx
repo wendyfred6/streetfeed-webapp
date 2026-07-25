@@ -20,8 +20,7 @@ import { timeAgo } from './utils/time.js';
 import { formatEventDate, downloadICS, googleCalendarUrl } from './utils/eventDate.js';
 
 // Phosphor Icons — subpath imports per icoon i.p.v. de barrel, voor kleinere bundle
-// HouseIcon (Feed's tab icon) is unused while the bottom tab bar is hidden
-// (FRE-407) — re-add it alongside restoring that block once Hall of Fame ships.
+import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
 import { TrophyIcon } from '@phosphor-icons/react/dist/csr/Trophy';
 // Custom Streetfeed Icon System icons (see src/icons/index.jsx)
 import { PersonIcon, BellIcon, PlusIcon } from './icons/index.jsx';
@@ -185,6 +184,12 @@ function NotificationInboxSheet({ onClose, onOpenPost, onError }) {
 
 // ─── HALL OF FAME ──────────────────────────────────────────────────────────────
 
+// FRE-403/FRE-407: category keys only, no labels — the backend deliberately
+// stopped supplying display text (titles are still placeholders and may
+// change), so wording lives here in i18n instead, matching Wendy's own
+// category list (Package Hero / Lost & Found / Event Organizer / Posts).
+const HOF_CATEGORIES = ['package_hero', 'lost_and_found', 'event_organizer', 'posts'];
+
 function HallOfFameView({ streetId, onError }) {
   const [data, setData] = useState(null);
 
@@ -194,43 +199,38 @@ function HallOfFameView({ streetId, onError }) {
 
   if (!data) return <div style={s.feed}><div style={s.emptyState}>{t('loading')}</div></div>;
 
-  // title.label comes from the backend (/streets/:id/hall-of-fame) — the
-  // backend has no locale awareness at all (frontend-only i18n), so these
-  // specific labels can't follow the language switch yet. Out of scope for
-  // FRE-339 (frontend sweep); would need the API to accept/return a locale.
-  const monthStats = [
-    { label: t('stat_packages_delivered'), value: data.thisMonth.packagesDelivered },
-    { label: t('stat_items_lent'), value: data.thisMonth.itemsLent },
-    { label: t('stat_events_organized'), value: data.thisMonth.eventsOrganized },
-    { label: t('stat_recommendations_posted'), value: data.thisMonth.recommendationsPosted },
-  ];
+  // { titles: [{ key, winner }], personal: { [key]: { week, month, year, allTime } } }
+  const titleByKey = Object.fromEntries((data.titles || []).map(ti => [ti.key, ti]));
 
   return (
     <div style={s.feed}>
       <div style={s.sectionLabel}>{t('hall_of_fame_title')}</div>
-      {data.titles.map(title => (
-        <div key={title.key} style={{ ...s.streetCard, cursor: 'default', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <TrophyIcon size={26} weight="duotone" color={COLORS.accent} style={{ flexShrink: 0 }} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: COLORS.textMuted }}>{title.label}</div>
-            {title.winner ? (
-              <div style={{ fontSize: 16, fontWeight: 800, color: COLORS.text, marginTop: 2 }}>
-                {title.winner.name} {title.winner.houseNumber}
-                <span style={{ fontSize: 13, fontWeight: 400, color: COLORS.textMuted }}> · {title.winner.count}x</span>
-              </div>
-            ) : (
-              <div style={{ fontSize: 14, color: COLORS.textDim, marginTop: 2 }}>{t('hall_of_fame_no_winner')}</div>
-            )}
+      {HOF_CATEGORIES.map(key => {
+        const winner = titleByKey[key]?.winner;
+        return (
+          <div key={key} style={{ ...s.streetCard, cursor: 'default', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <TrophyIcon size={26} weight="duotone" color={COLORS.accent} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: COLORS.textMuted }}>{t(`hof_category_${key}`)}</div>
+              {winner ? (
+                <div style={{ fontSize: 16, fontWeight: 800, color: COLORS.text, marginTop: 2 }}>
+                  {winner.name} {winner.houseNumber}
+                  <span style={{ fontSize: 13, fontWeight: 400, color: COLORS.textMuted }}> · {winner.count}x</span>
+                </div>
+              ) : (
+                <div style={{ fontSize: 14, color: COLORS.textDim, marginTop: 2 }}>{t('hall_of_fame_no_winner')}</div>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <div style={s.sectionLabel}>{t('hall_of_fame_this_month')}</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 12px' }}>
-        {monthStats.map(stat => (
-          <div key={stat.label} style={{ ...s.streetCard, margin: 0, cursor: 'default', textAlign: 'center' }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: COLORS.accent }}>{stat.value}</div>
-            <div style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 2 }}>{stat.label}</div>
+        {HOF_CATEGORIES.map(key => (
+          <div key={key} style={{ ...s.streetCard, margin: 0, cursor: 'default', textAlign: 'center' }}>
+            <div style={{ fontSize: 24, fontWeight: 800, color: COLORS.accent }}>{data.personal?.[key]?.month ?? 0}</div>
+            <div style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 2 }}>{t(`hof_category_${key}`)}</div>
           </div>
         ))}
       </div>
@@ -476,13 +476,7 @@ export default function App() {
       <Toast toast={toast} onDismiss={dismissToast} />
 
       <div style={s.header}>
-        {/* FRE-407: with the bottom tab bar hidden (see below), tapping the
-            logo is now the only way back to Feed from Account — the
-            standard "tap the brand mark to go home" pattern, so this isn't
-            a dead end once Hall of Fame's tab is gone. */}
-        <button type="button" onClick={() => setTab('feed')} style={{ ...s.logo, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }} aria-label={t('feed')}>
-          Street<span style={s.accent}>feed</span>
-        </button>
+        <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
         <div style={s.headerActions}>
           <button
             style={{ ...s.headerIconBtn(showNotifInbox), position: 'relative' }}
@@ -542,19 +536,26 @@ export default function App() {
 
       {tab === 'hof' && <HallOfFameView streetId={STREET_ID} onError={showError} />}
       {tab === 'profile' && (
-        <AccountPage user={user} onLogout={logout} onBack={() => setTab('feed')} canModerate={canModerate} streetId={STREET_ID}
+        <AccountPage user={user} onLogout={logout} canModerate={canModerate} streetId={STREET_ID}
           streetName={streetInfo?.name} memberCount={streetInfo?.members || 0} households={streetInfo?.households || 0} onError={showError} />
       )}
 
-      {/* FRE-407: the Feed/Hall of Fame tab switcher is temporarily hidden —
-          Hall of Fame's frontend is broken against the FRE-403 backend shape
-          and its redesign is paused pending Figma, and a tab bar with only
-          one working destination (Feed) doesn't make sense on its own. `tab`
-          still defaults to 'feed' with no other UI able to change it, so
-          this is purely a navigation hide — HallOfFameView itself is
-          untouched and simply unreachable in the meantime. Restore the
-          tabBar block below once Hall of Fame's real design ships. */}
-      <div style={{ ...s.bottomBar, justifyContent: 'center' }}>
+      <div style={s.bottomBar}>
+        <div style={s.tabBar}>
+          {[
+            { id: 'feed', label: t('feed'), icon: HouseIcon },
+            { id: 'hof', label: t('hall_of_fame_title'), icon: TrophyIcon },
+          ].map(tab_ => {
+            const active = tab === tab_.id;
+            const TabIcon = tab_.icon;
+            return (
+              <button key={tab_.id} style={s.tab(active)} onClick={() => setTab(tab_.id)} aria-label={tab_.label} title={tab_.label}>
+                <TabIcon size={20} weight={active ? 'bold' : 'regular'} />
+              </button>
+            );
+          })}
+        </div>
+
         <button style={s.postCta(tab === 'feed')} onClick={() => setShowCatPicker(true)} aria-label="Bericht plaatsen" title="Bericht plaatsen" tabIndex={tab === 'feed' ? 0 : -1}>
           <PlusIcon size={22} style={{ flexShrink: 0 }} />
         </button>
