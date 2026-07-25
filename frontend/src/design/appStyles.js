@@ -52,12 +52,13 @@ export const s = {
   filterBar: { display: 'flex', gap: 6, padding: '12px 20px', overflowX: 'auto', scrollbarWidth: 'none' },
   filterChip: (active) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: active ? COLORS.accent : 'rgba(255,255,255,0.55)', color: active ? COLORS.textInverse : COLORS.textMuted, border: `1px solid ${active ? COLORS.accent : 'rgba(255,255,255,0.60)'}`, borderRadius: RADIUS.pill, padding: '5px 12px', fontSize: 13, fontWeight: active ? 700 : 400, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }),
   bottomBar: { position: 'fixed', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', width: 'calc(100% - 28px)', maxWidth: 374, display: 'flex', alignItems: 'center', zIndex: 50 },
-  // FloatingNavigation (Figma node 516:10417, 2026-07-25): same translucent-
-  // dark/80%-opacity treatment as the Account page's language segmented
-  // control, not the old frosted-glass-card look. FAB stays a separate,
-  // independently-sized component (postCta below) — visually balanced next
-  // to this, not technically coupled.
-  tabBar: { background: 'rgba(28,26,24,0.1)', opacity: 0.8, borderRadius: RADIUS.pill, padding: 2, display: 'flex', flex: '1 1 auto', boxSizing: 'border-box' },
+  // FloatingNavigation (Figma node 516:10417, re-verified 2026-07-25): flat
+  // mid-grey #909090 fill at 80% frame opacity — not the frosted-glass-card
+  // look, and not the Account page segmented control's dark rgba tint
+  // either (a distinct Figma component, confirmed by re-checking colors
+  // directly). FAB stays a separate, independently-sized component (postCta
+  // below) — visually balanced next to this, not technically coupled.
+  tabBar: { background: '#909090', opacity: 0.8, borderRadius: RADIUS.pill, padding: 2, display: 'flex', flex: '1 1 auto', boxSizing: 'border-box' },
   // Icon + label stacked (Figma: Icon+Label column, no visible gap between
   // them). Active = solid text/primary pill with inverse (white) content;
   // inactive = transparent with text/primary content — no more accent-pink
