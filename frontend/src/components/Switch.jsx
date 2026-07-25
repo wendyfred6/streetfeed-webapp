@@ -2,13 +2,14 @@ import { COLORS } from '../design/tokens.js';
 
 // `knobW`/`knobH` are separate (not a single `knob` size) so a track can
 // hold a non-circular, pill-shaped knob — needed by the Account page's
-// notification toggles (Figma, revised 2026-07-25: 92x40 track, 56x36 knob,
-// 2px padding — bigger and chunkier than the previous 48x24/24x16 pass),
-// which existing `sm`/`lg` (circular knob) couldn't represent.
+// notification toggles (Figma, revised 2026-07-25 then scaled back down
+// 2026-07-25: 76x32 track, 48x28 knob, 2px padding — the 92x40/56x36 pass
+// felt too large/visually dominant), which existing `sm`/`lg` (circular
+// knob) couldn't represent.
 const SIZES = {
   sm: { w: 36, h: 20, knobW: 14, knobH: 14, pad: 3 },
   lg: { w: 44, h: 26, knobW: 20, knobH: 20, pad: 3 },
-  md: { w: 92, h: 40, knobW: 56, knobH: 36, pad: 2 },
+  md: { w: 76, h: 32, knobW: 48, knobH: 28, pad: 2 },
 };
 
 export default function Switch({
