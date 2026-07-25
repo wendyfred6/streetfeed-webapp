@@ -225,7 +225,7 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
             <div style={s.category}>{catLabel(post.category)}</div>
             <Chevron size={24} rotate={expanded ? 180 : 0} style={{ flexShrink: 0 }} />
           </div>
-          <div style={{ ...s.title, marginTop: 2 }}>{post.title}</div>
+          <div style={s.title}>{post.title}</div>
         </div>
         {badgeSegments && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -346,27 +346,30 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
 
           <div style={s.divider} />
 
-          {/* ActionBar (Figma node 443:23582, 2026-07-25): fixed 48px row,
-              Likes + Comments left, owner actions (Edit/Delete) right — all
-              icons 24px. Edit/Delete keep their existing 40x40 tap targets
-              (wider than Figma's literal 12px group gap, deliberately — per
-              the explicit "prevent accidental taps" requirement, 2026-07-19)
-              rather than icon-sized-only buttons sitting edge to edge. Delete
-              stays visually neutral (textDim, same as Edit) even though it's
-              destructive — actual confirmation happens through
-              ConfirmationSheet (App.jsx's deleteConfirm), not through
-              in-bar warning styling. */}
+          {/* ActionBar (Figma node 443:23582, revised 2026-07-25): fixed 48px
+              row, Likes + Comments left, owner actions (Edit/Delete) right —
+              all icons 24px. Every icon and number here always uses
+              Text/Secondary (COLORS.textMuted), in every state — liked,
+              reported, hover, pressed — per explicit design direction; a
+              state can still change shape (heart fill vs outline) or label
+              text (report -> reported), just never color. Edit/Delete keep
+              their existing 40x40 tap targets (wider than Figma's literal
+              12px group gap, deliberately — per the explicit "prevent
+              accidental taps" requirement, 2026-07-19) rather than
+              icon-sized-only buttons sitting edge to edge. Actual delete
+              confirmation happens through ConfirmationSheet (App.jsx's
+              deleteConfirm), not through in-bar warning styling. */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 48, width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <button
-                style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: post.liked ? COLORS.interactionLike : COLORS.textDim }}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textMuted }}
                 onClick={e => { e.stopPropagation(); onLike(post.id); }}
                 aria-label={t('like')}
               >
                 <HeartIcon size={24} weight={post.liked ? 'fill' : 'regular'} style={{ display: 'block', flexShrink: 0 }} />
                 <span style={{ fontSize: 16, color: COLORS.textMuted }}>{Number(post.likes)}</span>
               </button>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: COLORS.textDim }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: COLORS.textMuted }}>
                 <ChatCircleIcon size={24} weight="regular" style={{ display: 'block', flexShrink: 0 }} />
                 <span style={{ fontSize: 16, color: COLORS.textMuted }}>{commentCount}</span>
               </div>
@@ -374,7 +377,7 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               {canEdit && (
                 <button
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textDim }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textMuted }}
                   onClick={e => { e.stopPropagation(); onEdit(post); }} title={t('edit')} aria-label={t('edit')}
                 >
                   <PencilSimpleIcon size={24} weight="regular" />
@@ -382,13 +385,13 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
               )}
               {canEdit ? (
                 <button
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textDim }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.textMuted }}
                   onClick={e => { e.stopPropagation(); onDelete(post.id); }} title={t('delete')} aria-label={t('delete')}
                 >
                   <TrashIcon size={24} weight="regular" />
                 </button>
               ) : (
-                <button style={{ background: 'none', border: 'none', padding: 0, fontSize: 13, cursor: 'pointer', color: post.reported ? COLORS.error : COLORS.textDim }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('report')}>
+                <button style={{ background: 'none', border: 'none', padding: 0, fontSize: 13, cursor: 'pointer', color: COLORS.textMuted }} onClick={e => { e.stopPropagation(); onReport(post.id); }} title={t('report')}>
                   {post.reported ? t('reported_label') : t('report')}
                 </button>
               )}

@@ -28,8 +28,6 @@ export default {
   admin: 'Admin',
   settings: 'Settings',
   all: 'All',
-  pinned: 'Pinned',
-  recent: 'Recent posts',
   new_post: 'New post',
   category: 'Category',
   title: 'Title',

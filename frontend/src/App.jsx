@@ -489,7 +489,7 @@ export default function App() {
             aria-label="Notificaties"
             onClick={() => setShowNotifInbox(true)}
           >
-            <BellIcon size={20} filled={unreadCount > 0} />
+            <BellIcon size={24} filled={unreadCount > 0} />
             {unreadCount > 0 && (
               <span style={{ position: 'absolute', top: 2, right: 2, width: 9, height: 9, borderRadius: '50%', background: COLORS.interactionNotification, border: `1.5px solid ${COLORS.surface}` }} />
             )}
@@ -500,7 +500,7 @@ export default function App() {
             aria-label={t('nav_account')}
             onClick={() => setTab('profile')}
           >
-            <PersonIcon size={20} />
+            <PersonIcon size={24} />
           </button>
         </div>
       </div>
@@ -527,10 +527,8 @@ export default function App() {
             ? <div style={s.emptyState}>{t('loading')}</div>
             : <>
               {pinnedPosts.length > 0 && (
-                <><div style={s.sectionLabel}>{t('pinned')}</div>
-                {pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onDelete={handleDeleteClick} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} onError={showError} />)}</>
+                pinnedPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onDelete={handleDeleteClick} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} onError={showError} />)
               )}
-              <div style={s.sectionLabel}>{t('recent')}</div>
               {regularPosts.length === 0
                 ? <div style={s.emptyState}>{t('no_posts')}</div>
                 : regularPosts.map(p => <PostCard key={p.id} post={p} onLike={handleLike} onRsvp={handleRsvp} onOpenEvent={setEventDetail} onReport={handleReport} onDelete={handleDeleteClick} onOpenJoin={setJoinDetail} canModerate={canModerate} onEdit={setEditPost} canEdit={(p.user_id === user?.id) || canModerate} autoExpand={p.id === deepLinkPostId} onError={showError} />)}

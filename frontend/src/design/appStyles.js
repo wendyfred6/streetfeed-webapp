@@ -5,12 +5,13 @@
 import { COLORS, RADIUS, ALPHA, GLASS } from './tokens.js';
 import { CATEGORIES } from '../utils/categories.js';
 
-// Header's own content row (logo + the 36px icon buttons) is 16px of top/
-// bottom padding around a 36px-tall row — kept as named numbers, not just
-// inlined into the calc() strings below, so `header` and `headerSpacer`
-// can't drift apart if this ever changes.
+// Header's own content row (logo + the 40px icon buttons, Figma Feed
+// redesign node 298:984) is 16px of top/bottom padding around a 40px-tall
+// row — kept as named numbers, not just inlined into the calc() strings
+// below, so `header` and `headerSpacer` can't drift apart if this ever
+// changes.
 const HEADER_PAD_Y = 16;
-const HEADER_CONTENT_HEIGHT = 36;
+const HEADER_CONTENT_HEIGHT = 40;
 const HEADER_HEIGHT = `calc(${HEADER_PAD_Y * 2 + HEADER_CONTENT_HEIGHT}px + env(safe-area-inset-top))`;
 
 export const s = {
@@ -23,15 +24,21 @@ export const s = {
   // refined per Figma/UX request — content must start below the header on
   // load, but may pass behind it once scrolled). `headerSpacer` below is the
   // matching reserved space for the content that follows.
-  header: { ...GLASS.header, borderBottom: '1px solid rgba(255,255,255,0.3)', padding: `calc(${HEADER_PAD_Y}px + env(safe-area-inset-top)) 20px ${HEADER_PAD_Y}px`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 390, zIndex: 50 },
+  // Figma Feed redesign (node 298:984, 2026-07-25): translucent bg lightened
+  // to 60% white, hard-line bottom border replaced with a soft drop shadow.
+  header: { ...GLASS.header, background: 'rgba(255,255,255,0.6)', boxShadow: '0px 2px 4px rgba(0,0,0,0.05)', padding: `calc(${HEADER_PAD_Y}px + env(safe-area-inset-top)) 20px ${HEADER_PAD_Y}px`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 390, zIndex: 50 },
   // Unconditional spacer rendered once, right after the header, ahead of
   // every tab's content — since the header is now `fixed` (out of flow),
   // this is what keeps content from appearing underneath/above it on load.
   headerSpacer: { height: HEADER_HEIGHT, flexShrink: 0 },
   logo: { fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px' },
   accent: { color: COLORS.accent },
-  headerActions: { display: 'flex', alignItems: 'center', gap: 4 },
-  headerIconBtn: (active) => ({ width: 36, height: 36, background: active ? ALPHA.accentSubtle : 'rgba(0,0,0,0.05)', border: 'none', borderRadius: RADIUS.pill, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? COLORS.accent : COLORS.textMuted }),
+  headerActions: { display: 'flex', alignItems: 'center', gap: 8 },
+  // Inactive is now a plain border (no fill) per Figma; active keeps its
+  // existing accent-tinted fill — Figma's own header only shows the neutral
+  // state, so the "currently open" affordance is preserved as-is rather than
+  // guessed at.
+  headerIconBtn: (active) => ({ width: 40, height: 40, background: active ? ALPHA.accentSubtle : 'transparent', border: active ? 'none' : '1px solid rgba(28,26,24,0.1)', borderRadius: RADIUS.pill, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? COLORS.accent : COLORS.textMuted, boxSizing: 'border-box' }),
   feed: { padding: '0 0 calc(98px + env(safe-area-inset-bottom)) 0' },
   sectionLabel: { fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: COLORS.textMuted, padding: '16px 20px 8px' },
   cardTitle: { fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 },

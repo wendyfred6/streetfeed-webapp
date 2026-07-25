@@ -28,8 +28,6 @@ export default {
   admin: 'Beheer',
   settings: 'Instellingen',
   all: 'Alles',
-  pinned: 'Belangrijk',
-  recent: 'Berichten',
   new_post: 'Bericht plaatsen',
   category: 'Categorie',
   title: 'Titel',
