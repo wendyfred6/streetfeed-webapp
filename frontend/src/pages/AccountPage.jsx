@@ -31,9 +31,11 @@ const card = { background: '#fff', borderRadius: RADIUS.lg, padding: 16, display
 const divider = { height: 0, borderTop: '1px solid rgba(28,26,24,0.08)', width: '100%', flexShrink: 0 };
 const rowLabel = { flex: 1, fontSize: 16, lineHeight: '24px', color: COLORS.text };
 const cardHeading = { fontSize: 16, fontWeight: 700, lineHeight: '20px', color: COLORS.text };
-// Pink-tinted stat boxes for "Jouw straat" — distinct from the shared
-// s.statCard (AdminView's own queue-tab stats, left untouched below).
-const statBox = { flex: 1, background: 'rgba(255,0,102,0.05)', borderRadius: 12, padding: 16, textAlign: 'center' };
+// Surface/Tertiary stat boxes for "Jouw straat" (2026-07-25: switched from
+// the pink-tinted accent surface — supporting elements shouldn't compete
+// with primary cards for attention) — distinct from the shared s.statCard
+// (AdminView's own queue-tab stats, left untouched below).
+const statBox = { flex: 1, background: 'rgba(108,104,96,0.05)', borderRadius: 12, padding: 16, textAlign: 'center' };
 const statNum = { fontSize: 20, fontWeight: 700, lineHeight: '24px', color: COLORS.text };
 const statLabel = { fontSize: 14, lineHeight: '20px', color: COLORS.text };
 
