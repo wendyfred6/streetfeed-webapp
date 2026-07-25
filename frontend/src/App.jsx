@@ -434,6 +434,11 @@ export default function App() {
         joiners: [],
         rsvp: { yes: [], maybe: [], no: [] },
       }, ...ps]);
+      // Scroll after the new post is actually in state, not in the onSubmit
+      // handler that fired this — that ran synchronously, before this await
+      // resolved, so it could race ahead of the post actually landing at the
+      // top of the feed.
+      window.scrollTo({ top: 0, behavior: 'instant' });
     } catch (e) {
       showError(e.message || t('generic_error'));
     }
@@ -575,7 +580,7 @@ export default function App() {
       {showPost && (
         <NewPostSheet onClose={() => setShowPost(false)}
           onBack={() => { setShowPost(false); setTimeout(() => setShowCatPicker(true), 220); }}
-          onSubmit={(data) => { handleNewPost(data); setShowPost(false); window.scrollTo({ top: 0, behavior: 'instant' }); }}
+          onSubmit={(data) => { handleNewPost(data); setShowPost(false); }}
           streetId={STREET_ID} user={user} initialCat={pendingCat} initialType={pendingType} onError={showError} />
       )}
       {showNotifInbox && (
