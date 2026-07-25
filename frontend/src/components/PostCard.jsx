@@ -42,11 +42,11 @@ const s = {
   // text/primary — not the old muted 14px secondary text).
   cardBody: { fontSize: 16, fontWeight: 600, lineHeight: '24px', color: COLORS.text, paddingLeft: 12, borderLeft: `2px solid ${COLORS.accent}` },
   infoBox: { ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px' },
-  // Flat 20px on every corner, every instance (2026-07-25: the earlier
+  // Flat 12px on every corner, every instance (2026-07-25: the earlier
   // asymmetric bottom-right corner on non-last comments was copying an
   // accidental 0px edit in Figma's CommentItem component, not an intentional
   // design — component-level fix, not per-instance).
-  commentItem: { background: 'rgba(108,104,96,0.05)', borderRadius: 20, padding: 16, display: 'flex', flexDirection: 'column', gap: 4 },
+  commentItem: { background: 'rgba(108,104,96,0.05)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 4 },
   commentAuthor: { fontSize: 12, fontWeight: 600, color: COLORS.textDim },
   commentBody: { fontSize: 16, lineHeight: '24px', color: COLORS.text },
   commentTime: { fontSize: 10, fontWeight: 600, color: COLORS.textDim, textAlign: 'right' },
