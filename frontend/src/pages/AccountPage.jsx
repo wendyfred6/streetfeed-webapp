@@ -10,29 +10,32 @@ import Switch from '../components/Switch.jsx';
 import LegalContent from '../components/LegalContent.jsx';
 import { ChevronDownIcon, CrossIcon } from '../icons/index.jsx';
 
-// Figma "Account - Resident View" (node 466:3287, 2026-07-24) only shows
-// these five categories — Melding/Report is excluded here too, matching
-// CategoryPicker (it's no longer creatable in Pilot v1) — not the full
-// CATEGORIES object, which still carries `melding` for legacy post rendering.
+// Figma "Account - Resident View" (node 466:3287, updated 2026-07-25) only
+// shows these five categories — Melding/Report is excluded here too,
+// matching CategoryPicker (it's no longer creatable in Pilot v1) — not the
+// full CATEGORIES object, which still carries `melding` for legacy post
+// rendering.
 const NOTIF_CATEGORIES = ['bezorging', 'straatzaken', 'lostandfound', 'evenement', 'algemeen'];
 
-const card = { background: '#fff', borderRadius: RADIUS.lg, padding: 16 };
-const divider = { height: 0, borderTop: '1px solid rgba(28,26,24,0.08)', width: '100%' };
-const rowLabel = { flex: 1, fontSize: 14, color: COLORS.text };
-
-// Simple generic "no photo" glyph — avatar upload itself is deliberately out
-// of scope for the pilot (FRE-401: upload/crop/replace/remove/onboarding
-// integration is a materially bigger feature than it looks), so this is a
-// static placeholder only, not a real icon-system asset.
-function AvatarPlaceholderIcon({ size = 32, color = COLORS.textDim }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <rect x="3" y="4" width="18" height="16" rx="2" stroke={color} strokeWidth="1.5" />
-      <circle cx="8" cy="9.5" r="1.5" stroke={color} strokeWidth="1.5" />
-      <path d="M3 16L8.5 11.5C9.3 10.8 10.5 10.8 11.3 11.5L14 14M14 14L16.5 11.8C17.3 11.1 18.5 11.1 19.3 11.8L21 13.3" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+// Solid white cards (no frosted-glass blur), 20px radius / 16px padding, one
+// 20px gap between every section — Figma's "Account contents" frame. Every
+// section's own visible heading (or lack of one) also comes straight from
+// Figma: its per-section micro-labels (PROFIEL, JOUW STRAAT, etc.) are all
+// hidden layers there, not rendered UI — the only in-card titles that
+// actually show are the street name and "Notificatie-instellingen".
+const page = { display: 'flex', flexDirection: 'column', gap: 20, padding: '20px 20px calc(98px + env(safe-area-inset-bottom))' };
+// No baked-in gap — Profiel's name/address/email stack tightly (0 gap in
+// Figma), while Jouw straat/Notificatie/Voorwaarden each add their own
+// `gap: 12` at the call site, matching Figma's per-card spacing exactly.
+const card = { background: '#fff', borderRadius: RADIUS.lg, padding: 16, display: 'flex', flexDirection: 'column' };
+const divider = { height: 0, borderTop: '1px solid rgba(28,26,24,0.08)', width: '100%', flexShrink: 0 };
+const rowLabel = { flex: 1, fontSize: 16, lineHeight: '24px', color: COLORS.text };
+const cardHeading = { fontSize: 16, fontWeight: 700, lineHeight: '20px', color: COLORS.text };
+// Pink-tinted stat boxes for "Jouw straat" — distinct from the shared
+// s.statCard (AdminView's own queue-tab stats, left untouched below).
+const statBox = { flex: 1, background: 'rgba(255,0,102,0.05)', borderRadius: 12, padding: 16, textAlign: 'center' };
+const statNum = { fontSize: 20, fontWeight: 700, lineHeight: '24px', color: COLORS.text };
+const statLabel = { fontSize: 14, lineHeight: '20px', color: COLORS.text };
 
 // ─── ADMIN VIEW ────────────────────────────────────────────────────────────────
 // Unchanged from the old Profile page's admin section (moved, not modified)
@@ -173,124 +176,117 @@ export default function AccountPage({ user, onLogout, canModerate, streetId, str
   const toggleLegal = (key) => setLegalOpen(open => open === key ? null : key);
 
   return (
-    <div style={s.feed}>
-      <div style={s.sectionLabel}>{t('profile')}</div>
-      <div style={{ padding: '0 20px' }}>
-        <div style={{ ...card, display: 'flex', gap: 12, alignItems: 'center' }}>
-          <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#D8D8D8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <AvatarPlaceholderIcon />
+    <div style={page}>
+      {/* Profiel — no avatar: Figma's placeholder-photo frame is hidden in
+          the design (FRE-401 leaves avatar upload out of scope entirely). */}
+      <div style={card}>
+        <div style={{ fontWeight: 700, fontSize: 20, lineHeight: '24px', color: COLORS.text }}>{user.name}</div>
+        <div style={{ fontSize: 14, lineHeight: '20px', color: COLORS.text }}>
+          {(user.house_number && streetName) ? t('profile_address_value', { street: streetName, number: user.house_number }) : (user.house_number || '–')}
+        </div>
+        <div style={{ fontSize: 14, lineHeight: '20px', color: COLORS.text }}>{user.email}</div>
+      </div>
+
+      {/* Jouw straat */}
+      <div style={{ ...card, gap: 12 }}>
+        <div style={cardHeading}>{streetName || '–'}</div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div style={statBox}>
+            <div style={statNum}>{households}</div>
+            <div style={statLabel}>{t('account_stat_addresses')}</div>
           </div>
-          <div style={{ flex: 1, minWidth: 0, lineHeight: '20px' }}>
-            <div style={{ fontWeight: 700, fontSize: 16, color: COLORS.text }}>{user.name}</div>
-            <div style={{ fontSize: 14, color: COLORS.text }}>
-              {(user.house_number && streetName) ? t('profile_address_value', { street: streetName, number: user.house_number }) : (user.house_number || '–')}
-            </div>
-            <div style={{ fontSize: 14, color: COLORS.text }}>{user.email}</div>
+          <div style={statBox}>
+            <div style={statNum}>{memberCount}</div>
+            <div style={statLabel}>{t('account_stat_residents')}</div>
           </div>
         </div>
       </div>
 
-      <div style={s.sectionLabel}>{t('account_street_section')}</div>
-      <div style={{ padding: '0 20px' }}>
-        <div style={card}>
-          <div style={{ fontWeight: 700, fontSize: 16, color: COLORS.text, marginBottom: 4 }}>{streetName || '–'}</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14, color: COLORS.text }}>
-            <span>{t('account_addresses_in_street', { n: households })}</span>
-            <span>{t('account_registered_residents', { n: memberCount })}</span>
-          </div>
-        </div>
-      </div>
-
-      <div style={s.sectionLabel}>{t('account_notif_section')}</div>
-      {isIOS && !subscribed && (
-        <div style={{ padding: '0 20px 8px', fontSize: 12, color: COLORS.textMuted }}>{t('pwa_ios_hint')}</div>
-      )}
-      <div style={{ padding: '0 20px' }}>
-        <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {notifSupported && !subscribed && permission !== 'denied' && (
-            <>
-              <button style={s.submitBtn} onClick={async () => {
-                const result = await subscribe();
-                setSubscribeMsg(result.ok ? t('notifications_enabled_toast') : (result.error || ''));
-              }}>{t('enable_notifications')}</button>
-              {subscribeMsg && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, fontSize: 12, color: COLORS.textMuted, lineHeight: 1.5 }}>
-                  <span>{subscribeMsg}</span>
-                  <button onClick={() => setSubscribeMsg('')} style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', color: COLORS.textDim, flexShrink: 0 }} aria-label={t('close')}>
-                    <CrossIcon size={14} />
-                  </button>
-                </div>
-              )}
-              <div style={divider} />
-            </>
-          )}
-          {NOTIF_CATEGORIES.map((key, i) => (
-            <div key={key}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={rowLabel}>{catLabel(key)}</span>
-                <Switch size="md" checked={!!notifs[key]} onChange={() => toggleNotif(key)} label={catLabel(key)}
-                  trackOnColor={COLORS.success} trackOffColor={COLORS.textDim} knobOnColor="#fff" knobOffColor="#fff" />
+      {/* Notificatie-instellingen */}
+      <div style={{ ...card, gap: 12 }}>
+        <div style={cardHeading}>{t('account_notif_section')}</div>
+        {isIOS && !subscribed && (
+          <div style={{ fontSize: 16, lineHeight: '24px', color: COLORS.text }}>{t('pwa_ios_hint')}</div>
+        )}
+        <div style={divider} />
+        {notifSupported && !subscribed && permission !== 'denied' && (
+          <>
+            <button style={s.submitBtn} onClick={async () => {
+              const result = await subscribe();
+              setSubscribeMsg(result.ok ? t('notifications_enabled_toast') : (result.error || ''));
+            }}>{t('enable_notifications')}</button>
+            {subscribeMsg && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, fontSize: 12, color: COLORS.textMuted, lineHeight: 1.5 }}>
+                <span>{subscribeMsg}</span>
+                <button onClick={() => setSubscribeMsg('')} style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', color: COLORS.textDim, flexShrink: 0 }} aria-label={t('close')}>
+                  <CrossIcon size={14} />
+                </button>
               </div>
-              {i < NOTIF_CATEGORIES.length - 1 && <div style={{ ...divider, marginTop: 12 }} />}
+            )}
+            <div style={divider} />
+          </>
+        )}
+        {NOTIF_CATEGORIES.map((key, i) => (
+          <div key={key}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={rowLabel}>{catLabel(key)}</span>
+              <Switch size="md" checked={!!notifs[key]} onChange={() => toggleNotif(key)} label={catLabel(key)}
+                trackOnColor={COLORS.success} trackOffColor={COLORS.textDim} knobOnColor="#fff" knobOffColor="#fff" />
             </div>
-          ))}
-        </div>
+            {i < NOTIF_CATEGORIES.length - 1 && <div style={{ ...divider, marginTop: 12 }} />}
+          </div>
+        ))}
       </div>
 
-      <div style={s.sectionLabel}>{t('language')}</div>
-      <div style={{ padding: '0 20px' }}>
-        <div style={{ background: 'rgba(255,255,255,0.4)', opacity: 0.8, borderRadius: RADIUS.pill, padding: 4, display: 'flex', boxSizing: 'border-box' }}>
-          {[['nl', 'Nederlands'], ['en', 'English']].map(([code, label]) => {
-            const active = lang === code;
-            return (
-              <button key={code} type="button" aria-pressed={active} onClick={() => switchLang(code)}
-                style={{
-                  flex: 1, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  borderRadius: RADIUS.pill, boxSizing: 'border-box',
-                  background: active ? '#fff' : 'transparent',
-                  border: active ? `1px solid ${COLORS.textMuted}` : '1px solid transparent',
-                  color: active ? COLORS.text : COLORS.textMuted,
-                  fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                }}>
-                {label}
-              </button>
-            );
-          })}
-        </div>
+      {/* Taal / Language */}
+      <div style={{ background: 'rgba(108,104,96,0.05)', opacity: 0.8, borderRadius: RADIUS.pill, padding: 4, display: 'flex', boxSizing: 'border-box' }}>
+        {[['nl', 'Nederlands'], ['en', 'English']].map(([code, label]) => {
+          const active = lang === code;
+          return (
+            <button key={code} type="button" aria-pressed={active} onClick={() => switchLang(code)}
+              style={{
+                flex: 1, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius: RADIUS.pill, boxSizing: 'border-box',
+                background: active ? '#fff' : 'transparent',
+                border: active ? `1px solid ${COLORS.textMuted}` : '1px solid transparent',
+                color: active ? COLORS.text : COLORS.textMuted,
+                fontSize: 14, lineHeight: '20px', fontWeight: 400, cursor: 'pointer',
+              }}>
+              {label}
+            </button>
+          );
+        })}
       </div>
 
-      <div style={s.sectionLabel}>{t('account_legal_section')}</div>
-      <div style={{ padding: '0 20px' }}>
-        <div style={{ ...card, display: 'flex', flexDirection: 'column' }}>
-          <button type="button" onClick={() => toggleLegal('terms')} aria-expanded={legalOpen === 'terms'}
-            style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', textAlign: 'left' }}>
-            <span style={rowLabel}>{t('terms_title')}</span>
-            <ChevronDownIcon size={24} color={COLORS.text} style={{ flexShrink: 0, transition: 'transform 0.2s', transform: legalOpen === 'terms' ? 'rotate(180deg)' : 'none' }} />
-          </button>
-          {legalOpen === 'terms' && <div style={{ marginTop: 12 }}><LegalContent introKey="terms_intro" sectionsKey="terms_sections" /></div>}
-          {/* Matches the same 16px rhythm used between sections elsewhere on
-              this page (s.sectionLabel's own top padding) — split 8/8 around
-              the divider so its line sits centered in that 16px gap. */}
-          <div style={{ ...divider, marginTop: 8, marginBottom: 8 }} />
-          <button type="button" onClick={() => toggleLegal('privacy')} aria-expanded={legalOpen === 'privacy'}
-            style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', textAlign: 'left' }}>
-            <span style={rowLabel}>{t('privacy_title')}</span>
-            <ChevronDownIcon size={24} color={COLORS.text} style={{ flexShrink: 0, transition: 'transform 0.2s', transform: legalOpen === 'privacy' ? 'rotate(180deg)' : 'none' }} />
-          </button>
-          {legalOpen === 'privacy' && <div style={{ marginTop: 12 }}><LegalContent introKey="privacy_intro" sectionsKey="privacy_sections" contactCtaKey="privacy_contact_cta" streetName={streetName} /></div>}
-        </div>
+      {/* Voorwaarden / Privacy & Data */}
+      <div style={{ ...card, gap: 12 }}>
+        <button type="button" onClick={() => toggleLegal('terms')} aria-expanded={legalOpen === 'terms'}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', textAlign: 'left' }}>
+          <span style={rowLabel}>{t('terms_title')}</span>
+          <ChevronDownIcon size={24} color={COLORS.text} style={{ flexShrink: 0, transition: 'transform 0.2s', transform: legalOpen === 'terms' ? 'rotate(180deg)' : 'none' }} />
+        </button>
+        {legalOpen === 'terms' && <div><LegalContent introKey="terms_intro" sectionsKey="terms_sections" /></div>}
+        <div style={divider} />
+        <button type="button" onClick={() => toggleLegal('privacy')} aria-expanded={legalOpen === 'privacy'}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', textAlign: 'left' }}>
+          <span style={rowLabel}>{t('privacy_title')}</span>
+          <ChevronDownIcon size={24} color={COLORS.text} style={{ flexShrink: 0, transition: 'transform 0.2s', transform: legalOpen === 'privacy' ? 'rotate(180deg)' : 'none' }} />
+        </button>
+        {legalOpen === 'privacy' && <div><LegalContent introKey="privacy_intro" sectionsKey="privacy_sections" contactCtaKey="privacy_contact_cta" streetName={streetName} /></div>}
       </div>
 
-      <div style={{ padding: '0 20px' }}>
-        <button style={{ ...s.cancelBtn, marginTop: 4 }} onClick={onLogout}>{t('logout')}</button>
-      </div>
-
+      {/* Admin Tools — Figma's Resident View has no Admin section at all;
+          this is the one part of the page that isn't Figma-specified, kept
+          exactly as it already worked (FRE-405/FRE-391), just relocated here
+          per the shared-layout requirement instead of living after Logout. */}
       {canModerate && (
         <>
           <div style={s.sectionLabel}>{t('admin')}</div>
           <AdminView streetId={streetId} user={user} memberCount={memberCount} households={households} onError={onError} />
         </>
       )}
+
+      <button style={s.cancelBtn} onClick={onLogout}>{t('logout')}</button>
     </div>
   );
 }

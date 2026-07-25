@@ -94,11 +94,9 @@ export default {
   notifications: 'Notifications',
   language: 'Taal / Language',
   nav_account: 'Account',
-  account_street_section: 'Your street',
-  account_addresses_in_street: 'Addresses on the street: {n}',
-  account_registered_residents: 'Registered residents: {n}',
+  account_stat_addresses: 'addresses',
+  account_stat_residents: 'residents',
   account_notif_section: 'Notification settings',
-  account_legal_section: 'Terms, privacy & data',
   privacy_title: 'Privacy & Data',
   privacy_intro: 'We handle your data carefully. We only collect what\'s needed to make Streetfeed work well.',
   privacy_sections: [
