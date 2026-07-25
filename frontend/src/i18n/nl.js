@@ -123,7 +123,7 @@ export default {
     { heading: 'Denk na voordat je post', body: 'Ga zorgvuldig om met persoonsgegevens. Deel geen gevoelige informatie over jezelf of anderen als dat niet nodig is.' },
     { heading: 'Respecteer elkaar', body: 'Gebruik Streetfeed niet om iemand publiekelijk te beschuldigen, belachelijk te maken of aan de schandpaal te nagelen.' },
     { heading: 'Berichten kunnen worden verwijderd', body: 'Als een bericht niet binnen deze afspraken past, kunnen admins besluiten het te verwijderen. Dat doen we alleen wanneer dat nodig is om Streetfeed prettig en veilig te houden.' },
-    { heading: 'Ouder berichten verdwijnen vanzelf', body: 'Om Streetfeed overzichtelijk te houden, worden oudere berichten na een bepaalde tijd automatisch verwijderd. Dat geldt ook voor berichtgerelateerde gegevens, zoals foto\'s. Lees in Privacy & Data hoe lang verschillende soorten gegevens worden bewaard.' },
+    { heading: 'Oudere berichten verdwijnen vanzelf', body: 'Om Streetfeed overzichtelijk te houden, worden oudere berichten na een bepaalde tijd automatisch verwijderd. Dat geldt ook voor berichtgerelateerde gegevens, zoals foto\'s. Lees in Privacy & Data hoe lang verschillende soorten gegevens worden bewaard.' },
     { heading: 'Jouw gegevens', body: 'We bewaren alleen gegevens die nodig zijn om Streetfeed goed te laten werken. In Privacy & Data leggen we uit welke gegevens we bewaren, waarom we dat doen en hoe lang we ze bewaren.' },
     { heading: 'Streetfeed blijft zich ontwikkelen', body: 'We blijven Streetfeed verbeteren. Daardoor kunnen deze voorwaarden soms veranderen. Heb je ideeën, zie je iets dat beter kan of wil je feedback geven? Laat het ons gerust weten.' },
   ],
