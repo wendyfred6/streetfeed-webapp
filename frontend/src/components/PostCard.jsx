@@ -42,10 +42,11 @@ const s = {
   // text/primary — not the old muted 14px secondary text).
   cardBody: { fontSize: 16, fontWeight: 600, lineHeight: '24px', color: COLORS.text, paddingLeft: 12, borderLeft: `2px solid ${COLORS.accent}` },
   infoBox: { ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px' },
-  // `isLast` drops the asymmetric corner (Figma: every CommentItem before the
-  // last one squares off its bottom-right corner, visually "stacking" onto
-  // the next comment; the last one is fully rounded on all four corners).
-  commentItem: (isLast) => ({ background: 'rgba(108,104,96,0.05)', borderRadius: isLast ? 20 : '20px 20px 0 20px', padding: 16, display: 'flex', flexDirection: 'column', gap: 4 }),
+  // Flat 20px on every corner, every instance (2026-07-25: the earlier
+  // asymmetric bottom-right corner on non-last comments was copying an
+  // accidental 0px edit in Figma's CommentItem component, not an intentional
+  // design — component-level fix, not per-instance).
+  commentItem: { background: 'rgba(108,104,96,0.05)', borderRadius: 20, padding: 16, display: 'flex', flexDirection: 'column', gap: 4 },
   commentAuthor: { fontSize: 12, fontWeight: 600, color: COLORS.textDim },
   commentBody: { fontSize: 16, lineHeight: '24px', color: COLORS.text },
   commentTime: { fontSize: 10, fontWeight: 600, color: COLORS.textDim, textAlign: 'right' },
@@ -315,7 +316,7 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
             <div style={{ fontSize: 12, color: COLORS.textDim }}>{t('comments_loading')}</div>
           )}
           {(threadComments || []).map((c, i) => (
-            <div key={c.id ?? i} style={s.commentItem(i === threadComments.length - 1)}>
+            <div key={c.id ?? i} style={s.commentItem}>
               <div style={s.commentAuthor}>
                 {(c.author_name || '').split(' ')[0] || t('resident')}{c.author_house ? ` ${c.author_house}` : ''}
               </div>
