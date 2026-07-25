@@ -11,7 +11,11 @@ import { CATEGORIES } from '../utils/categories.js';
 // can't drift apart if this ever changes.
 const HEADER_PAD_Y = 16;
 const HEADER_CONTENT_HEIGHT = 36;
-const HEADER_HEIGHT = `calc(${HEADER_PAD_Y * 2 + HEADER_CONTENT_HEIGHT}px + env(safe-area-inset-top))`;
+export const HEADER_HEIGHT = `calc(${HEADER_PAD_Y * 2 + HEADER_CONTENT_HEIGHT}px + env(safe-area-inset-top))`;
+// Reused as the "small amount of normal spacing" below the fixed header for
+// anything that scrolls itself into view against it (e.g. a just-created
+// post) — same rhythm as the header's own vertical padding, not a new number.
+export const FEED_SCROLL_MARGIN_TOP = `calc(${HEADER_HEIGHT} + ${HEADER_PAD_Y}px)`;
 
 export const s = {
   app: { fontFamily: "'Inter','Helvetica Neue',sans-serif", background: 'transparent', color: COLORS.text, minHeight: '100vh', maxWidth: 390, margin: '0 auto' },

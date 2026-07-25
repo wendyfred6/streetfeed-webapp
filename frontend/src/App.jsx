@@ -257,6 +257,7 @@ export default function App() {
   const [editPost, setEditPost] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deepLinkPostId, setDeepLinkPostId] = useState(null);
+  const [justCreatedPostId, setJustCreatedPostId] = useState(null);
   const [showNotifInbox, setShowNotifInbox] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -354,6 +355,19 @@ export default function App() {
     setDeepLinkPostId(null);
   }, [deepLinkPostId, posts, loading]);
 
+  // Scrolls the newly created post into view once it's actually in `posts`
+  // (not in the click handler that triggered it — that runs before the
+  // create request resolves). `block: 'start'` combined with the post card's
+  // own scroll-margin-top (FEED_SCROLL_MARGIN_TOP) lands it just below the
+  // fixed header instead of underneath it.
+  useEffect(() => {
+    if (!justCreatedPostId) return;
+    if (!posts.some(p => p.id === justCreatedPostId)) return;
+    const el = document.getElementById(`post-${justCreatedPostId}`);
+    el?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    setJustCreatedPostId(null);
+  }, [justCreatedPostId, posts]);
+
   const handleLike = async (id) => {
     try {
       const { liked } = await api.post(`/streets/${STREET_ID}/posts/${id}/like`);
@@ -434,11 +448,9 @@ export default function App() {
         joiners: [],
         rsvp: { yes: [], maybe: [], no: [] },
       }, ...ps]);
-      // Scroll after the new post is actually in state, not in the onSubmit
-      // handler that fired this — that ran synchronously, before this await
-      // resolved, so it could race ahead of the post actually landing at the
-      // top of the feed.
-      window.scrollTo({ top: 0, behavior: 'instant' });
+      // Actual scroll happens in the justCreatedPostId effect above, once
+      // this post exists in `posts` — not here, before it does.
+      setJustCreatedPostId(post.id);
     } catch (e) {
       showError(e.message || t('generic_error'));
     }

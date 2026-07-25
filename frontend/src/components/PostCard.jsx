@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth.jsx';
 import { api } from '../api/client.js';
 import { t } from '../i18n/index.js';
 import { COLORS, RADIUS, GLASS } from '../design/tokens.js';
+import { FEED_SCROLL_MARGIN_TOP } from '../design/appStyles.js';
 import { catLabel } from '../utils/categories.js';
 import { timeAgo } from '../utils/time.js';
 import { formatEventDate } from '../utils/eventDate.js';
@@ -18,7 +19,7 @@ import { PaperPlaneTiltIcon } from '@phosphor-icons/react/dist/csr/PaperPlaneTil
 // ─── STYLES (local to PostCard) ────────────────────────────────────────────────
 
 const s = {
-  card: (pinned) => ({ margin: '0 12px 8px', ...GLASS.card, background: pinned ? COLORS.pinned : 'rgba(255,255,255,0.70)', border: `1px solid ${pinned ? COLORS.pinnedBorder : 'rgba(255,255,255,0.50)'}`, borderRadius: RADIUS.lg, padding: '12px 14px' }),
+  card: (pinned) => ({ margin: '0 12px 8px', scrollMarginTop: FEED_SCROLL_MARGIN_TOP, ...GLASS.card, background: pinned ? COLORS.pinned : 'rgba(255,255,255,0.70)', border: `1px solid ${pinned ? COLORS.pinnedBorder : 'rgba(255,255,255,0.50)'}`, borderRadius: RADIUS.lg, padding: '12px 14px' }),
   // PostBody (Figma node 23:7345): 14px Regular text/secondary, with the
   // "Text length indicator" left bar confirmed as a real, shared component
   // element (not a one-off in that specific mockup).
