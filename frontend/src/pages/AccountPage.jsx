@@ -239,18 +239,18 @@ export default function AccountPage({ user, onLogout, canModerate, streetId, str
       </div>
 
       {/* Taal / Language */}
-      <div style={{ background: 'rgba(108,104,96,0.05)', opacity: 0.8, borderRadius: RADIUS.pill, padding: 4, display: 'flex', boxSizing: 'border-box' }}>
+      <div style={{ background: 'rgba(28,26,24,0.1)', opacity: 0.8, height: 48, borderRadius: RADIUS.pill, padding: 2, display: 'flex', boxSizing: 'border-box' }}>
         {[['nl', 'Nederlands'], ['en', 'English']].map(([code, label]) => {
           const active = lang === code;
           return (
             <button key={code} type="button" aria-pressed={active} onClick={() => switchLang(code)}
               style={{
-                flex: 1, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flex: 1, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 borderRadius: RADIUS.pill, boxSizing: 'border-box',
                 background: active ? '#fff' : 'transparent',
                 border: active ? `1px solid ${COLORS.textMuted}` : '1px solid transparent',
                 color: active ? COLORS.text : COLORS.textMuted,
-                fontSize: 14, lineHeight: '20px', fontWeight: 400, cursor: 'pointer',
+                fontSize: 16, lineHeight: '24px', fontWeight: active ? 600 : 400, cursor: 'pointer',
               }}>
               {label}
             </button>
