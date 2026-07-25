@@ -480,34 +480,36 @@ export default function App() {
     <div style={s.app}>
       <Toast toast={toast} onDismiss={dismissToast} />
 
-      <div style={s.header}>
-        <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
-        <div style={s.headerActions}>
-          <button
-            style={{ ...s.headerIconBtn(showNotifInbox), position: 'relative' }}
-            title="Notificaties"
-            aria-label="Notificaties"
-            onClick={() => setShowNotifInbox(true)}
-          >
-            <BellIcon size={24} filled={unreadCount > 0} />
-            {unreadCount > 0 && (
-              <span style={{ position: 'absolute', top: 2, right: 2, width: 9, height: 9, borderRadius: '50%', background: COLORS.interactionNotification, border: `1.5px solid ${COLORS.surface}` }} />
-            )}
-          </button>
-          <button
-            style={s.headerIconBtn(tab === 'profile')}
-            title={t('nav_account')}
-            aria-label={t('nav_account')}
-            onClick={() => setTab('profile')}
-          >
-            <PersonIcon size={24} />
-          </button>
+      <div style={s.headerBar}>
+        <div style={s.header}>
+          <div style={s.logo}>Street<span style={s.accent}>feed</span></div>
+          <div style={s.headerActions}>
+            <button
+              style={{ ...s.headerIconBtn(showNotifInbox), position: 'relative' }}
+              title="Notificaties"
+              aria-label="Notificaties"
+              onClick={() => setShowNotifInbox(true)}
+            >
+              <BellIcon size={24} filled={unreadCount > 0} />
+              {unreadCount > 0 && (
+                <span style={{ position: 'absolute', top: 2, right: 2, width: 9, height: 9, borderRadius: '50%', background: COLORS.interactionNotification, border: `1.5px solid ${COLORS.surface}` }} />
+              )}
+            </button>
+            <button
+              style={s.headerIconBtn(tab === 'profile')}
+              title={t('nav_account')}
+              aria-label={t('nav_account')}
+              onClick={() => setTab('profile')}
+            >
+              <PersonIcon size={24} />
+            </button>
+          </div>
         </div>
       </div>
       <div style={s.headerSpacer} />
 
       {tab === 'feed' && (
-        <div style={{ ...s.feed, filter: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'blur(4px)' : 'none', transition: 'filter 0.2s', pointerEvents: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'none' : 'auto' }}>
+        <div style={{ ...s.feed, paddingTop: 20, filter: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'blur(4px)' : 'none', transition: 'filter 0.2s', pointerEvents: (showPost || showCatPicker || !!eventDetail || !!joinDetail || !!editPost) ? 'none' : 'auto' }}>
           {notifSupported && !subscribed && permission !== 'denied' && (
             <div style={{ margin: '12px 12px 0', background: ALPHA.accentSubtle, border: `1px solid ${ALPHA.accentBorder}`, borderRadius: RADIUS.lg, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div>

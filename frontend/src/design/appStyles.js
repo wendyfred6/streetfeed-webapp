@@ -26,7 +26,12 @@ export const s = {
   // matching reserved space for the content that follows.
   // Figma Feed redesign (node 298:984, 2026-07-25): translucent bg lightened
   // to 60% white, hard-line bottom border replaced with a soft drop shadow.
-  header: { ...GLASS.header, background: 'rgba(255,255,255,0.6)', boxShadow: '0px 2px 4px rgba(0,0,0,0.05)', padding: `calc(${HEADER_PAD_Y}px + env(safe-area-inset-top)) 20px ${HEADER_PAD_Y}px`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 390, zIndex: 50 },
+  // Split into two layers (2026-07-25 follow-up) so the background/shadow
+  // can be genuinely full-bleed (spans the actual viewport) while the logo/
+  // actions row still lines up with the rest of the page's content column —
+  // `headerBar` no longer caps at maxWidth:390, only `header` (its child) does.
+  headerBar: { ...GLASS.header, background: 'rgba(255,255,255,0.6)', boxShadow: '0px 2px 4px rgba(0,0,0,0.05)', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50 },
+  header: { padding: `calc(${HEADER_PAD_Y}px + env(safe-area-inset-top)) 20px ${HEADER_PAD_Y}px`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 390, margin: '0 auto', boxSizing: 'border-box' },
   // Unconditional spacer rendered once, right after the header, ahead of
   // every tab's content — since the header is now `fixed` (out of flow),
   // this is what keeps content from appearing underneath/above it on load.
