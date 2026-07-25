@@ -8,3 +8,9 @@ export function timeAgo(ts) {
   if (diff < 172800) return t('time_yesterday');
   return new Date(ts).toLocaleDateString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'short' });
 }
+
+// Comment timestamps (Figma Feed redesign, node 298:984): "16:35" next to
+// each comment bubble.
+export function formatClockTime(ts) {
+  return new Date(ts).toLocaleTimeString(getLang() === 'en' ? 'en-GB' : 'nl-NL', { hour: '2-digit', minute: '2-digit' });
+}

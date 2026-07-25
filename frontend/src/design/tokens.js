@@ -37,7 +37,7 @@ export const COLORS = {
   surface:      'rgba(255,255,255,0.75)',
   border:       'rgba(255,0,102,0.15)',
   pinned:       'rgba(255,255,255,0.82)',
-  pinnedBorder: 'rgba(255,0,102,0.22)',
+  pinnedBorder: 'rgba(255,0,102,0.5)', // Feed redesign (node 298:984, 2026-07-25)
   red:          '#FF4444',
   blue:         '#4488FF',
   orange:       '#FF8833',

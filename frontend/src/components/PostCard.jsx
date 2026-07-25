@@ -4,7 +4,7 @@ import { api } from '../api/client.js';
 import { t } from '../i18n/index.js';
 import { COLORS, RADIUS, GLASS } from '../design/tokens.js';
 import { catLabel } from '../utils/categories.js';
-import { timeAgo } from '../utils/time.js';
+import { timeAgo, formatClockTime } from '../utils/time.js';
 import { formatEventDate } from '../utils/eventDate.js';
 import Switch from './Switch.jsx';
 import Chevron from './Chevron.jsx';
@@ -16,15 +16,39 @@ import { ChatCircleIcon } from '@phosphor-icons/react/dist/csr/ChatCircle';
 import { PaperPlaneTiltIcon } from '@phosphor-icons/react/dist/csr/PaperPlaneTilt';
 
 // ─── STYLES (local to PostCard) ────────────────────────────────────────────────
-
+// Figma "Feed / Default" (node 298:984, 2026-07-25): solid white cards (no
+// frosted-glass blur), 20px radius/16px padding, 12px gap between every
+// child — same card shell pattern as the Account page redesign. Pinned is
+// the one state that differs, and only by border (COLORS.pinnedBorder) —
+// background stays plain white either way.
 const s = {
-  card: (pinned) => ({ margin: '0 12px 8px', ...GLASS.card, background: pinned ? COLORS.pinned : 'rgba(255,255,255,0.70)', border: `1px solid ${pinned ? COLORS.pinnedBorder : 'rgba(255,255,255,0.50)'}`, borderRadius: RADIUS.lg, padding: '12px 14px' }),
-  // PostBody (Figma node 23:7345): 14px Regular text/secondary, with the
-  // "Text length indicator" left bar confirmed as a real, shared component
-  // element (not a one-off in that specific mockup).
-  cardBody: { fontSize: 14, color: COLORS.textMuted, lineHeight: '20px', paddingLeft: 12, borderLeft: `2px solid ${COLORS.accent}`, marginBottom: 10 },
-  infoBox: { ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px', marginBottom: 10 },
-  badge: (color) => ({ display: 'inline-flex', alignItems: 'center', background: `${color}18`, color, border: `1px solid ${color}44`, borderRadius: RADIUS.xs, fontSize: 11, fontWeight: 700, padding: '2px 7px' }),
+  card: (pinned) => ({
+    margin: '0 20px 8px',
+    background: '#fff',
+    border: pinned ? `1px solid ${COLORS.pinnedBorder}` : 'none',
+    borderRadius: RADIUS.lg, padding: 16,
+    display: 'flex', flexDirection: 'column', gap: 12,
+  }),
+  divider: { height: 0, borderTop: '1px solid rgba(28,26,24,0.08)', width: '100%', flexShrink: 0 },
+  eyebrowRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  category: { fontSize: 12, fontWeight: 600, color: COLORS.textMuted },
+  title: { fontSize: 20, fontWeight: 700, lineHeight: '24px', color: COLORS.text },
+  metaRow: { display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: COLORS.textDim },
+  badge: { background: COLORS.accent, display: 'inline-flex', alignItems: 'center', gap: 4, height: 20, padding: '0 4px', borderRadius: 4, width: 'fit-content' },
+  badgeText: { fontSize: 12, fontWeight: 500, color: COLORS.textInverse, whiteSpace: 'nowrap' },
+  // PostBody (Figma node 23:7346): the accent-colored bar is a "text length
+  // indicator", not a decorative underline — same left-border technique as
+  // before, just bumped to Figma's Body/M type (16px/24, semibold,
+  // text/primary — not the old muted 14px secondary text).
+  cardBody: { fontSize: 16, fontWeight: 600, lineHeight: '24px', color: COLORS.text, paddingLeft: 12, borderLeft: `2px solid ${COLORS.accent}` },
+  infoBox: { ...GLASS.subtle, border: `1px solid ${COLORS.border}`, borderRadius: RADIUS.md, padding: '10px 12px' },
+  // `isLast` drops the asymmetric corner (Figma: every CommentItem before the
+  // last one squares off its bottom-right corner, visually "stacking" onto
+  // the next comment; the last one is fully rounded on all four corners).
+  commentItem: (isLast) => ({ background: 'rgba(108,104,96,0.05)', borderRadius: isLast ? 20 : '20px 20px 0 20px', padding: 16, display: 'flex', flexDirection: 'column', gap: 4 }),
+  commentAuthor: { fontSize: 12, fontWeight: 600, color: COLORS.textDim },
+  commentBody: { fontSize: 16, lineHeight: '24px', color: COLORS.text },
+  commentTime: { fontSize: 10, fontWeight: 600, color: COLORS.textDim, textAlign: 'right' },
 };
 
 // ─── RSVP BAR ──────────────────────────────────────────────────────────────────
@@ -33,12 +57,10 @@ function AttendanceToggle({ post, onRsvp }) {
   const attending = post.my_rsvp === 'yes';
   const toggle = e => { e.stopPropagation(); onRsvp(post.id, 'yes'); };
   return (
-    <div style={{ marginTop: 12 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0' }}>
-        <Switch checked={attending} onChange={toggle} label="Ik ben erbij" size="lg"
-          trackOnColor={COLORS.green} trackOffColor="rgba(0,0,0,0.15)" knobOnColor="#fff" knobOffColor="#fff" knobShadow />
-        <span onClick={toggle} style={{ fontSize: 14, fontWeight: attending ? 700 : 400, color: attending ? COLORS.text : COLORS.textMuted, cursor: 'pointer' }}>Ik ben erbij</span>
-      </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <Switch checked={attending} onChange={toggle} label="Ik ben erbij" size="lg"
+        trackOnColor={COLORS.green} trackOffColor="rgba(0,0,0,0.15)" knobOnColor="#fff" knobOffColor="#fff" knobShadow />
+      <span onClick={toggle} style={{ fontSize: 14, fontWeight: attending ? 700 : 400, color: attending ? COLORS.text : COLORS.textMuted, cursor: 'pointer' }}>Ik ben erbij</span>
     </div>
   );
 }
@@ -66,7 +88,7 @@ function MeldingLinks({ post }) {
   const links = meldingLinks()[post.sub_type] || [];
   if (!links.length) return null;
   return (
-    <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {links.map(({ label, url, color }) => (
         <a key={url} href={url} target="_blank" rel="noopener noreferrer"
           style={{ display: 'block', border: `1px solid ${color}44`, borderRadius: 8, padding: '8px 12px', fontSize: 12, color, textDecoration: 'none' }}>
@@ -77,8 +99,18 @@ function MeldingLinks({ post }) {
   );
 }
 
-// ─── POST CARD ─────────────────────────────────────────────────────────────────
+// Figma's Feed badge shows day + full month, no year (e.g. "24 april") — kept
+// local rather than changing the shared formatEventDate (still used as-is by
+// EventDetailSheet/PostFormField, which aren't part of this Feed redesign).
+function badgeEventDate(dateStr) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr || '')) return dateStr || '';
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  return new Date(y, mo - 1, d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' });
+}
 
+// ─── POST CARD ─────────────────────────────────────────────────────────────────
+// Figma "Feed / Default" (node 298:984) is the source of truth for this
+// component's layout/typography/spacing below.
 export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, onOpenJoin, onDelete, canModerate, onEdit, canEdit, autoExpand, onError }) {
   const [expanded, setExpanded] = useState(false);
   const [threadComments, setThreadComments] = useState(null);
@@ -135,7 +167,7 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
     if (isWorks) {
       const fmt = (d) => {
         const [y, m, day] = d.substring(0, 10).split('-');
-        return new Date(+y, +m - 1, +day).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+        return new Date(+y, +m - 1, +day).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' });
       };
       const timePart = post.start_time || post.end_time
         ? ` · ${post.start_time || '?'}–${post.end_time || '?'}`
@@ -149,21 +181,19 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
   };
   const dateLabel = getDateLabel();
 
-  // Pinned Badge (Figma "Collapsed/Expanded, Type=Pinned", node 107:2189):
-  // an accent pill next to the title, not a bordered text box — Straatzaken's
-  // date/time range and Evenement's date/time render here instead of as
-  // boxed body text. Date + time only inside the pill — attendee count sits
-  // beside it in the same row as plain text, not inside the badge (confirmed
-  // against Figma's "Completed New Post — Evenement" screen, 2026-07-19).
-  // Always rendered when the data is present (not gated on post.pinned
-  // specifically) since both categories auto-pin whenever they have a date
-  // in the first place (backend autoPin logic) — the two conditions coincide
-  // in practice.
+  // Pinned Badge (Figma "PostCard", node 496:8912/496:8944, 2026-07-25): an
+  // accent pill next to the title — Straatzaken's date/time range and
+  // Evenement's date/time render here instead of as boxed body text. Date +
+  // time only inside the pill — attendee count sits beside it in the same
+  // row as plain text, not inside the badge. Always rendered when the data
+  // is present (not gated on post.pinned specifically) since both categories
+  // auto-pin whenever they have a date in the first place (backend autoPin
+  // logic) — the two conditions coincide in practice.
   const attendeeCount = (post.rsvp?.yes || []).length;
   const badgeSegments = isWorks && dateLabel
     ? [dateLabel]
     : isEvent && post.event_date
-      ? [formatEventDate(post.event_date), post.event_time].filter(Boolean)
+      ? [badgeEventDate(post.event_date), post.event_time].filter(Boolean)
       : null;
 
   // Lost & Found (Gevonden): pickup location is derived from the author's own
@@ -180,7 +210,7 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
       {/* ── Klikbare header (altijd zichtbaar) ── */}
       <div
         className="tap-feedback"
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}
         role="button"
         tabIndex={0}
         aria-expanded={expanded}
@@ -190,45 +220,43 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
         {/* ContextPath (own row, above the title): category only (Product Model
             v1, 2026-07-18) — Situation lives in the generated title instead,
             never in ContextPath. */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: COLORS.textDim }}>
-            {catLabel(post.category)}
+        <div>
+          <div style={s.eyebrowRow}>
+            <div style={s.category}>{catLabel(post.category)}</div>
+            <Chevron size={24} rotate={expanded ? 180 : 0} style={{ flexShrink: 0 }} />
           </div>
-          <Chevron size={18} rotate={expanded ? 180 : 0} style={{ flexShrink: 0 }} />
-        </div>
-        <div style={{ fontSize: 16, fontWeight: 600, color: COLORS.text, letterSpacing: '0.016px', lineHeight: 'normal', marginTop: 4, marginBottom: 6 }}>
-          {post.title}
+          <div style={{ ...s.title, marginTop: 2 }}>{post.title}</div>
         </div>
         {badgeSegments && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <div style={{ background: COLORS.accent, display: 'inline-flex', alignItems: 'center', gap: 4, height: 16, padding: '4px', borderRadius: 4, width: 'fit-content' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={s.badge}>
               {badgeSegments.map((seg, i) => (
-                <span key={i} style={{ fontSize: 8, fontWeight: 500, color: COLORS.textInverse, whiteSpace: 'nowrap' }}>{seg}</span>
+                <span key={i} style={s.badgeText}>{seg}</span>
               ))}
             </div>
             {isEvent && attendeeCount > 0 && (
-              <span style={{ fontSize: 12, fontWeight: 600, color: COLORS.text, whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 12, fontWeight: 500, color: COLORS.text, whiteSpace: 'nowrap' }}>
                 {attendeeCount} aanwezig
               </span>
             )}
           </div>
         )}
         {/* ContentMeta (altijd zichtbaar): voornaam · tijd · reacties */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: COLORS.textDim }}>
+        <div style={s.metaRow}>
           <span>{firstName}{post.author_house ? ` ${post.author_house}` : ''}</span>
           <span>·</span><span>{timeAgo(post.created_at)}</span>
           {commentCount > 0 && (
             <>
               <span>·</span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <ChatCircleIcon size={11} weight="regular" />
+                <ChatCircleIcon size={13} weight="regular" />
                 {commentCount}
               </span>
             </>
           )}
         </div>
         {pickupLocation && (
-          <div style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: COLORS.textMuted }}>
             Ophaallocatie: {pickupLocation}
           </div>
         )}
@@ -236,24 +264,23 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
 
       {/* ── Uitgeklapte inhoud ── */}
       {expanded && (
-        <div style={{ marginTop: 10, borderTop: `1px solid ${COLORS.border}`, paddingTop: 10 }}>
+        <>
+          <div style={s.divider} />
           {post.body && <div style={s.cardBody}>{post.body}</div>}
           {/* Bezorging's recipient house number is already the point of the
               post (title/ContentMeta) — showing it again here as address
               info was explicitly flagged as wrong (2026-07-19 acceptance
               test). Melding's Van/Tot house range still uses this box. */}
           {!isPackage && (post.start_house || post.end_house) && (
-            <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted, marginTop: 8 }}>
+            <div style={{ ...s.infoBox, fontSize: 12, color: COLORS.textMuted }}>
               <span style={{ fontWeight: 700, color: COLORS.text }}>Nr. </span>
               {post.start_house}{post.end_house ? ` t/m ${post.end_house}` : ''}
             </div>
           )}
           {isEvent && post.event_date && (
-            <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 13, color: COLORS.textMuted }}>
-                <strong style={{ color: COLORS.text }}>Wanneer: </strong>
-                {formatEventDate(post.event_date)}{post.event_time ? ` om ${post.event_time}` : ''}
-              </div>
+            <div style={{ fontSize: 13, color: COLORS.textMuted }}>
+              <strong style={{ color: COLORS.text }}>Wanneer: </strong>
+              {formatEventDate(post.event_date)}{post.event_time ? ` om ${post.event_time}` : ''}
             </div>
           )}
           {isEvent && <AttendanceToggle post={post} onRsvp={onRsvp} />}
@@ -262,82 +289,88 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
             <img
               src={post.photo_url}
               alt=""
-              style={{ width: '100%', borderRadius: 8, marginTop: 8, objectFit: 'cover', maxHeight: 240 }}
+              style={{ width: '100%', borderRadius: 8, objectFit: 'cover', maxHeight: 240 }}
               onError={e => e.target.style.display = 'none'}
             />
           )}
           {post.link && (
             <a href={post.link} target="_blank" rel="noopener noreferrer"
-              style={{ display: 'block', marginTop: 8, fontSize: 12, color: COLORS.blue, textDecoration: 'underline', wordBreak: 'break-all' }}>
+              style={{ display: 'block', fontSize: 12, color: COLORS.blue, textDecoration: 'underline', wordBreak: 'break-all' }}>
               {post.link}
             </a>
           )}
           {post.attachment_name && (
-            <div style={{ marginTop: 8, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '7px 12px', fontSize: 12, color: COLORS.textMuted, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '7px 12px', fontSize: 12, color: COLORS.textMuted, display: 'flex', alignItems: 'center', gap: 6 }}>
               {post.attachment_name}
             </div>
           )}
           {post.allow_join && (
             <button onClick={e => { e.stopPropagation(); onOpenJoin(post); }}
-              style={{ marginTop: 10, width: '100%', background: post.my_join ? `${COLORS.green}22` : COLORS.bg, border: `1px solid ${post.my_join ? COLORS.green : COLORS.border}`, borderRadius: 8, padding: '8px 12px', color: post.my_join ? COLORS.green : COLORS.textMuted, fontSize: 13, fontWeight: post.my_join ? 700 : 400, cursor: 'pointer', textAlign: 'left' }}>
+              style={{ width: '100%', background: post.my_join ? `${COLORS.green}22` : COLORS.bg, border: `1px solid ${post.my_join ? COLORS.green : COLORS.border}`, borderRadius: 8, padding: '8px 12px', color: post.my_join ? COLORS.green : COLORS.textMuted, fontSize: 13, fontWeight: post.my_join ? 700 : 400, cursor: 'pointer', textAlign: 'left' }}>
               {post.my_join ? t('join_card') : t('join_cta')} <span style={{ color: COLORS.textDim, fontWeight: 400 }}>· {(post.joiners||[]).length} {t('join_participants').toLowerCase()}</span>
             </button>
           )}
-          {/* Comments-thread */}
-          <div style={{ marginTop: 14, borderTop: `1px solid ${COLORS.border}`, paddingTop: 12 }}>
-            {threadComments === null && (
-              <div style={{ fontSize: 12, color: COLORS.textDim, paddingBottom: 8 }}>{t('comments_loading')}</div>
-            )}
-            {(threadComments || []).map((c, i) => (
-              <div key={c.id ?? i} style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textMuted, marginBottom: 2 }}>
-                  {(c.author_name || '').split(' ')[0] || t('resident')}{c.author_house ? ` ${c.author_house}` : ''}
-                </div>
-                <div style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.5 }}>{c.body}</div>
+          {/* Comments-thread (Figma CommentItem, node 23:7837) */}
+          {threadComments === null && (
+            <div style={{ fontSize: 12, color: COLORS.textDim }}>{t('comments_loading')}</div>
+          )}
+          {(threadComments || []).map((c, i) => (
+            <div key={c.id ?? i} style={s.commentItem(i === threadComments.length - 1)}>
+              <div style={s.commentAuthor}>
+                {(c.author_name || '').split(' ')[0] || t('resident')}{c.author_house ? ` ${c.author_house}` : ''}
               </div>
-            ))}
-            {threadComments !== null && (
-              // Single pill field with an embedded send icon (Figma
-              // CommentComposer, node 7:297) — not a separate input +
-              // "Stuur" button (confirmed against Wendy's screenshot,
-              // 2026-07-19).
-              <div style={{ position: 'relative', marginTop: 4 }} onClick={e => e.stopPropagation()}>
-                <input
-                  type="text"
-                  value={commentText}
-                  onChange={e => setCommentText(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitComment(e); } }}
-                  placeholder={t('comment_placeholder')}
-                  style={{ width: '100%', height: 48, background: COLORS.background, border: `1px solid ${COLORS.borderTertiary}`, borderRadius: 999, padding: '4px 48px 4px 16px', fontSize: 16, color: COLORS.text, outline: 'none', boxSizing: 'border-box' }}
-                />
-                <button onClick={submitComment} disabled={!commentText.trim() || sendingComment} aria-label={t('comment_send')}
-                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', padding: 0, display: 'flex', cursor: commentText.trim() ? 'pointer' : 'default' }}>
-                  <PaperPlaneTiltIcon size={24} weight="regular" color={commentText.trim() && !sendingComment ? COLORS.accent : COLORS.textDim} />
-                </button>
-              </div>
-            )}
-          </div>
+              <div style={s.commentBody}>{c.body}</div>
+              <div style={s.commentTime}>{formatClockTime(c.created_at)}</div>
+            </div>
+          ))}
+          {threadComments !== null && (
+            // Single pill field with an embedded send icon (Figma
+            // CommentComposer, node 7:297) — not a separate input +
+            // "Stuur" button (confirmed against Wendy's screenshot,
+            // 2026-07-19).
+            <div style={{ position: 'relative', width: '100%' }} onClick={e => e.stopPropagation()}>
+              <input
+                type="text"
+                value={commentText}
+                onChange={e => setCommentText(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitComment(e); } }}
+                placeholder={t('comment_placeholder')}
+                style={{ width: '100%', height: 48, background: COLORS.background, border: '1px solid rgba(28,26,24,0.1)', borderRadius: 999, padding: '4px 48px 4px 16px', fontSize: 16, color: COLORS.text, outline: 'none', boxSizing: 'border-box' }}
+              />
+              <button onClick={submitComment} disabled={!commentText.trim() || sendingComment} aria-label={t('comment_send')}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', padding: 0, display: 'flex', cursor: commentText.trim() ? 'pointer' : 'default' }}>
+                <PaperPlaneTiltIcon size={24} weight="regular" color={commentText.trim() && !sendingComment ? COLORS.accent : COLORS.textDim} />
+              </button>
+            </div>
+          )}
 
-          {/* ActionBar (Figma node 443:23582, updated 2026-07-19): fixed
-              48px row, engagement actions (Like) left, owner actions
-              (Edit/Delete) right — icons at 24px per the updated component.
-              Edit/Delete are each a 40x40 tap target with a 16px gap between
-              them (wider than Figma's literal 12px group gap, deliberately —
-              per the explicit "prevent accidental taps" requirement) rather
-              than icon-sized-only buttons sitting edge to edge. Delete stays
-              visually neutral (textDim, same as Edit) even though it's
+          <div style={s.divider} />
+
+          {/* ActionBar (Figma node 443:23582, 2026-07-25): fixed 48px row,
+              Likes + Comments left, owner actions (Edit/Delete) right — all
+              icons 24px. Edit/Delete keep their existing 40x40 tap targets
+              (wider than Figma's literal 12px group gap, deliberately — per
+              the explicit "prevent accidental taps" requirement, 2026-07-19)
+              rather than icon-sized-only buttons sitting edge to edge. Delete
+              stays visually neutral (textDim, same as Edit) even though it's
               destructive — actual confirmation happens through
               ConfirmationSheet (App.jsx's deleteConfirm), not through
               in-bar warning styling. */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 48, marginTop: 12, borderTop: `1px solid ${COLORS.border}` }}>
-            <button
-              style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: post.liked ? COLORS.interactionLike : COLORS.textDim }}
-              onClick={e => { e.stopPropagation(); onLike(post.id); }}
-              aria-label={t('like')}
-            >
-              <HeartIcon size={24} weight={post.liked ? 'fill' : 'regular'} style={{ display: 'block', flexShrink: 0 }} />
-              <span style={{ fontSize: 16, color: COLORS.textMuted }}>{Number(post.likes)}</span>
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 48, width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button
+                style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: post.liked ? COLORS.interactionLike : COLORS.textDim }}
+                onClick={e => { e.stopPropagation(); onLike(post.id); }}
+                aria-label={t('like')}
+              >
+                <HeartIcon size={24} weight={post.liked ? 'fill' : 'regular'} style={{ display: 'block', flexShrink: 0 }} />
+                <span style={{ fontSize: 16, color: COLORS.textMuted }}>{Number(post.likes)}</span>
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: COLORS.textDim }}>
+                <ChatCircleIcon size={24} weight="regular" style={{ display: 'block', flexShrink: 0 }} />
+                <span style={{ fontSize: 16, color: COLORS.textMuted }}>{commentCount}</span>
+              </div>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               {canEdit && (
                 <button
@@ -361,7 +394,7 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
               )}
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
