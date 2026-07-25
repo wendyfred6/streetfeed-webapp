@@ -48,7 +48,7 @@ export const s = {
     background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill,
     cursor: 'pointer', flexShrink: 0, overflow: 'hidden',
     opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(0.4)',
-    boxShadow: visible ? `0 4px 20px ${ALPHA.terraGlow}` : 'none',
+    boxShadow: 'none',
     transition: 'width 0.28s ease, margin-left 0.28s ease, opacity 0.18s ease, transform 0.28s ease, box-shadow 0.28s ease',
     pointerEvents: visible ? 'auto' : 'none',
   }),
