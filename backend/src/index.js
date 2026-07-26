@@ -16,6 +16,7 @@ import notificationsRoutes from './routes/notifications.js';
 import diagnosticsRoutes from './routes/diagnostics.js';
 import { runMigrations } from './db/index.js';
 import { runPostExpiration } from './services/postExpiration.js';
+import { runNotificationExpiration } from './services/notificationExpiration.js';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || '/data/photos';
 
@@ -62,10 +63,12 @@ export default runMigrations()
   }))
   .then((server) => {
     runPostExpiration().catch(err => console.error('[postExpiration] initial run failed:', err));
+    runNotificationExpiration().catch(err => console.error('[notificationExpiration] initial run failed:', err));
     // unref() so this timer alone never keeps the process alive (relevant
     // for tests, which boot this same default export and expect a clean exit).
     setInterval(() => {
       runPostExpiration().catch(err => console.error('[postExpiration] scheduled run failed:', err));
+      runNotificationExpiration().catch(err => console.error('[notificationExpiration] scheduled run failed:', err));
     }, DAY_MS).unref();
     return server;
   })
