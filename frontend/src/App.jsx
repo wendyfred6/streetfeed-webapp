@@ -518,7 +518,7 @@ export default function App() {
               </div>
               <button onClick={async () => {
                 const result = await subscribe();
-                if (result.ok) showToast(t('notifications_enabled_toast'), { dismissible: true, wrap: true, duration: 0 });
+                if (result.ok) showToast(t('notifications_enabled_toast'), { plain: true });
                 else if (result.error) showToast(result.error, { dismissible: true, wrap: true, duration: 0 });
               }} style={{ background: COLORS.accent, color: '#FFFFFF', border: 'none', borderRadius: RADIUS.pill, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 {t('notifications_banner_cta')}

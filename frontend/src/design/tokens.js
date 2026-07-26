@@ -38,6 +38,10 @@ export const COLORS = {
   border:       'rgba(255,0,102,0.15)',
   pinned:       'rgba(255,255,255,0.82)',
   pinnedBorder: 'rgba(255,0,102,0.5)', // Feed redesign (node 298:984, 2026-07-25)
+  // Toast/Snackbar surface — deliberately neutral, not accent pink, so a
+  // routine confirmation reads as "the system talking to you" rather than
+  // a branded/promotional element (2026-07-26, per Figma node 533:1998).
+  toastBackground: '#4A4A4A',
   red:          '#FF4444',
   blue:         '#4488FF',
   orange:       '#FF8833',
