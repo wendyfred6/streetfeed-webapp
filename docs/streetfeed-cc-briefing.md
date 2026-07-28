@@ -8,8 +8,9 @@
 > project — the actual source of truth is now
 > `frontend/src/design/tokens.js` (light theme, accent `#FF0066`). The
 > prototype file itself (`streetfeed.jsx`) was dead code (never imported)
-> and has been deleted. See `resume_prompt.md` at the repo root for the
-> current milestone-based plan this briefing predates.
+> and has been deleted. See `docs/HANDOFF.md` for current project status —
+> `resume_prompt.md` at the repo root is itself now a historical v1.0
+> closure record, not a live reference.
 
 ## What is Streetfeed?
 Streetfeed is a hyper-local street communication platform. Think Nextdoor, but for a single street — structured, private, and actually useful. No more WhatsApp chaos where important messages drown in noise.

@@ -1,5 +1,9 @@
 # Streetfeed v1.0 — resume prompt
 
+> **Historical record only.** For current status, start with
+> `docs/HANDOFF.md` instead — this file closes out v1.0 and isn't updated
+> for the active Pilot Excellence phase.
+
 ## Project Closure — Streetfeed v1.0
 
 Streetfeed v1.0 has successfully completed its planned development cycle.
