@@ -1,23 +1,28 @@
 import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
 import { COLORS } from '../design/tokens.js';
 
-// Figma "CommentItem" (node 23:7836, re-verified 2026-07-30): the button's
-// own slot in the ContentMeta row is 24x24, shrink-0 — it must not inflate
-// that row's height. The 44x44 transparent touch target is real (per the
-// original OverflowMenu spec) and stays intact, but as a <button>
-// positioned over a 24x24, non-interactive, in-flow wrapper.
+// Figma "CommentItem" (node 23:7836, updated 2026-07-30): the visible
+// OverflowMenuButton is items-center/justify-end inside a 24x24 footprint —
+// the dots sit flush with the footprint's own right edge, vertically
+// centered. Since the footprint is the row's last flex child, that right
+// edge already equals the row's right edge, which already equals the
+// timestamp's right edge below — "right-aligned with the timestamp" falls
+// out of matching Figma exactly, not a separate thing to solve.
 //
-// Deliberately asymmetric, not centered on the wrapper: CommentItem has 0
-// gap between this row and the comment body directly below (also per
-// 23:7836). A target centered on the 24px footprint would extend 10px below
-// it — verified via getClientRects() on real rendered text that a
-// multi-line comment's first line then visibly overlaps that 10px band.
-// Anchoring the target's bottom edge flush with the footprint's bottom
-// (extending the full 20px upward instead, into the card's own padding,
-// never into content) keeps the dots glyph at the exact same page position
-// Figma specifies — alignItems: flex-end lands it in the footprint's own
-// 24px, not centered in the enlarged 44px box — while guaranteeing zero
-// overlap with comment text below, regardless of comment length.
+// The 44x44 transparent touch target is real (per the original OverflowMenu
+// spec) and stays intact, but must never affect layout: anchored flush to
+// the footprint's own right+bottom edges (not centered on it), extending
+// only left and up — into the card's own padding/the 4px row gap, never
+// into content, and never shifting the visible dots off Figma's position.
+//
+// Phosphor's icon SVGs use viewBox="0 0 256 256" — DotsThreeVertical's dots
+// are drawn centered in that box (x=128±16), so at render size 24 the
+// visible glyph's right edge sits 10.5px left of the SVG element's own
+// right edge (measured: (256-144)/256 * 24 = 10.5, confirmed via
+// path.getBoundingClientRect() against the rendered page). justify-end
+// alone only right-aligns the SVG's empty box, not the glyph drawn inside
+// it — translateX(10.5px) compensates so the actual painted dots land
+// flush with the footprint's edge, matching Figma exactly.
 export default function OverflowMenuButton({ onClick, ariaLabel }) {
   return (
     <div style={{ position: 'relative', width: 24, height: 24, flexShrink: 0 }}>
@@ -26,14 +31,14 @@ export default function OverflowMenuButton({ onClick, ariaLabel }) {
         onClick={onClick}
         aria-label={ariaLabel}
         style={{
-          position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+          position: 'absolute', right: 0, bottom: 0,
           width: 44, height: 44,
-          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end',
           background: 'none', border: 'none', padding: 0, cursor: 'pointer',
           color: COLORS.textMuted,
         }}
       >
-        <DotsThreeVerticalIcon size={24} weight="bold" />
+        <DotsThreeVerticalIcon size={24} weight="bold" style={{ transform: 'translateX(10.5px)' }} />
       </button>
     </div>
   );
