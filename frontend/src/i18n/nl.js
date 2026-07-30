@@ -220,4 +220,11 @@ export default {
   comments_loading: 'Reacties laden…',
   comment_placeholder: 'Reageer…',
   comment_send: 'Stuur',
+  comment_options: 'Meer opties',
+  comment_edit_action: 'Bewerken',
+  comment_delete_action: 'Verwijderen',
+  comment_edited_label: 'Bewerkt',
+  delete_comment_heading: 'Reactie verwijderen?',
+  delete_comment_body: 'Weet je zeker dat je deze reactie wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+  delete_comment_confirm: 'Reactie verwijderen',
 };

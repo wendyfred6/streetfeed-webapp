@@ -63,3 +63,7 @@ export const rsvpSchema = z.object({
 export const commentSchema = z.object({
   body: z.string().trim().min(1).max(2000),
 });
+
+export const editCommentSchema = z.object({
+  body: z.string().trim().min(1).max(2000),
+});

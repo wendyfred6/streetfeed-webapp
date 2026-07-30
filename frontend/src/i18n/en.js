@@ -220,4 +220,11 @@ export default {
   comments_loading: 'Loading comments…',
   comment_placeholder: 'Reply…',
   comment_send: 'Send',
+  comment_options: 'More options',
+  comment_edit_action: 'Edit',
+  comment_delete_action: 'Delete',
+  comment_edited_label: 'Edited',
+  delete_comment_heading: 'Delete comment?',
+  delete_comment_body: 'Are you sure you want to delete this comment? This action cannot be undone.',
+  delete_comment_confirm: 'Delete comment',
 };

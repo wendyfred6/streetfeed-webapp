@@ -8,6 +8,10 @@ import { timeAgo, formatClockTime } from '../utils/time.js';
 import { formatEventDate } from '../utils/eventDate.js';
 import Switch from './Switch.jsx';
 import Chevron from './Chevron.jsx';
+import ConfirmationSheet from './ConfirmationSheet.jsx';
+import OverflowMenuButton from './OverflowMenuButton.jsx';
+import OverflowMenu from './OverflowMenu.jsx';
+import OverflowMenuItem from './OverflowMenuItem.jsx';
 
 import { HeartIcon } from '@phosphor-icons/react/dist/csr/Heart';
 import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
@@ -50,6 +54,12 @@ const s = {
   commentAuthor: { fontSize: 12, fontWeight: 600, color: COLORS.textDim },
   commentBody: { fontSize: 16, lineHeight: '24px', color: COLORS.text },
   commentTime: { fontSize: 10, fontWeight: 600, color: COLORS.textDim, textAlign: 'right' },
+  // No Figma spec exists for comment editing — kept minimal/local rather
+  // than reusing the sheet-level submitBtn/cancelBtn (too heavy for an
+  // inline, compact edit affordance).
+  commentEditInput: { width: '100%', fontFamily: 'inherit', fontSize: 16, lineHeight: '24px', color: COLORS.text, background: COLORS.background, border: `1px solid ${COLORS.borderTertiary}`, borderRadius: RADIUS.md, padding: '10px 12px', outline: 'none', resize: 'none', boxSizing: 'border-box' },
+  commentEditSaveBtn: { height: 32, padding: '0 14px', background: COLORS.accent, color: COLORS.textInverse, border: 'none', borderRadius: RADIUS.pill, fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  commentEditCancelBtn: { height: 32, padding: '0 14px', background: 'none', color: COLORS.textMuted, border: `1px solid ${COLORS.borderTertiary}`, borderRadius: RADIUS.pill, fontSize: 13, fontWeight: 600, cursor: 'pointer' },
 };
 
 // ─── RSVP BAR ──────────────────────────────────────────────────────────────────
@@ -117,6 +127,11 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
   const [threadComments, setThreadComments] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [sendingComment, setSendingComment] = useState(false);
+  const [openMenuCommentId, setOpenMenuCommentId] = useState(null);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingText, setEditingText] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deleteCommentTarget, setDeleteCommentTarget] = useState(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -146,6 +161,47 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
       onError?.(err.message || 'Reactie versturen mislukt');
     }
     setSendingComment(false);
+  };
+
+  // FRE-371: comment edit/delete. Non-optimistic — threadComments is only
+  // touched after the API call succeeds, so a failure leaves the existing
+  // comment exactly as it was (the edit form stays open with the attempted
+  // text for a retry, rather than the comment silently reverting).
+  const startEditingComment = (c) => {
+    setOpenMenuCommentId(null);
+    setEditingCommentId(c.id);
+    setEditingText(c.body);
+  };
+
+  const cancelEditingComment = () => {
+    setEditingCommentId(null);
+    setEditingText('');
+  };
+
+  const saveCommentEdit = async (c) => {
+    if (!editingText.trim() || savingEdit) return;
+    setSavingEdit(true);
+    try {
+      const updated = await api.patch(`/streets/1/posts/${post.id}/comments/${c.id}`, { body: editingText.trim() });
+      setThreadComments(prev => prev.map(tc => tc.id === c.id ? { ...tc, ...updated } : tc));
+      setEditingCommentId(null);
+      setEditingText('');
+    } catch (err) {
+      onError?.(err.message || 'Reactie bewerken mislukt');
+    }
+    setSavingEdit(false);
+  };
+
+  const confirmDeleteComment = async () => {
+    const target = deleteCommentTarget;
+    if (!target) return;
+    try {
+      await api.delete(`/streets/1/posts/${post.id}/comments/${target.id}`);
+      setThreadComments(prev => (prev || []).filter(tc => tc.id !== target.id));
+    } catch (err) {
+      onError?.(err.message || 'Reactie verwijderen mislukt');
+    }
+    setDeleteCommentTarget(null);
   };
 
   const toggleExpanded = () => setExpanded(e => !e);
@@ -317,13 +373,61 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
           )}
           {(threadComments || []).map((c, i) => (
             <div key={c.id ?? i} style={s.commentItem}>
-              <div style={s.commentAuthor}>
-                {(c.author_name || '').split(' ')[0] || t('resident')}{c.author_house ? ` ${c.author_house}` : ''}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+                <div style={s.commentAuthor}>
+                  {(c.author_name || '').split(' ')[0] || t('resident')}{c.author_house ? ` ${c.author_house}` : ''}
+                </div>
+                {/* FRE-371: trigger only on the resident's own comment —
+                    can_manage is computed server-side and deliberately
+                    author-only (see backend/src/routes/posts/comments.js). */}
+                {c.can_manage && (
+                  <>
+                    <OverflowMenuButton
+                      ariaLabel={t('comment_options')}
+                      onClick={e => { e.stopPropagation(); setOpenMenuCommentId(id => id === c.id ? null : c.id); }}
+                    />
+                    {openMenuCommentId === c.id && (
+                      <OverflowMenu style={{ top: '100%', right: 0 }} onClose={() => setOpenMenuCommentId(null)}>
+                        <OverflowMenuItem icon={PencilSimpleIcon} label={t('comment_edit_action')} onClick={() => startEditingComment(c)} />
+                        <OverflowMenuItem icon={TrashIcon} label={t('comment_delete_action')} destructive
+                          onClick={() => { setOpenMenuCommentId(null); setDeleteCommentTarget(c); }} />
+                      </OverflowMenu>
+                    )}
+                  </>
+                )}
               </div>
-              <div style={s.commentBody}>{c.body}</div>
-              <div style={s.commentTime}>{formatClockTime(c.created_at)}</div>
+              {editingCommentId === c.id ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }} onClick={e => e.stopPropagation()}>
+                  <textarea
+                    value={editingText}
+                    onChange={e => setEditingText(e.target.value)}
+                    rows={2}
+                    autoFocus
+                    style={s.commentEditInput}
+                  />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => saveCommentEdit(c)} disabled={!editingText.trim() || savingEdit} style={s.commentEditSaveBtn}>{t('save')}</button>
+                    <button onClick={cancelEditingComment} style={s.commentEditCancelBtn}>{t('cancel')}</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={s.commentBody}>{c.body}</div>
+              )}
+              <div style={s.commentTime}>
+                {c.edited_at && `${t('comment_edited_label')} · `}{formatClockTime(c.created_at)}
+              </div>
             </div>
           ))}
+          {deleteCommentTarget && (
+            <ConfirmationSheet
+              heading={t('delete_comment_heading')}
+              body={t('delete_comment_body')}
+              primaryLabel={t('delete_comment_confirm')}
+              onPrimary={confirmDeleteComment}
+              secondaryLabel={t('cancel')}
+              onSecondary={() => setDeleteCommentTarget(null)}
+            />
+          )}
           {threadComments !== null && (
             // Single pill field with an embedded send icon (Figma
             // CommentComposer, node 7:297) — not a separate input +
