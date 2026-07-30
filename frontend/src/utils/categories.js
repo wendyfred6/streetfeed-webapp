@@ -33,6 +33,14 @@ export function catLabel(key) {
   return getLang() === 'en' ? c.labelEn : c.label;
 }
 
+// CategoryPicker's own descriptive sub-line per category (distinct from
+// typeLabel's Situatie labels) — lives on CATEGORY_TREE, not CATEGORIES.
+export function catSub(key) {
+  const item = CATEGORY_TREE.find(it => it.key === key);
+  if (!item) return '';
+  return getLang() === 'en' ? item.subEn : item.sub;
+}
+
 // ─── SUB-TYPE TREE ──────────────────────────────────────────────────────────
 // Single source of truth for New Post Sheet sub-types: drives the
 // CategoryPicker's navigable tree (icon + sub description + hierarchy)
@@ -46,20 +54,27 @@ export function catLabel(key) {
 // it's just no longer a selectable option in this picker.
 export const CATEGORY_TREE = [
   {
-    key: 'bezorging', label: 'Bezorging', sub: 'Pakketten ontvangen of hulp gevraagd bij bezorging', icon: PackageIcon,
+    key: 'bezorging', label: 'Bezorging', sub: 'Pakketten ontvangen of hulp gevraagd bij bezorging',
+    subEn: 'Receiving packages or asking for delivery help', icon: PackageIcon,
     types: null,
   },
   {
-    key: 'straatzaken', label: 'Straatzaken', sub: 'Tijdelijke zaken rondom de straat', icon: TrafficConeIcon,
+    key: 'straatzaken', label: 'Straatzaken', sub: 'Tijdelijke zaken rondom de straat',
+    subEn: 'Temporary things happening on the street', icon: TrafficConeIcon,
     types: null,
   },
   {
-    key: 'lostandfound', label: 'Lost & Found', sub: 'Iets verloren of gevonden', icon: BinocularsIcon,
+    key: 'lostandfound', label: 'Lost & Found', sub: 'Iets verloren of gevonden',
+    subEn: 'Lost or found something', icon: BinocularsIcon,
     types: null,
   },
-  { key: 'evenement', label: 'Evenement', sub: 'Van straatborrel tot buurtactiviteit', icon: CalendarPlusIcon, types: null },
   {
-    key: 'algemeen', label: 'Algemeen', sub: 'Algemene berichten voor de straat', icon: ChatsCircleIcon,
+    key: 'evenement', label: 'Evenement', sub: 'Van straatborrel tot buurtactiviteit',
+    subEn: 'From a street drinks to a neighbourhood activity', icon: CalendarPlusIcon, types: null,
+  },
+  {
+    key: 'algemeen', label: 'Algemeen', sub: 'Algemene berichten voor de straat',
+    subEn: 'General messages for the street', icon: ChatsCircleIcon,
     types: null,
   },
 ];

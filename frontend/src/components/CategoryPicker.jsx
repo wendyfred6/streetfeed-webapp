@@ -1,47 +1,30 @@
 import { useState } from 'react';
 import { COLORS, RADIUS } from '../design/tokens.js';
 import { s } from '../design/appStyles.js';
-import { CATEGORY_TREE } from '../utils/categories.js';
-import { ArrowCircleLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowCircleLeft';
+import { CATEGORY_TREE, catLabel, catSub } from '../utils/categories.js';
 import { ChevronRightIcon } from '../icons/index.jsx';
+import { t } from '../i18n/index.js';
 
-// Centered modal, all navigation levels handled internally (path = drill-down
-// history through CATEGORY_TREE). See the CenteredModal item in M6 for
-// sharing this overlay chrome with NewPostSheet's — out of scope here.
+// Centered modal listing the top-level categories. CATEGORY_TREE is flat
+// (every entry has types: null — Situaties are chosen in-post per
+// FRE-367/368), so there is no drill-down here anymore; each row selects
+// its category directly. Matches Figma "Category Picker v0.1" (node
+// 239:11566).
 export default function CategoryPicker({ onClose, onSelect }) {
-  const [path, setPath] = useState([]);
   const [closing, setClosing] = useState(false);
 
   const close = () => { setClosing(true); setTimeout(onClose, 220); };
 
-  const currentItems = path.reduce(
-    (items, { key }) => items.find(it => it.key === key)?.types || [],
-    CATEGORY_TREE,
-  );
-
   const handleRow = (item) => {
-    if (item.types) {
-      setPath(prev => [...prev, { key: item.key, label: item.label }]);
-    } else {
-      const cat  = path.length === 0 ? item.key : path[0].key;
-      const type = path.length === 0 ? null     : item.key;
-      setClosing(true);
-      setTimeout(() => onSelect(cat, type), 220);
-    }
+    setClosing(true);
+    setTimeout(() => onSelect(item.key, null), 220);
   };
 
-  const goBack = () => setPath(prev => prev.slice(0, -1));
-
-  const isMain     = path.length === 0;
-  const heading    = isMain ? 'Wat wil je delen?' : path[path.length - 1].label;
-  const breadcrumb = path.length > 1 ? path[path.length - 2].label : null;
-
   const rowStyle = {
-    display: 'flex', alignItems: 'center', gap: 14,
+    display: 'flex', alignItems: 'center', gap: 8,
     width: '100%', textAlign: 'left',
-    background: 'rgba(255,255,255,0.65)',
-    border: '1px solid rgba(255,255,255,0.55)',
-    borderRadius: RADIUS.lg,
+    background: COLORS.background,
+    borderRadius: 12,
     padding: '14px 16px',
     cursor: 'pointer',
     fontFamily: 'inherit',
@@ -72,48 +55,33 @@ export default function CategoryPicker({ onClose, onSelect }) {
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        {isMain ? (
-          <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.text, marginBottom: 20 }}>
-            Wat wil je delen?
-          </div>
-        ) : (
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button onClick={goBack} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', flexShrink: 0 }} aria-label="Terug">
-                <ArrowCircleLeftIcon size={40} weight="regular" color={COLORS.text} />
-              </button>
-              <div>
-                {breadcrumb && (
-                  <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.textDim, letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 4 }}>
-                    {breadcrumb}
-                  </div>
-                )}
-                <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.text }}>{heading}</div>
-              </div>
-            </div>
-          </div>
-        )}
+        <div style={{ fontSize: 20, fontWeight: 700, color: COLORS.text, marginBottom: 20 }}>
+          {t('category_picker_heading')}
+        </div>
 
         {/* Rijen */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 4 }}>
-          {currentItems.map(item => {
+          {CATEGORY_TREE.map(item => {
             const Icon = item.icon;
+            const sub = catSub(item.key);
             return (
               <button key={item.key} type="button" onClick={() => handleRow(item)} className="tap-feedback" style={rowStyle}>
-                <Icon size={32} weight="regular" color={COLORS.text} style={{ flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: COLORS.text }}>{item.label}</div>
-                  {item.sub && <div style={{ fontSize: 10, fontWeight: 500, color: COLORS.textMuted, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sub}</div>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
+                  <Icon size={32} weight="regular" color={COLORS.text} style={{ flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: COLORS.text }}>{catLabel(item.key)}</div>
+                    {sub && <div style={{ fontSize: 12, fontWeight: 500, color: COLORS.textMuted, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</div>}
+                  </div>
                 </div>
-                {item.types && <ChevronRightIcon size={16} color={COLORS.textDim} />}
+                <ChevronRightIcon size={16} color={COLORS.textDim} />
               </button>
             );
           })}
         </div>
 
-        {/* Knoppen */}
+        {/* Knop */}
         <button onClick={close} style={{ ...s.cancelBtn, marginTop: 16 }}>
-          Annuleren
+          {t('cancel')}
         </button>
       </div>
     </div>

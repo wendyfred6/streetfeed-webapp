@@ -29,6 +29,7 @@ export default {
   settings: 'Instellingen',
   all: 'Alles',
   new_post: 'Bericht plaatsen',
+  category_picker_heading: 'Wat wil je delen?',
   category: 'Categorie',
   title: 'Titel',
   message: 'Bericht',

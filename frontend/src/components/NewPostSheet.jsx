@@ -85,11 +85,10 @@ export default function NewPostSheet({ onClose, onBack, onSubmit, streetId, user
 
   const category = isEdit ? post.category : initialCat;
 
-  // `initialType` only arrives non-null from a CategoryPicker drill-down
-  // (still possible for out-of-scope legacy categories); Bezorging's own
-  // Situatie is now an in-post choice like Straatzaken/Lost & Found, so this
-  // has to fall back to the `situatie` state instead. Algemeen has no
-  // Situatie at all (confirmed against Figma, 2026-07-18).
+  // CategoryPicker no longer drills down (CATEGORY_TREE is flat), so
+  // `initialType` is always null now; Situatie is chosen in-post instead,
+  // hence the fallback to `situatie` state. Algemeen has no Situatie at all
+  // (confirmed against Figma, 2026-07-18).
   const { isBezorging, isStraatzaken, isMelding, isEvenement, isLostAndFound, isGezocht } = postCategoryFlags(category, initialType || situatie);
 
   const autoTitle = isGezocht

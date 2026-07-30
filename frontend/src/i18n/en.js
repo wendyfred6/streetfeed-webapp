@@ -29,6 +29,7 @@ export default {
   settings: 'Settings',
   all: 'All',
   new_post: 'New post',
+  category_picker_heading: 'What do you want to share?',
   category: 'Category',
   title: 'Title',
   message: 'Message',
