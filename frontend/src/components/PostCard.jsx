@@ -49,8 +49,10 @@ const s = {
   // Flat 12px on every corner, every instance (2026-07-25: the earlier
   // asymmetric bottom-right corner on non-last comments was copying an
   // accidental 0px edit in Figma's CommentItem component, not an intentional
-  // design — component-level fix, not per-instance).
-  commentItem: { background: 'rgba(108,104,96,0.05)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 4 },
+  // design — component-level fix, not per-instance). Figma (node 23:7836,
+  // re-verified 2026-07-30) has no gap between ContentMeta/body/timestamp —
+  // gap: 0, not 4.
+  commentItem: { background: 'rgba(108,104,96,0.05)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 0 },
   commentAuthor: { fontSize: 12, fontWeight: 600, color: COLORS.textDim },
   commentBody: { fontSize: 16, lineHeight: '24px', color: COLORS.text },
   commentTime: { fontSize: 10, fontWeight: 600, color: COLORS.textDim, textAlign: 'right' },
@@ -373,7 +375,11 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
           )}
           {(threadComments || []).map((c, i) => (
             <div key={c.id ?? i} style={s.commentItem}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+              {/* Figma's ContentMeta+OverflowMenuButton row is items-start
+                  with a 4px gap (node 23:7836) — items-center here previously
+                  let the button's 44px touch target stretch this row's
+                  height, which read as extra padding/gap on the whole card. */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 4, width: '100%', position: 'relative' }}>
                 <div style={s.commentAuthor}>
                   {(c.author_name || '').split(' ')[0] || t('resident')}{c.author_house ? ` ${c.author_house}` : ''}
                 </div>
