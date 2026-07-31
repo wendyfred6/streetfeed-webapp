@@ -34,7 +34,6 @@ const s = {
     display: 'flex', flexDirection: 'column', gap: 12,
   }),
   divider: { height: 0, borderTop: '1px solid rgba(28,26,24,0.08)', width: '100%', flexShrink: 0 },
-  eyebrowRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   category: { fontSize: 12, fontWeight: 600, color: COLORS.textMuted },
   title: { fontSize: 20, fontWeight: 700, lineHeight: '24px', color: COLORS.text },
   metaRow: { display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: COLORS.textDim },
@@ -266,59 +265,73 @@ export default function PostCard({ post, onLike, onRsvp, onOpenEvent, onReport, 
 
   return (
     <div id={`post-${post.id}`} style={s.card(post.pinned)}>
-      {/* ── Klikbare header (altijd zichtbaar) ── */}
+      {/* ── Klikbare header (altijd zichtbaar) ──
+          Figma "PostCard" (node 23:6721, updated 2026-07-30): "Content +
+          Nav Chevrons" is a horizontal row — Content (flex:1, min-width:0)
+          on the left, Nav Chevrons (fixed 24px, self-stretch) on the right.
+          Content's min-width:0 is what actually makes a wrapped title stop
+          at the column's own edge instead of continuing full-card-width
+          underneath the chevron; self-stretch is what reserves that
+          right-side strip for the chevron's full height, not just its own
+          row, regardless of how many lines the title wraps to. */}
       <div
         className="tap-feedback"
-        style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}
+        style={{ cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'flex-start', width: '100%' }}
         role="button"
         tabIndex={0}
         aria-expanded={expanded}
         onClick={toggleExpanded}
         onKeyDown={handleHeaderKeyDown}
       >
-        {/* ContextPath (own row, above the title): category only (Product Model
-            v1, 2026-07-18) — Situation lives in the generated title instead,
-            never in ContextPath. */}
-        <div>
-          <div style={s.eyebrowRow}>
-            <div style={s.category}>{catLabel(post.category)}</div>
-            <Chevron size={24} rotate={expanded ? 180 : 0} style={{ flexShrink: 0 }} />
-          </div>
-          <div style={s.title}>{post.title}</div>
-        </div>
-        {badgeSegments && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={s.badge}>
-              {badgeSegments.map((seg, i) => (
-                <span key={i} style={s.badgeText}>{seg}</span>
-              ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: '1 1 0%', minWidth: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+            {/* ContextPath (own row, above the title): category only (Product
+                Model v1, 2026-07-18) — Situation lives in the generated
+                title instead, never in ContextPath. */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                <div style={s.category}>{catLabel(post.category)}</div>
+              </div>
+              <div style={s.title}>{post.title}</div>
             </div>
-            {isEvent && attendeeCount > 0 && (
-              <span style={{ fontSize: 12, fontWeight: 500, color: COLORS.text, whiteSpace: 'nowrap' }}>
-                {attendeeCount} aanwezig
-              </span>
+            {badgeSegments && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={s.badge}>
+                  {badgeSegments.map((seg, i) => (
+                    <span key={i} style={s.badgeText}>{seg}</span>
+                  ))}
+                </div>
+                {isEvent && attendeeCount > 0 && (
+                  <span style={{ fontSize: 12, fontWeight: 500, color: COLORS.text, whiteSpace: 'nowrap' }}>
+                    {attendeeCount} aanwezig
+                  </span>
+                )}
+              </div>
             )}
           </div>
-        )}
-        {/* ContentMeta (altijd zichtbaar): voornaam · tijd · reacties */}
-        <div style={s.metaRow}>
-          <span>{firstName}{post.author_house ? ` ${post.author_house}` : ''}</span>
-          <span>·</span><span>{timeAgo(post.created_at)}</span>
-          {commentCount > 0 && (
-            <>
-              <span>·</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <ChatCircleIcon size={13} weight="regular" />
-                {commentCount}
-              </span>
-            </>
+          {/* ContentMeta (altijd zichtbaar): voornaam · tijd · reacties */}
+          <div style={s.metaRow}>
+            <span>{firstName}{post.author_house ? ` ${post.author_house}` : ''}</span>
+            <span>·</span><span>{timeAgo(post.created_at)}</span>
+            {commentCount > 0 && (
+              <>
+                <span>·</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                  <ChatCircleIcon size={13} weight="regular" />
+                  {commentCount}
+                </span>
+              </>
+            )}
+          </div>
+          {pickupLocation && (
+            <div style={{ fontSize: 12, color: COLORS.textMuted }}>
+              Ophaallocatie: {pickupLocation}
+            </div>
           )}
         </div>
-        {pickupLocation && (
-          <div style={{ fontSize: 12, color: COLORS.textMuted }}>
-            Ophaallocatie: {pickupLocation}
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'flex-start', alignSelf: 'stretch', flexShrink: 0 }}>
+          <Chevron size={24} rotate={expanded ? 180 : 0} style={{ flexShrink: 0 }} />
+        </div>
       </div>
 
       {/* ── Uitgeklapte inhoud ── */}
