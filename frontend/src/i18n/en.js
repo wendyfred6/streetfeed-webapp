@@ -162,6 +162,7 @@ export default {
   house_suffix_label: 'Suffix',
   house_number_loading: 'Loading…',
   house_number_choose: 'Choose',
+  house_number_load_error: "Couldn't load",
   house_number_ground_floor: 'hs (ground floor)',
   onboarding_name_title: 'How should neighbors recognize you?',
   onboarding_name_sub: 'Only your first name and house number are visible.',

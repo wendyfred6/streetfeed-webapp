@@ -162,6 +162,7 @@ export default {
   house_suffix_label: 'Toevoeging',
   house_number_loading: 'Laden…',
   house_number_choose: 'Kies',
+  house_number_load_error: 'Kon niet laden',
   house_number_ground_floor: 'hs (begane grond)',
   onboarding_name_title: 'Hoe mogen buren je herkennen?',
   onboarding_name_sub: 'Alleen je voornaam en huisnummer zijn zichtbaar.',
