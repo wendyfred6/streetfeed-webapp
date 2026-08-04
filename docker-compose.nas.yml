@@ -70,6 +70,11 @@ services:
       - "8080:80"          # Synology reverse proxy wijst hiernaartoe
     depends_on:
       - backend
+    volumes:
+      # /start/ — public resident intro page. Wendy edits index.html directly
+      # via Finder/SMB (/Volumes/web/streetfeed-start), same workflow as
+      # theviberators.com — no build/deploy needed for content changes.
+      - /volume1/web/streetfeed-start:/usr/share/nginx/html/start:ro
 
   cloudflared:
     image: cloudflare/cloudflared:latest
