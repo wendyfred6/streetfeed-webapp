@@ -94,7 +94,7 @@ export default {
   language: 'Taal / Language',
   nav_account: 'Account',
   account_stat_addresses: 'adressen',
-  account_stat_residents: 'bewoners',
+  account_stat_residents: 'aanmeldingen',
   account_notif_section: 'Notificatie-instellingen',
   privacy_title: 'Privacy & Data',
   privacy_intro: 'We gaan zorgvuldig om met jouw gegevens. We verzamelen alleen wat nodig is om Streetfeed goed te laten werken.',

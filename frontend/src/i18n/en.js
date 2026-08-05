@@ -94,7 +94,7 @@ export default {
   language: 'Taal / Language',
   nav_account: 'Account',
   account_stat_addresses: 'addresses',
-  account_stat_residents: 'residents',
+  account_stat_residents: 'registrations',
   account_notif_section: 'Notification settings',
   privacy_title: 'Privacy & Data',
   privacy_intro: 'We handle your data carefully. We only collect what\'s needed to make Streetfeed work well.',
