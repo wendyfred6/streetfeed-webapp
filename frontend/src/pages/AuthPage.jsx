@@ -30,7 +30,9 @@ export default function AuthPage() {
       .then(() => refresh().then(() => navigate('/', { replace: true })))
       .catch((err) => {
         const code = err?.data?.error;
-        const authError = code === 'expired'
+        const authError = code === 'already_used'
+          ? t('auth_link_already_used')
+          : code === 'expired'
           ? t('auth_link_expired')
           : t('auth_verify_failed');
         navigate('/onboarding', { replace: true, state: { authError } });

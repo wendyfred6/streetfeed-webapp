@@ -87,7 +87,7 @@ router.get('/verify', async (req, res) => {
   if (!token) return res.status(400).json({ error: 'Token required' });
 
   const { rows: tokenRows } = await query(
-    `SELECT * FROM auth_tokens WHERE token = $1 AND expires_at > NOW() AND used_at IS NULL`,
+    `SELECT * FROM auth_tokens WHERE token = $1`,
     [token]
   );
 
@@ -96,6 +96,18 @@ router.get('/verify', async (req, res) => {
   }
 
   const authToken = tokenRows[0];
+
+  // FRE-412: "already used" and "genuinely time-expired" used to return the
+  // same generic error, which left iOS residents whose magic link got
+  // consumed inside an in-app browser (Gmail app, etc.) with no clue why a
+  // fresh-looking link had failed. Splitting these lets the frontend show
+  // recovery guidance instead of a bare retry prompt.
+  if (authToken.used_at) {
+    return res.status(400).json({ error: 'already_used' });
+  }
+  if (new Date(authToken.expires_at) <= new Date()) {
+    return res.status(400).json({ error: 'expired' });
+  }
 
   // Mark token as used
   await query('UPDATE auth_tokens SET used_at = NOW() WHERE id = $1', [authToken.id]);

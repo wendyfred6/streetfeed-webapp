@@ -143,6 +143,11 @@ export async function sendMagicLink(email, name, token) {
         Werkt de knop niet? Gebruik dan deze link:<br />
         <a href="${url}" class="sf-link" style="color:#7692CD;text-decoration:underline;word-break:break-all">${url}</a>
       </div>
+      <div class="sf-callout" style="background:rgba(255,0,102,0.06);border-radius:20px;padding:16px;margin:0 0 24px">
+        <div class="sf-text" style="color:#1C1A18;font-size:12px;line-height:18px">
+          <p style="margin:0"><strong>Gebruik je Gmail op een iPhone?</strong><br />Tik de knop hierboven dan niet direct aan. Houd hem ingedrukt en kies 'Open in Safari', anders lukt inloggen niet.</p>
+        </div>
+      </div>
       <div class="sf-callout" style="background:rgba(108,104,96,0.05);border-radius:20px;padding:16px;margin:0 0 24px">
         <div class="sf-text" style="color:#1C1A18;font-size:12px;line-height:18px">
           <p style="margin:0 0 8px"><strong>Gebruik je een iPhone?</strong><br />Pushmeldingen werken op iOS alleen als Streetfeed aan je beginscherm is toegevoegd.</p>

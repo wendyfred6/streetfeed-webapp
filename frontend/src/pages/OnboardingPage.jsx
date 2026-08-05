@@ -102,6 +102,7 @@ const s = {
   previewLabel: { fontSize: 10, fontWeight: 600, letterSpacing: 0, color: COLORS.textDim, lineHeight: 'normal' },
   previewName: { fontSize: 14, fontWeight: 700, color: COLORS.text, lineHeight: '20px' },
   noMailGroup: { display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', color: COLORS.textMuted, fontSize: 12, lineHeight: '18px' },
+  iphoneTipGroup: { display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', color: COLORS.textMuted, fontSize: 12, lineHeight: '18px' },
   langToggle: { display: 'flex', gap: 12, marginTop: 8 },
   langOption: (active) => ({
     background: 'none', border: 'none', padding: 0, cursor: 'pointer',
@@ -502,6 +503,10 @@ export default function OnboardingPage() {
               <strong style={{ color: COLORS.text }}>{email}</strong>
               {t('onboarding_check_email_suffix')}
             </div>
+          </div>
+          <div style={s.iphoneTipGroup}>
+            <span style={{ fontWeight: 700, color: COLORS.text }}>{t('onboarding_iphone_gmail_tip_title')}</span>
+            <span>{t('onboarding_iphone_gmail_tip_body')}</span>
           </div>
           <div style={s.noMailGroup}>
             <span style={{ fontWeight: 700, color: COLORS.text }}>{t('onboarding_no_mail_q')}</span>
