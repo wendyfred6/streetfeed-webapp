@@ -15,9 +15,18 @@ const router = Router();
 // Feed is already hiding — a dead end once tapped. Reusing the existing
 // null-post_id handling on the frontend (renders as non-interactive) means
 // this needed no frontend change.
+//
+// FRE-384: the frontend now decides tappability from `url` (some
+// notification types, e.g. an admin new-request notification, are
+// navigable without ever pointing at a post — post_id is null for them
+// from the start). So `url` needs the exact same nulling FRE-383 already
+// does for post_id: only null it when the notification WAS post-related
+// (n.post_id IS NOT NULL) and that post has since become invisible
+// (p.id IS NULL) — anything that was never post-related keeps its url.
 router.get('/', requireAuth, async (req, res) => {
   const { rows } = await query(
-    `SELECT n.id, n.category, n.title, n.body, n.url,
+    `SELECT n.id, n.category, n.title, n.body,
+       CASE WHEN n.post_id IS NOT NULL AND p.id IS NULL THEN NULL ELSE n.url END AS url,
        CASE WHEN n.post_id IS NULL THEN NULL WHEN p.id IS NULL THEN NULL ELSE n.post_id END AS post_id,
        n.read_at, n.created_at
      FROM notifications n

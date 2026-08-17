@@ -131,7 +131,7 @@ function JoinDetailSheet({ post, onClose, onJoin }) {
 
 // ─── NOTIFICATIE-INBOX ─────────────────────────────────────────────────────────
 
-function NotificationInboxSheet({ onClose, onOpenPost, onError }) {
+function NotificationInboxSheet({ onClose, onNavigate, onError }) {
   const [closing, setClosing] = useState(false);
   const [items, setItems] = useState(null);
   const close = () => { setClosing(true); setTimeout(onClose, 270); };
@@ -162,11 +162,14 @@ function NotificationInboxSheet({ onClose, onOpenPost, onError }) {
                 <div style={{ fontSize: 11, color: COLORS.textDim, marginTop: 4 }}>{timeAgo(item.created_at)}</div>
               </>
             );
-            // Only items with a post_id are actually navigable — those become
-            // a real button (keyboard/screen-reader accessible for free);
-            // the rest stay a plain, non-interactive div.
-            return item.post_id ? (
-              <button key={item.id} type="button" onClick={() => { onOpenPost(item.post_id); close(); }} style={{ ...itemStyle, cursor: 'pointer' }}>
+            // FRE-384: tappability now follows `url`, not `post_id` — some
+            // notification types (e.g. an admin new-request notification)
+            // are navigable without pointing at a post at all. The backend
+            // only ever returns a url when it's actually safe to follow
+            // (see notifications.js's FRE-383/FRE-384 nulling logic), so
+            // this stays a plain truthy check, not a type-specific branch.
+            return item.url ? (
+              <button key={item.id} type="button" onClick={() => { onNavigate(item.url); close(); }} style={{ ...itemStyle, cursor: 'pointer' }}>
                 {content}
               </button>
             ) : (
@@ -317,12 +320,22 @@ export default function App() {
       .catch(err => console.error('[app] unread-count fetch failed', err));
   }, []);
 
-  // Deep link vanuit een notificatie: ?post=<id> direct naar de juiste post
+  // Deep link vanuit een notificatie: ?post=<id> direct naar de juiste post,
+  // of (FRE-384) ?admin=queue direct naar Account > Beheer > Verzoeken.
+  // AdminView's eigen subTab-state defaultet al naar 'queue' en AccountPage
+  // wordt conditioneel gemount, dus setTab('profile') alleen is al genoeg —
+  // geen aparte prop-doorgifte naar AdminView nodig.
   const handleDeepLink = useCallback((url) => {
     let parsed;
     try {
       parsed = new URL(url, window.location.origin);
     } catch {
+      return;
+    }
+    if (parsed.searchParams.get('admin') === 'queue') {
+      parsed.searchParams.delete('admin');
+      window.history.replaceState(null, '', parsed.pathname + (parsed.search || '') + parsed.hash);
+      setTab('profile');
       return;
     }
     const postId = parsed.searchParams.get('post');
@@ -587,7 +600,7 @@ export default function App() {
       {showNotifInbox && (
         <NotificationInboxSheet
           onClose={() => { setShowNotifInbox(false); setUnreadCount(0); }}
-          onOpenPost={(postId) => handleDeepLink(`/?post=${postId}`)}
+          onNavigate={(url) => handleDeepLink(url)}
           onError={showError}
         />
       )}
