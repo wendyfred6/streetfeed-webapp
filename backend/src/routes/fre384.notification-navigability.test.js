@@ -39,10 +39,17 @@ beforeAll(async () => {
   ({ query } = await import('../db/index.js'));
   server = await (await import('../index.js')).default;
 
+  // posts.user_id is ON DELETE SET NULL (not CASCADE, unlike most tables
+  // here) — seedPost's posts survive the user deletes below unless dropped
+  // explicitly. Left this out originally; a leaked expired post inflated
+  // postExpiration.test.js's global expired-count assertion in CI (it
+  // counts every expired post in the DB, not just its own).
+  await query("DELETE FROM posts WHERE title = 'fre384-test-post'");
   await query('DELETE FROM users WHERE email = ANY($1)', [[ADMIN_EMAIL, REGISTRANT_EMAIL, RESIDENT_EMAIL, RESIDENT_LIVE_EMAIL]]);
 }, 30000);
 
 afterAll(async () => {
+  await query("DELETE FROM posts WHERE title = 'fre384-test-post'");
   await query('DELETE FROM users WHERE email = ANY($1)', [[ADMIN_EMAIL, REGISTRANT_EMAIL, RESIDENT_EMAIL, RESIDENT_LIVE_EMAIL]]);
   if (server) await new Promise((resolve) => server.close(resolve));
 });
